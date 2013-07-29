@@ -103,12 +103,13 @@ if not hasattr(sys, 'frozen'):
         except Exception, e:
             print "WARNING: Java and JVM is not installed - Images will be loaded using PIL (%s)"%(str(e))
             
-        dict = { "name":"utilities",
-                 "description":"utility module for CellProfiler",
+        dict = { "name":"python-javabridge",
+                 "description":"Python wrapper for the Java Native Interface",
                  "maintainer":"Lee Kamentsky",
                  "maintainer_email":"leek@broad.mit.edu",
                  "cmdclass": {'build_ext': build_ext},
                  "packages": ['javabridge'],
+                 "package_data": {"javabridge": ['jars/*.jar']},
                  "ext_modules": extensions
                 }
         return dict

@@ -1,2 +1,3 @@
 /build
 /_javabridge.c
+*.pyc

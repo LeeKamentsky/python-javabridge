@@ -6,10 +6,7 @@ import time
 import wx
 import javabridge.jutil as j
 
-jars_dir = os.path.join(os.path.dirname(__file__), '..', 'jars')
-class_path = os.pathsep.join([os.path.join(jars_dir, name + '.jar')
-                              for name in ['rhino-1.7R4', 'runnablequeue-1.0.0']])
-j.start_vm(['-Djava.class.path=' + class_path])
+javabridge.start_vm(['-Djava.class.path=' + os.pathsep.join(javabridge.JARS)])
 
 class EmptyApp(wx.PySimpleApp):
     def OnInit(self):
