@@ -4,20 +4,13 @@ import os
 import threading
 import time
 import wx
-import javabridge.jutil as j
+import javabridge
 
 javabridge.start_vm(['-Djava.class.path=' + os.pathsep.join(javabridge.JARS)])
 
 class EmptyApp(wx.PySimpleApp):
     def OnInit(self):
-        j.activate_awt()
-
-        j.execute_runnable_in_main_thread(j.run_script("""
-        new java.lang.Runnable() {
-            run: function() {
-                with(JavaImporter(java.awt.Frame)) Frame().setVisible(true);
-            }
-        };"""))
+        javabridge.activate_awt()
 
         return True
 
@@ -29,7 +22,7 @@ launch_button = wx.Button(frame, label="Launch AWT frame")
 frame.Sizer.Add(launch_button, 1, wx.ALIGN_CENTER_HORIZONTAL)
 
 def fn_launch_frame(event):
-    j.execute_runnable_in_main_thread(j.run_script("""
+    javabridge.execute_runnable_in_main_thread(javabridge.run_script("""
     new java.lang.Runnable() {
         run: function() {
             with(JavaImporter(java.awt.Frame)) Frame().setVisible(true);
@@ -41,4 +34,4 @@ frame.Layout()
 frame.Show()
 app.MainLoop()
 
-j.kill_vm()
+javabridge.kill_vm()

@@ -1,3 +1,5 @@
 /build
 /_javabridge.c
 *.pyc
+/javabridge/_javabridge.so
+/python_javabridge.egg-info

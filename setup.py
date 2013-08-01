@@ -26,16 +26,13 @@ is_msvc = (is_win and sys.version_info[0] >= 2 and sys.version_info[1] >= 6)
 is_mingw = (is_win and not is_msvc)
 
 if not hasattr(sys, 'frozen'):
-    from distutils.core import setup,Extension
-    from distutils.sysconfig import get_config_var
+    from setuptools import setup, Extension
 
     try:
-        from Cython.Distutils import build_ext
         from numpy import get_include
     except ImportError:
         import site
         site.addsitedir('../../site-packages')
-        from Cython.Distutils import build_ext
         from numpy import get_include
 
     def configuration():
@@ -107,10 +104,15 @@ if not hasattr(sys, 'frozen'):
                  "description":"Python wrapper for the Java Native Interface",
                  "maintainer":"Lee Kamentsky",
                  "maintainer_email":"leek@broad.mit.edu",
-                 "cmdclass": {'build_ext': build_ext},
                  "packages": ['javabridge'],
                  "package_data": {"javabridge": ['jars/*.jar']},
-                 "ext_modules": extensions
+                 "ext_modules": extensions,
+
+                 "tests_require": "nose",
+                 "entry_points": {'nose.plugins.0.10': [
+                    'javabridge = javabridge.noseplugin:JavabridgePlugin'
+                    ]},
+                 "test_suite": "nose.collector",
                 }
         return dict
 
