@@ -37,9 +37,22 @@ class JavabridgePlugin(Plugin):
     score = 100
 
     def begin(self):
-        class_path = os.pathsep.join(javabridge.JARS)
-        javabridge.start_vm(['-Djava.class.path=' + class_path],
+        javabridge.start_vm(['-Djava.class.path=' + self.class_path],
                             run_headless=True)
+
+    def options(self, parser, env=os.environ):
+        super(JavabridgePlugin, self).options(parser, env=env)
+        parser.add_option("--classpath", action="store",
+                          default=env.get('CLASSPATH'),
+                          metavar="PATH",
+                          dest="classpath",
+                          help="Additional class path for JVM")
+
+    def configure(self, options, conf):
+        super(JavabridgePlugin, self).configure(options, conf)
+        self.class_path = os.pathsep.join(javabridge.JARS)
+        if options.classpath:
+            self.class_path = os.pathsep.join([options.classpath, self.class_path])
 
     def prepareTestRunner(self, testRunner):
         '''Need to make the test runner call finalize if in Wing
