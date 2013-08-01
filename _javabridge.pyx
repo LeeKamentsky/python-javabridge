@@ -321,7 +321,7 @@ def get_default_java_vm_init_args():
     return (args.version, [args.options[i].optionString for i in range(args.nOptions)])
 
 cdef class JB_Object:
-    '''A Java object'''
+    '''Represents a Java object.'''
     cdef:
         jobject o
         env
@@ -544,7 +544,11 @@ cdef class JB_VM:
             self.vm = NULL
     
 cdef class JB_Env:
-    '''Represents the Java VM and the Java execution environment'''
+    '''
+    Represents the Java VM and the Java execution environment as
+    returned by JNI_CreateJavaVM.
+
+    '''
     cdef:
         JNIEnv *env
         defer_fn

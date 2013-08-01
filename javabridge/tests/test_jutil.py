@@ -24,6 +24,7 @@ import sys
 
 import javabridge
 jb = javabridge._javabridge
+from javabridge import jutil
 
 class TestJutil(unittest.TestCase):
 
@@ -315,7 +316,7 @@ class TestJutil(unittest.TestCase):
         new java.util.concurrent.Callable() {
            call: function() { return 2+2; }};""")
         result = javabridge.execute_callable_in_main_thread(c)
-        self.assertEqual(javabridge.unwrap_javascript(result), 4)
+        self.assertEqual(jutil.unwrap_javascript(result), 4)
         
 if __name__=="__main__":
     unittest.main()

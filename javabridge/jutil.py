@@ -1,3 +1,4 @@
+# -*- Encoding: utf-8 -*-
 '''jutil.py - utilities for the javabridge
 
 jutil provides utility functions that can be used to wrap a Java class.
@@ -52,6 +53,10 @@ import uuid
 
 logger = logging.getLogger(__name__)
 
+#
+# TODO: Move to start_jvm
+#
+
 jvm_dir = None
 if sys.platform.startswith('win'):
     #
@@ -97,6 +102,10 @@ elif sys.platform.startswith('linux'):
     stdout, stderr = p.communicate()
     jvm_dir = stdout.strip()
     ctypes.CDLL(os.path.join(jvm_dir, "libjvm.so"))
+
+#
+# TODO: raise an exception that CP can catch
+#
 
 if jvm_dir is None:
     from cellprofiler.preferences \
@@ -227,7 +236,21 @@ class AtExit(object):
         self.fn()
         
 def start_vm(args, run_headless = False):
-    '''Start the Java VM'''
+    '''
+    Start the Java Virtual Machine.
+
+    :param args: a list of strings, encoding arbitrary startup options
+      for the VM. In particular, strings on the form
+      ``"-D<name>=<value>"`` are used to set Java system
+      properties. For example, ``"-Djava.class.path=…"`` sets the
+      class path. (For other startup options, see `"The Invocation API"
+      <http://docs.oracle.com/javase/6/docs/technotes/guides/jni/spec/invocation.html>`_.)
+
+    :param run_headless: if true, set the ``java.awt.headless`` Java
+      property. See `"Using Headless Mode in the Java SE Platform"
+      <http://www.oracle.com/technetwork/articles/javase/headless-136834.html>`_.
+
+    '''
     global __vm
     
     if __vm is not None:
@@ -368,21 +391,25 @@ def unwrap_javascript(o):
     
 def run_script(script, bindings_in = {}, bindings_out = {}, 
                class_loader = None):
-    '''Run a scripting language script
+    '''Run a piece of JavaScript code.
     
-    script - script to run
+    :param script: script to run
+    :type script: string
     
-    bindings_in - key / value pair of global name to Java object. The
-                  engine scope is populated with variables given by the keys
-                  and the variables are assigned the keys' values.
+    :param bindings_in: global variable names and values to assign to them.
+    :type bindings_in: dict
                   
-    bindings_out - a dictionary of keys to be populated with values after
-                   evaluation. For instance, bindings_out = dict(foo=None) to
-                   get the value for the "foo" variable on output.
+    :param bindings_out: a dictionary for returning variables. The
+                         keys should be global variable names. After
+                         the script has run, the values of these
+                         variables will be assigned to the appropriate
+                         value slots in the dictionary. For instance,
+                         ``bindings_out = dict(foo=None)`` to get the
+                         value for the "foo" variable on output.
                    
-    class_loader - class loader for scripting context
+    :param class_loader: class loader for scripting context
     
-    Returns the object that is the result of the evaluation.
+    :returns: the object that is the result of the evaluation.
     '''
     context = static_call("org/mozilla/javascript/Context", "enter",
                           "()Lorg/mozilla/javascript/Context;")
@@ -623,7 +650,10 @@ CLOSE_ALL_WINDOWS = """
 
 __awt_is_active = False
 def activate_awt():
-    '''Activate Java AWT by executing some trivial code'''
+    '''
+    Make a trivial AWT call in order to force AWT to initialize.
+    
+    '''
     global __awt_is_active
     if not __awt_is_active:
         execute_runnable_in_main_thread(run_script(
@@ -635,6 +665,10 @@ def activate_awt():
         __awt_is_active = True
         
 def deactivate_awt():
+    '''
+    Close all AWT windows.
+    
+    '''
     global __awt_is_active
     if __awt_is_active:
         r = run_script(CLOSE_ALL_WINDOWS)
@@ -658,6 +692,7 @@ def make_kill_vm():
     if not hasattr(thread_local_env, "attach_count"):
         thread_local_env.attach_count = 0
     def kill_vm():
+        '''Kill the JVM. Once it is killed, it cannot be restarted.'''
         global __vm
         if __vm is None:
             return
