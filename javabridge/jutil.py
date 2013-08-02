@@ -1,43 +1,14 @@
 # -*- Encoding: utf-8 -*-
-'''jutil.py - utilities for the javabridge
+'''jutil.py - high-level interface to the JVM
 
-jutil provides utility functions that can be used to wrap a Java class.
-The strategy here is to create closure functions that can be used to build
-something that looks classy. For instance:
-
-def get_java_string_class(env):
-     class JavaString(object):
-         klass = javabridge.find_class('java/lang/String')
-         def __init__(self, s):
-             self.o = javabridge.new_string_utf(str(s))
-         charAt = jutil.make_method(env, klass, 'charAt', '(I)C')
-         compareTo = jutil.make_method(env, klass, 'compareTo',
-                                       '(Ljava/lang/Object;)I')
-         concat = jutil.make_method(env, klass, 'concat',
-                                    '(Ljava/lang/String;)Ljava/lang/String;')
-         ...
-     return JavaString
-
-It's important to duck-type your class by using "klass" to store the class
-and self.o to store the Java object instance.
-
-The signatures are difficult, but you can cheat. The JSDK has a program,
-'javap', that you can use to print out the signatures of everything
-in a class.
-
-CellProfiler is distributed under the GNU General Public License,
-but this file is licensed under the more permissive BSD license.
-See the accompanying file LICENSE for details.
+python-javabridge is licensed under the BSD license.  See the
+accompanying file LICENSE for details.
 
 Copyright (c) 2003-2009 Massachusetts Institute of Technology
 Copyright (c) 2009-2013 Broad Institute
 All rights reserved.
 
-Please see the AUTHORS file for credits.
-
-Website: http://www.cellprofiler.org
 '''
-__version__ = "$Revision$"
 
 import codecs
 import gc
@@ -47,22 +18,17 @@ import numpy as np
 import os
 import threading
 import traceback
+import re    
 import subprocess
 import sys
 import uuid
+import _javabridge
+from .locate import find_javahome
 
 logger = logging.getLogger(__name__)
 
-#
-# TODO: Move to start_jvm
-#
-
-jvm_dir = None
-if sys.platform.startswith('win'):
-    #
-    # Try harder by looking for JAVA_HOME and in the registry
-    #
-    from setup import find_javahome
+def _find_jvm_windows():
+    # Look for JAVA_HOME and in the registry
     java_home = find_javahome()
     jvm_dir = None
     if java_home is not None:
@@ -79,106 +45,50 @@ if sys.platform.startswith('win'):
                 break
         if not found_jvm:
             jvm_dir = None
-            
-elif sys.platform == 'darwin':
-    #
-    # Put the jvm library on the path, hoping it is always in the same place
-    #
+    return jvm_dir
+
+def _find_jvm_mac():
+    # Put the jvm library on the path, hoping it is always in the same
+    # place.
     jvm_dir = '/System/Library/Frameworks/JavaVM.framework/Libraries'
     os.environ['PATH'] = os.environ['PATH'] + ':' + jvm_dir
-elif sys.platform.startswith('linux'):
+    return jvm_dir
+
+def _find_jvm_linux():
     #
     # Run the findlibjvm program which uses java.library.path to
     # find the search path for the JVM.
     #
     import ctypes
-    if hasattr(sys, 'frozen'):
-        path = os.path.split(os.path.abspath(sys.argv[0]))[0]
-        path = os.path.join(path, 'cellprofiler','utilities')
-    else:
-        path = os.path.split(__file__)[0]
-    p = subprocess.Popen(["java","-cp", path, "findlibjvm"],
+    class_path = os.path.join(os.path.dirname(__file__), 'jars', 'findlibjvm.jar')
+    p = subprocess.Popen(["java","-cp", class_path, "findlibjvm"],
                          stdout=subprocess.PIPE)
     stdout, stderr = p.communicate()
     jvm_dir = stdout.strip()
     ctypes.CDLL(os.path.join(jvm_dir, "libjvm.so"))
+    return jvm_dir
 
-#
-# TODO: raise an exception that CP can catch
-#
+def _find_jvm():
+    jvm_dir = None
+    if sys.platform.startswith('win'):
+        jvm_dir = _find_jvm_windows()
+    elif sys.platform == 'darwin':
+        jvm_dir = _find_jvm_mac()
+    elif sys.platform.startswith('linux'):
+        jvm_dir = _find_jvm_linux()
 
-if jvm_dir is None:
-    from cellprofiler.preferences \
-         import get_report_jvm_error, set_report_jvm_error, get_headless
-    from cellprofiler.preferences import set_has_reported_jvm_error
-    
-    if not get_headless():
-        import wx
-
-        app = wx.GetApp()
-        if app is not None and get_report_jvm_error():
-            dlg = wx.Dialog(wx.GetApp().GetTopWindow(),
-                            title="Java not installed properly")
-            sizer = wx.BoxSizer(wx.VERTICAL)
-            dlg.SetSizer(sizer)
-            text = wx.StaticText(dlg,-1, 
-                                 "CellProfiler can't find Java on your computer.")
-            text.Font = wx.Font(int(dlg.Font.GetPointSize()*5/4),
-                                dlg.Font.GetFamily(),
-                                dlg.Font.GetStyle(),
-                                wx.FONTWEIGHT_BOLD)
-            sizer.Add(text, 0, wx.ALIGN_LEFT | wx.ALL, 5)
-            if java_home is None or sys.platform == "darwin":
-                label = \
-"""CellProfiler cannot find the location of Java on your computer.
-CellProfiler can process images without Java, but uses the Bioformats Java
-library to process images if Java is available.
-
-You can download the Java runtime for your operating system at:
-http://www.java.com/en/download/index.jsp
-"""
-            else:
-                label = \
-"""CellProfiler cannot find the location of Java on your computer.
-CellProfiler can process images without Java, but uses the Bioformats Java
-library to process images if Java is available.
-
-Your computer may not be configured correctly. Your computer is configured
-as if Java is installed in the directory, "%s", but the files that CellProfiler
-needs do not seem to be installed there. Please see:
-
-http://cellprofiler.org/wiki/index.php/Installing_Java
-
-for more help.""" % java_home
-                    
-            sizer.Add(wx.StaticText(dlg, label = label), 
-                      0, wx.EXPAND | wx.ALL, 5)
-            report_ctrl = wx.CheckBox(
-                dlg, label = "Don't show this message again.")
-            report_ctrl.Value = False
-            sizer.Add(report_ctrl, 0, wx.ALIGN_LEFT | wx.ALL, 5)
-            buttons_sizer = wx.StdDialogButtonSizer()
-            buttons_sizer.AddButton(wx.Button(dlg, wx.ID_OK))
-            buttons_sizer.Realize()
-            sizer.Add(buttons_sizer, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
-            dlg.Fit()
-            dlg.ShowModal()
-            show_jvm_error_dlg = False
-            if report_ctrl.Value:
-                set_report_jvm_error(False)
-            else:
-                # Just for this run, turn off reporting
-                set_has_reported_jvm_error()
-            
-    raise IOError("Can't find jvm directory")
-    
-import _javabridge
-import re    
+    if jvm_dir is None:
+        raise JVMNotFoundError()
 
 class JavaError(ValueError):
-    '''A procedural error caused by misuse of jutil'''
+    '''An error caused by using the Javabridge incorrectly'''
     def __init__(self, message=None):
         super(JavaError,self).__init__(message)
+
+class JVMNotFoundError(JavaError):
+    '''Failed to find The Java Runtime Environment'''
+    def __init__(self):
+        super(JVMNotFoundError, self).__init__("Can't find the Java Virtual Machine")
         
 class JavaException(Exception):
     '''Represents a Java exception thrown inside the JVM'''
@@ -250,8 +160,12 @@ def start_vm(args, run_headless = False):
       property. See `"Using Headless Mode in the Java SE Platform"
       <http://www.oracle.com/technetwork/articles/javase/headless-136834.html>`_.
 
+    :throws: :py:exception:JVMNotFoundError
+
     '''
     global __vm
+
+    _find_jvm()
     
     if __vm is not None:
         return
@@ -290,26 +204,6 @@ def start_vm(args, run_headless = False):
         thread_local_env = __thread_local_env
         ptt = pt # needed to bind to pt inside exit_fn
         try:
-            if hasattr(sys, 'frozen') and sys.platform != 'darwin':
-                utils_path = os.path.join(
-                    os.path.split(os.path.abspath(sys.argv[0]))[0],
-                    "cellprofiler",
-                    "utilities")
-            else:
-                utils_path = os.path.abspath(os.path.split(__file__)[0])
-                if not os.path.isdir(utils_path):
-                    # CPA's directory structure is this:
-                    #
-                    # CPAnalyst.app
-                    #      Contents
-                    #          MacOS
-                    #              CPAnalyst
-                    #          Resources
-                    #
-                    macos_path = os.path.abspath(os.path.split(sys.argv[0])[0])
-                    contents_path = os.path.split(macos_path)[0]
-                    root_path = os.path.join(contents_path, "Resources")
-                    utils_path = os.path.join(root_path, "cellprofiler", "utilities")
             if sys.platform == "darwin":
                 logger.debug("Launching VM in non-python thread")
                 vm.create_mac(args, RQCLS)
@@ -447,17 +341,18 @@ def run_script(script, bindings_in = {}, bindings_out = {},
 def execute_runnable_in_main_thread(runnable, synchronous=False):
     '''Execute a runnable on the main thread
     
-    runnable - a Java object implementing java.lang.Runnable
+    :param runnable: a Java object implementing java.lang.Runnable
     
-    synchronous - True if we should wait for the runnable to finish
+    :param synchronous: True if we should wait for the runnable to finish
     
-    Hint: to make a runnable using scripting,
+    Hint: to make a runnable using JavaScript::
     
-    return new java.lang.Runnable() {
-      run: function() {
-        <do something here>
-      }
-    };
+        return new java.lang.Runnable() {
+          run: function() {
+            <do something here>
+          }
+        };
+
     '''
     if sys.platform == "darwin":
         # Assumes that RunnableQueue has been deployed on the main thread
@@ -559,21 +454,22 @@ def execute_future_in_main_thread(jfuture):
 def execute_callable_in_main_thread(jcallable):
     '''Execute a callable on the main thread, returning its value
     
-    callable - a Java object implementing java.util.concurrent.Callable
+    :param jcallable: a Java object implementing java.util.concurrent.Callable
     
-    Returns the result of evaluating the callable's "call" method in the
-    main thread.
+    :returns: the result of evaluating the callable's "call" method in the
+              main thread.
     
-    Hint: to make a callable using scripting,
+    Hint: to make a callable using JavaScript::
     
-    var my_import_scope = new JavaImporter(java.util.concurrent.Callable);
-    with (my_import_scope) {
-        return new Callable() {
-            call: function {
-                <do something that produces result>
-                return result;
-            }
-        };
+        var my_import_scope = new JavaImporter(java.util.concurrent.Callable);
+        with (my_import_scope) {
+            return new Callable() {
+                call: function {
+                    <do something that produces result>
+                    return result;
+                }
+            };
+
     '''
     if sys.platform == "darwin":
         # Assumes that RunnableQueue has been deployed on the main thread
@@ -591,9 +487,9 @@ def execute_callable_in_main_thread(jcallable):
 def run_in_main_thread(closure, synchronous):
     '''Run a closure in the main Java thread
     
-    closure - a callable object (eg lambda : print "hello, world")
-    
-    synchronous - True to wait for completion of execution
+    :param closure: a callable object (eg lambda : print "hello, world")
+    :param synchronous: True to wait for completion of execution
+
     '''
     global __main_thread_closures
     global __wake_event
@@ -758,10 +654,14 @@ def detach():
 def is_instance_of(o, class_name):
     '''Return True if object is instance of class
     
-    o - object in question
-    class_name - class in question. Use slash form: java/lang/Object
+    :param o: object in question
+    :param class_name: class in question. Use slash form: java/lang/Object
     
-    Note: returns False if o is not a java object (e.g. a string)
+    Note: returns False if o is not a Java object.
+
+    >>> javabridge.is_instance_of(javabridge.get_env().new_string_utf("Foo"), 'java/lang/String')
+    True
+
     '''
     if not isinstance(o, _javabridge.JB_Object):
         return False
@@ -777,11 +677,21 @@ def is_instance_of(o, class_name):
     return result
     
 def call(o, method_name, sig, *args):
-    '''Call a method on an object
+    '''
+    Call a method on an object
     
-    o - object in question
-    method_name - name of method on object's class
-    sig - calling signature
+    :param o: object in question
+    :param method_name: name of method on object's class
+    :param sig: calling signature
+
+    :returns: the result of the method call, converted to Python
+              values when possible.
+
+    >>> import javabridge
+    >>> jstring = javabridge.get_env().new_string_utf("Hello, world")
+    >>> javabridge.call(jstring, "charAt", "(I)C", 0)
+    'H'
+
     '''
     assert o is not None
     env = get_env()
@@ -808,9 +718,13 @@ def call(o, method_name, sig, *args):
 def static_call(class_name, method_name, sig, *args):
     '''Call a static method on a class
     
-    class_name - name of the class, using slashes
-    method_name - name of the static method
-    sig - signature of the static method
+    :param class_name: name of the class, using slashes
+    :param method_name: name of the static method
+    :param sig: signature of the static method
+
+    >>> javabridge.static_call("Ljava/lang/String;", "valueOf", "(I)Ljava/lang/String;", 123)
+    u'123'
+
     '''
     env = get_env()
     klass = env.find_class(class_name)
@@ -832,34 +746,14 @@ def static_call(class_name, method_name, sig, *args):
     return get_nice_result(result, ret_sig)
 
 def make_method(name, sig, doc='No documentation'):
-    '''Return a class method for the given Java class
+    '''Return a class method for the given Java class. When called,
+    the method expects to find its Java instance object in ``self.o``,
+    which is where ``make_new`` puts it.
+
+    :param name: method name
+    :param sig: calling signature
+    :param doc: doc string to be attached to the Python method
     
-    sig - a calling signature. 
-          See http://java.sun.com/j2se/1.4.2/docs/guide/jni/spec/types.htm
-          An example: "(ILjava/lang/String;)[I" takes an integer and
-          string as parameters and returns an array of integers.
-          Cheat sheet:
-          Z - boolean
-          B - byte
-          C - char
-          S - short
-          I - int
-          J - long
-          F - float
-          D - double
-          L - class (e.g. Lmy/class;)
-          [ - array of (e.g. [B = byte array)
-    
-    Note - this assumes that the JNI object is stored in self.o. Use like this:
-    
-    class Integer:
-        new_fn = make_new("java/lang/Integer", "(I)V")
-        def __init__(self, i):
-            self.new_fn(i)
-        intValue = make_method("intValue", "()I","Retrieve the integer value")
-    i = Integer(435)
-    if i.intValue() == 435:
-        print "It worked"
     '''
     
     def method(self, *args):
@@ -871,9 +765,13 @@ def make_method(name, sig, doc='No documentation'):
 def get_static_field(klass, name, sig):
     '''Get the value for a static field on a class
     
-    klass - the class or string name of class
-    name - the name of the field
-    sig - the signature, typically, 'I' or 'Ljava/lang/String;'
+    :param klass: the class or string name of class
+    :param name: the name of the field
+    :param sig: the signature, typically, 'I' or 'Ljava/lang/String;'
+
+    >>> javabridge.get_static_field("java/lang/Short", "MAX_VALUE", "S")
+    32767
+
     '''
     env = get_env()
     if isinstance(klass, _javabridge.JB_Object):
@@ -907,12 +805,14 @@ def get_static_field(klass, name, sig):
                                sig)
         
 def set_static_field(klass, name, sig, value):
-    '''Set the value for a static field on a class
+    '''
+    Set the value for a static field on a class
     
-    klass - the class or string name of class
-    name - the name of the field
-    sig - the signature, typically, 'I' or 'Ljava/lang/String;'
-    value - the value to set
+    :param klass: the class or string name of class
+    :param name: the name of the field
+    :param sig: the signature, typically, 'I' or 'Ljava/lang/String;'
+    :param value: the value to set
+
     '''
     env = get_env()
     if isinstance(klass, _javabridge.JB_Object):
@@ -1078,17 +978,34 @@ def get_nice_result(result, sig):
     return result
 
 def to_string(jobject):
-    '''Call the toString method on any object'''
+    '''
+    Call the toString method on any object.
+
+    :returns: the string representation of the object as a Python string
+
+    >>> jstring = javabridge.get_env().new_string_utf("Hello, world")
+    >>> jstring
+    <Java object at 0x55116e0>
+    >>> javabridge.to_string(jstring)
+    u'Hello, world'
+
+    '''
     env = get_env()
     if not isinstance(jobject, _javabridge.JB_Object):
         return str(jobject)
     return call(jobject, 'toString', '()Ljava/lang/String;')
 
 def get_dictionary_wrapper(dictionary):
-    '''Return a wrapper of java.util.Dictionary
-    
-    Given a JB_Object that implements java.util.Dictionary, return a wrapper
-    that implements the class methods.
+    '''Return a wrapper of java.util.Dictionary.
+
+    :param dictionary: Java object that implements the ``java.util.Dictionary`` interface.
+    :returns: a Python instance that wraps the Java dictionary.
+
+    >>> jproperties = javabridge.static_call("java/lang/System", "getProperties", "()Ljava/util/Properties;")
+    >>> properties = javabridge.get_dictionary_wrapper(jproperties)
+    >>> properties.size()
+    56
+
     '''
     env = get_env()
     class Dictionary(object):
@@ -1112,10 +1029,19 @@ def get_dictionary_wrapper(dictionary):
     return Dictionary()
 
 def jdictionary_to_string_dictionary(hashtable):
-    '''Convert a Java dictionary to a Python dictionary
+    '''Convert a Java dictionary to a Python dictionary.
     
-    Convert each key and value in the Java dictionary to
-    a string and construct a Python dictionary from the result.
+    Convert each key and value in the Java dictionary to a string and
+    construct a Python dictionary from the result.
+
+    :param hashtable: Java object that implements the ``java.util.Hashtable`` interface.
+    :returns: a Python ``dict`` with strings as keys and values
+
+    >>> jproperties = javabridge.static_call("java/lang/System", "getProperties", "()Ljava/util/Properties;")
+    >>> properties = javabridge.jdictionary_to_string_dictionary(jproperties)
+    >>> properties['java.specification.vendor']
+    'Sun Microsystems Inc.'
+
     '''
     jhashtable = get_dictionary_wrapper(hashtable)
     jkeys = jhashtable.keys()
@@ -1130,6 +1056,16 @@ def get_enumeration_wrapper(enumeration):
     
     Given a JB_Object that implements java.util.Enumeration,
     return an object that wraps the class methods.
+
+    >>> jproperties = javabridge.static_call("java/lang/System", "getProperties", "()Ljava/util/Properties;")
+    >>> keys = javabridge.call(jproperties, "keys", "()Ljava/util/Enumeration;")
+    >>> enum = javabridge.get_enumeration_wrapper(keys)
+    >>> while enum.hasMoreElements():
+    ...     if javabridge.to_string(enum.nextElement()) == 'java.vm.name':
+    ...         print "Has java.vm.name"
+    ... 
+    Has java.vm.name
+
     '''
     env = get_env()
     class Enumeration(object):
@@ -1145,22 +1081,36 @@ def get_enumeration_wrapper(enumeration):
 def iterate_java(iterator):
     '''Make a Python iterator for a Java iterator
     
-    usage:
-    for x in iterate_java(foo):
-        do_something_with(x)
+    >>> jiterator = javabridge.run_script("""var al = new java.util.ArrayList(); al.add("Foo"); al.add("Bar"); al.iterator()""")
+    >>> [x for x in javabridge.iterate_java(jiterator)]
+    [u'Foo', u'Bar']
+
     '''
     while(call(iterator, 'hasNext', '()Z')):
         yield call(iterator, 'next', '()Ljava/lang/Object;')
         
 def iterate_collection(c):
-    '''Make a Python iterator over the elements of a Java collection'''
+    '''
+    Make a Python iterator over the elements of a Java collection
+
+    >>> al = javabridge.run_script("""var al = new java.util.ArrayList(); al.add("Foo"); al.add("Bar"); al;""")
+    >>> [x for x in javabridge.iterate_java(al)]
+    [u'Foo', u'Bar']
+
+    '''
     return iterate_java(call(c, "iterator", "()Ljava/util/Iterator;"))
         
 def jenumeration_to_string_list(enumeration):
     '''Convert a Java enumeration to a Python list of strings
     
-    Convert each element in an enumeration to a string and store
-    in a Python list.
+    Convert each element in an enumeration to a string and return them
+    as a Python list.
+
+    >>> jproperties = javabridge.static_call("java/lang/System", "getProperties", "()Ljava/util/Properties;")
+    >>> keys = javabridge.call(jproperties, "keys", "()Ljava/util/Enumeration;")
+    >>> 'java.vm.name' in javabridge.jenumeration_to_string_list(keys)
+    True
+
     '''
     jenumeration = get_enumeration_wrapper(enumeration)
     result = []
@@ -1169,15 +1119,17 @@ def jenumeration_to_string_list(enumeration):
     return result
 
 def make_new(class_name, sig):
-    '''Make a function that creates a new instance of the class
+    '''
+    Make a function that creates a new instance of the class. When
+    called, the function does not return the new instance, but stores
+    it at ``self.o``.
     
-    A typical init function looks like this:
-    new_fn = make_new("java/lang/Integer", '(I)V')
-    def __init__(self, i):
-        self.o = new_fn(i)
-    
-    It's important to store the object in self.o because it's expected to be
-    there by make_method, etc.
+    A typical init function looks like this::
+
+        new_fn = make_new("java/lang/Integer", '(I)V')
+        def __init__(self, i):
+            new_fn(i)
+
     '''
     def constructor(self, *args):
         self.o = make_instance(class_name, sig, *args)
@@ -1186,9 +1138,13 @@ def make_new(class_name, sig):
 def make_instance(class_name, sig, *args):
     '''Create an instance of a class
     
-    class_name - name of class in foo/bar/Baz form (not foo.bar.Baz)
-    sig - signature of constructor
-    args - arguments to constructor
+    :param class_name: name of class in foo/bar/Baz form (not foo.bar.Baz)
+    :param sig: signature of constructor
+    :param args: arguments to constructor
+
+    >>> javabridge.make_instance("java/lang/Integer", "(I)V", 42)
+    <Java object at 0x55116dc>
+
     '''
     args_sig = split_sig(sig[1:sig.find(')')])
     klass = get_env().find_class(class_name)
@@ -1213,7 +1169,8 @@ def make_instance(class_name, sig, *args):
 def class_for_name(classname, ldr="system"):
     '''Return a java.lang.Class for the given name
     
-    classname: the class name in dotted form, e.g. "java.lang.Class"
+    :param classname: the class name in dotted form, e.g. "java.lang.String"
+
     '''
     if ldr == "system":
         ldr = static_call('java/lang/ClassLoader', 'getSystemClassLoader',
@@ -1224,8 +1181,23 @@ def class_for_name(classname, ldr="system"):
                        classname, True, ldr)
 
 def get_class_wrapper(obj, is_class = False):
-    '''Return a wrapper for an object's class (e.g. for reflection)
-    
+    '''Return a wrapper for an object's class (e.g., for
+    reflection). The returned wrapper class will have the following
+    methods:
+
+    * getAnnotation() -> java.lang.annotation.Annotation
+    * getAnnotations() -> array of java.lang.annotation.Annotation
+    * getCanonicalName() -> java.lang.String
+    * getClasses() -> array of java.lang.Class
+    * getContructor(signature) -> java.lang.reflect.Constructor
+    * getFields() -> array of java.lang.reflect.Field
+    * getField(field_name) -> java.lang.reflect.Field
+    * getMethods() -> array of java.lang.reflect.Method
+    * getMethod(method_name) -> java.lang.reflect.Method
+    * cast(class) -> object
+    * isPrimitive() -> boolean
+    * newInstance() -> object
+ 
     '''
     if is_class:
         class_object = obj
@@ -1289,7 +1261,35 @@ def get_modifier_flags(modifier_flags):
     return result
 
 def get_field_wrapper(field):
-    '''Return a wrapper for the java.lang.reflect.Field class'''
+    '''
+    Return a wrapper for the java.lang.reflect.Field class. The
+    returned wrapper class will have the following methods:
+
+    * getAnnotation() -> java.lang.annotation.Annotation
+    * getBoolean() -> bool
+    * getByte -> byte
+    * getChar -> char
+    * getDouble -> double
+    * getFloat -> float
+    * getInt -> int
+    * getShort -> short
+    * getLong -> long
+    * getDeclaredAnnotations() -> array of java.lang.annotation.Annotation
+    * getGenericType -> java.lang.reflect.Type
+    * getModifiers() -> Python list of strings indicating the modifier flags
+    * getName() -> java.lang.String()
+    * getType() -> java.lang.Class()
+    * set(object, object) -> void
+    * setBoolean(bool) -> void
+    * setByte(byte) -> void
+    * setChar(char) -> void
+    * setDouble(double) -> void
+    * setFloat(float) -> void
+    * setInt(int) -> void
+    * setShort(short) -> void
+    * setLong(long) -> void
+
+    '''
     class Field(object):
         def __init__(self):
             self.o = field
@@ -1344,7 +1344,17 @@ def get_field_wrapper(field):
     return Field()
 
 def get_constructor_wrapper(obj):
-    '''Get a wrapper for calling methods on the constructor object'''
+    '''
+    Get a wrapper for calling methods on the constructor object. The
+    wraper class will have the following methods:
+
+    * getParameterTypes() -> array of java.lang.Class
+    * getName() -> java.lang.String
+    * newInstance(array of objects) -> object
+    * getAnnotation() -> java.lang.annotation.Annotation
+    * getModifiers() -> Python list of strings indicating the modifier flags
+
+    '''
     class Constructor(object):
         def __init__(self):
             self.o = obj
@@ -1361,7 +1371,17 @@ def get_constructor_wrapper(obj):
     return Constructor()
         
 def get_method_wrapper(obj):
-    '''Get a wrapper for calling methods on the method object'''
+    '''
+    Get a wrapper for calling methods on the method object. The
+    wrapper class will have the following methods:
+
+    * getParameterTypes() -> array of java.lang.Class
+    * getName() -> java.lang.String
+    * invoke(this, arguments) -> objec
+    * getAnnotation() -> java.lang.annotation.Annotation
+    * getModifiers() -> Python list of strings indicating the modifier flags
+
+    '''
     class Method(object):
         def __init__(self):
             self.o = obj

@@ -4,3 +4,6 @@
 /javabridge/_javabridge.so
 /python_javabridge.egg-info
 /docs/_build
+*.class
+/javabridge/jars/findlibjvm.jar
+/javabridge/jars/runnablequeue.jar

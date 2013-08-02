@@ -1,30 +1,13 @@
-'''javabridge - a Python/Java bridge via JNI
+"""_javabridge.pyx - low-level interface to the JVM
 
-javabridge is designed to wrap JNI at the lowest level. The bridge can create
-an environment and can make calls on the environment. However, it's up to
-higher-level code to combine primitives into more concise operations.
-
-Javabridge implements several classes:
-
-JB_Env: represents a Java VM and environment as returned by
-         JNI_CreateJavaVM.
-
-JB_Object: represents a Java object.
-
-Java array objects are handled as numpy arrays
-
-CellProfiler is distributed under the GNU General Public License,
-but this file is licensed under the more permissive BSD license.
-See the accompanying file LICENSE for details.
+python-javabridge is licensed under the BSD license.  See the
+accompanying file LICENSE for details.
 
 Copyright (c) 2003-2009 Massachusetts Institute of Technology
 Copyright (c) 2009-2013 Broad Institute
 All rights reserved.
 
-Please see the AUTHORS file for credits.
-
-Website: http://www.cellprofiler.org
-'''
+"""
 
 import numpy as np
 import sys
@@ -665,11 +648,13 @@ cdef class JB_Env:
     def get_method_id(self, JB_Class c, char *name, char *sig):
         '''Find the method ID for a method on a class
 
-        c - a class retrieved by find_class or get_object_class
-        name - the method name
-        sig - the calling signature, e.g. "(ILjava/lang/String;)D" is
-              a function that returns a double and takes an integer,
-              a long and a string as arguments.
+        :param c: a class retrieved by find_class or get_object_class
+        :param name: the method name
+        :param sig: the calling signature,
+	            e.g. "(ILjava/lang/String;)D" is a function that
+	            returns a double and takes an integer, a long and
+	            a string as arguments.
+
         '''
         cdef:
             jmethodID id
@@ -688,11 +673,13 @@ cdef class JB_Env:
     def get_static_method_id(self, JB_Class c, char *name, char *sig):
         '''Find the method ID for a static method on a class
 
-        c - a class retrieved by find_class or get_object_class
-        name - the method name
-        sig - the calling signature, e.g. "(ILjava/lang/String;)D" is
-              a function that returns a double and takes an integer,
-              a long and a string as arguments.
+        :param c: a class retrieved by find_class or get_object_class
+        :param name: the method name
+        :param sig: the calling signature,
+                    e.g. "(ILjava/lang/String;)D" is a function that
+                    returns a double and takes an integer, a long and
+                    a string as arguments.
+
         '''
         cdef:
             jmethodID id
@@ -728,11 +715,13 @@ cdef class JB_Env:
     def call_method(self, JB_Object o, __JB_MethodID m, *args):
         '''Call a method on an object with arguments
 
-        o - object in question
-        m - the method ID
-        *args - the arguments to the method call. Arguments should
-                appear in the same order as the signature. Arguments will
-                be coerced into the type of the signature.
+	:param o: object in question
+        :param m: the method ID
+        :param *args: the arguments to the method call. Arguments
+	              should appear in the same order as the
+	              signature. Arguments will be coerced into the
+	              type of the signature.
+
         '''
         cdef:
             jvalue *values
@@ -795,11 +784,13 @@ cdef class JB_Env:
     def call_static_method(self, JB_Class c, __JB_MethodID m, *args):
         '''Call a static method on a class with arguments
 
-        c - class holding the method
-        m - the method ID
-        *args - the arguments to the method call. Arguments should
-                appear in the same order as the signature. Arguments will
-                be coerced into the type of the signature.
+        :param c: class holding the method
+	:param m: the method ID
+        :param *args: the arguments to the method call. Arguments
+		      should appear in the same order as the
+		      signature. Arguments will be coerced into the
+		      type of the signature.
+
         '''
         cdef:
             jvalue *values
@@ -1169,12 +1160,15 @@ cdef class JB_Env:
     def new_object(self, JB_Class c, __JB_MethodID m, *args):
         '''Call a class constructor with arguments
 
-        c - class in question
-        m - the method ID. You can get this by calling get_method_id with a
-            name of "<init>" and a return type of V
-        *args - the arguments to the method call. Arguments should
-                appear in the same order as the signature. Arguments will
-                be coerced into the type of the signature.
+        :param c: class in question
+        :param m: the method ID. You can get this by calling
+	          get_method_id with a name of "<init>" and a return
+	          type of V
+        :param *args: the arguments to the method call. Arguments
+                      should appear in the same order as the
+                      signature. Arguments will be coerced into the
+                      type of the signature.
+
         '''
         cdef:
             jvalue *values

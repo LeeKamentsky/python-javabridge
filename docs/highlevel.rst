@@ -5,6 +5,40 @@ High-level API
 
 This API is high level only in comparison to :doc:`the low-level API<lowlevel>`: the resulting code can still be cumbersome and verbose because of the need to handle signatures when navigating the JVM's object structure. It is often more convenient to interact with a piece of :doc:`JavaScript running on the JVM<javascript>`.
 
+Signatures
+----------
+
+The signatures are described in `JNI Types and Data Structures <http://docs.oracle.com/javase/1.5.0/docs/guide/jni/spec/types.html>`_. An example: “(ILjava/lang/String;)[I” takes an integer and string as parameters and returns an array of integers. 
+
+Cheat sheet: 
+
+Z
+   boolean
+B
+   byte
+C
+   char
+S
+   short
+I
+   int
+J
+   long
+F
+   float
+D
+   double
+L
+   class (e.g., Lmy/class;)
+\[
+   array of (e.g., [B = byte array)
+
+
+The signatures are difficult, but you can cheat. The JSDK has a program,
+'javap', that you can use to print out the signatures of everything
+in a class.
+
+
 Operations on Java objects
 --------------------------
 .. autofunction:: javabridge.call
@@ -17,8 +51,19 @@ Operations on Java objects
 
 Make Python objects that wrap Java objects
 ------------------------------------------
-.. autofunction:: javabridge.make_method
+The functions ``make_new`` and ``make_method`` create Python methods that wrap Java constructors and methods, respectively. The function can be used to create Python wrapper classes for Java classes. Example::
+
+    >>> class Integer:
+            new_fn = javabridge.make_new("java/lang/Integer", "(I)V")
+            def __init__(self, i):
+                self.new_fn(i)
+            intValue = javabridge.make_method("intValue", "()I", "Retrieve the integer value")
+    >>> i = Integer(435)
+    >>> i.intValue()
+    435
+
 .. autofunction:: javabridge.make_new
+.. autofunction:: javabridge.make_method
 
 Useful collection wrappers
 --------------------------
@@ -31,14 +76,13 @@ Useful collection wrappers
 
 Reflection
 ----------
-These functions make use of ``make_method`` or ``make_new`` internally.
+These functions make class wrappers suitable for introspection. These wrappers are examples of the kinds of wrappers that you can build yourself using ``make_method`` and ``make_new``.
 
 .. autofunction:: javabridge.get_class_wrapper
 .. autofunction:: javabridge.get_field_wrapper
 .. autofunction:: javabridge.class_for_name
 .. autofunction:: javabridge.get_constructor_wrapper
 .. autofunction:: javabridge.get_method_wrapper
-.. autofunction:: javabridge.get_modifier_flags
 
 Executing in the correct thread
 -------------------------------
@@ -48,11 +92,10 @@ the AWT main thread, which is not accessible from Python.
 .. autofunction:: javabridge.execute_runnable_in_main_thread
 .. autofunction:: javabridge.execute_future_in_main_thread
 .. autofunction:: javabridge.execute_callable_in_main_thread
-.. autofunction:: javabridge.run_in_main_thread
 
 Exceptions
 ----------
 
 .. autoexception:: javabridge.JavaError
 .. autoexception:: javabridge.JavaException
-
+.. autoexception:: javabridge.JVMNotFoundError

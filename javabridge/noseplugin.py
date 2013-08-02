@@ -1,12 +1,13 @@
-# CellProfiler is distributed under the GNU General Public License.
-# See the accompanying file LICENSE for details.
-# 
-# Copyright (c) 2003-2009 Massachusetts Institute of Technology
-# Copyright (c) 2009-2013 Broad Institute
-# 
-# Please see the AUTHORS file for credits.
-# 
-# Website: http://www.cellprofiler.org
+"""noseplugin.py - start and stop JVM when running unit tests
+
+python-javabridge is licensed under the BSD license.  See the
+accompanying file LICENSE for details.
+
+Copyright (c) 2003-2009 Massachusetts Institute of Technology
+Copyright (c) 2009-2013 Broad Institute
+All rights reserved.
+
+"""
 
 import logging
 from nose.plugins import Plugin
@@ -20,9 +21,6 @@ import javabridge
 
 log = logging.getLogger(__name__)
 
-#class_path = os.pathsep.join(javabridge.JARS)
-#javabridge.start_vm(['-Djava.class.path=' + class_path],
-#                    run_headless=True)
 
 class JavabridgePlugin(Plugin):
     '''Javabridge nose test plugin
