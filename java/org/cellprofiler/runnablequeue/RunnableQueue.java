@@ -42,7 +42,7 @@ public class RunnableQueue implements Runnable {
 				task.run();
 			}
 		} catch (InterruptedException e) {
-			System.out.println("Exiting RunnableQueue.");
+                        // System.out.println("Exiting RunnableQueue.");
 		}
 	}
 	
