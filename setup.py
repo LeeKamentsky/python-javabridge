@@ -137,11 +137,21 @@ if __name__ == '__main__':
     if '/' in __file__:
         os.chdir(os.path.dirname(__file__))
 
-    setup(name="python-javabridge",
+    setup(name="javabridge",
+          version='1.0.0pr1',
           description="Python wrapper for the Java Native Interface",
+          long_description='''The python-javabridge package makes it easy to start a Java virtual
+machine (JVM) from Python and interact with it. Python code can
+interact with the JVM using a low-level API or a more convenient
+high-level API.''',
           maintainer="Vebjorn Ljosa",
           maintainer_email="ljosa@broad.mit.edu",
           packages=['javabridge'],
+          classifiers=['Development Status :: 5 - Production/Stable',
+                       'License :: OSI Approved :: BSD License',
+                       'Programming Language :: Java',
+                       ],
+          license='BSD License',
           package_data={"javabridge": ['jars/*.jar']},
           ext_modules=ext_modules(),
           tests_require="nose",
