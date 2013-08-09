@@ -96,7 +96,6 @@ int MacStartVM(JavaVM **pVM, JavaVMInitArgs *pVMArgs, const char *class_name)
     ThreadFunctionArgs threadArgs;
     pthread_t thread;
     pthread_attr_t attr;
-    void *retval;
     int result;
     
     threadArgs.pvm = pVM;
@@ -122,7 +121,7 @@ int MacStartVM(JavaVM **pVM, JavaVMInitArgs *pVMArgs, const char *class_name)
     }
     pthread_mutex_unlock(&start_mutex);
     if (threadArgs.result) {
-        printf(threadArgs.message);
+         printf("%s\n", threadArgs.message);
     }
     return threadArgs.result;
 }
@@ -141,7 +140,6 @@ static void *thread_function(void *arg)
     jclass klass;
     jmethodID method;
     jobject instance;
-    jthrowable exception;
     JavaVM *vm;
     ThreadFunctionArgs *pThreadArgs = (ThreadFunctionArgs *)arg;
  

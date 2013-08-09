@@ -20,7 +20,8 @@ from setuptools import setup, Extension
 from numpy import get_include
 from distutils.command.build import build as _build
 
-from javabridge.locate import *
+sys.path.append(os.path.join(os.path.dirname(__file__), 'javabridge'))
+from locate import *
 
 logger = logging.getLogger(__name__)
 
@@ -101,14 +102,19 @@ def needs_compilation(target, *sources):
             return True
     return False
 
+def package_path(relpath):
+    return os.path.normpath(os.path.join(os.path.dirname(__file__), relpath))
+
 def build_jar_from_single_source(jar, source):
     if needs_compilation(jar, source):
-        javac_command = ['javac', source]
+        javac_command = ['javac', package_path(source)]
         print ' '.join(javac_command)
         subprocess.check_call(javac_command)
-        jar_command = ['jar', 'cf', jar]
+        if not os.path.exists(os.path.dirname(jar)):
+            os.mkdir(os.path.dirname(jar))
+        jar_command = ['jar', 'cf', package_path(jar)]
         for klass in glob.glob(source[:source.rindex('.')] + '*.class'):
-            jar_command.extend(['-C', 'java', klass[klass.index('/') + 1:]])
+            jar_command.extend(['-C', package_path('java'), klass[klass.index('/') + 1:]])
         print ' '.join(jar_command)
         subprocess.check_call(jar_command)
 
@@ -144,6 +150,7 @@ if __name__ == '__main__':
 machine (JVM) from Python and interact with it. Python code can
 interact with the JVM using a low-level API or a more convenient
 high-level API.''',
+          url="http://github.com/CellProfiler/python-javabridge/",
           maintainer="Vebjorn Ljosa",
           maintainer_email="ljosa@broad.mit.edu",
           packages=['javabridge'],

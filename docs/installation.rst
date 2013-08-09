@@ -4,7 +4,7 @@ Installation and testing
 Install using pip
 -----------------
 
-    pip install python-javabridge
+    pip install javabridge
 
 
 Running the unit tests

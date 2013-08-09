@@ -1,0 +1,2 @@
+recursive-include java *.java
+include mac_javabridge_utils.h
