@@ -145,6 +145,8 @@ class AtExit(object):
     def __del__(self):
         self.fn()
         
+__start_thread = None        
+
 def start_vm(args, run_headless = False):
     '''
     Start the Java Virtual Machine.
@@ -164,13 +166,13 @@ def start_vm(args, run_headless = False):
 
     '''
     global __vm
+    global __start_thread
 
     _find_jvm()
     
     if __vm is not None:
         return
     start_event = threading.Event()
-    pt = [] # holds the thread... eventually
     
     def start_thread(args=args, run_headless=run_headless):
         global __vm
@@ -202,7 +204,6 @@ def start_vm(args, run_headless = False):
         dead_objects = __dead_objects
         main_thread_closures = __main_thread_closures
         thread_local_env = __thread_local_env
-        ptt = pt # needed to bind to pt inside exit_fn
         try:
             if sys.platform == "darwin":
                 logger.debug("Launching VM in non-python thread")
@@ -252,14 +253,13 @@ def start_vm(args, run_headless = False):
         __vm = None
         dead_event.set()
         
-    t = threading.Thread(target=start_thread)
-    pt.append(t)
-    t.start()
+    __start_thread = threading.Thread(target=start_thread)
+    __start_thread.setName("JVMMonitor")
+    __start_thread.start()
     start_event.wait()
     if __vm is None:
         raise RuntimeError("Failed to start Java VM")
     attach()
-    AtExit(kill_vm)
     
 def unwrap_javascript(o):
     '''Unwrap an object such as NativeJavaObject
@@ -598,6 +598,7 @@ def make_kill_vm():
         kill[0] = True
         wake_event.set()
         dead_event.wait()
+        __start_thread.join()
     return kill_vm
 
 '''Kill the currently-running Java environment
