@@ -127,7 +127,7 @@ int MacStartVM(JavaVM **pVM, JavaVMInitArgs *pVMArgs, const char *class_name)
     }
     pthread_mutex_unlock(&start_mutex);
     if (threadArgs.result) {
-        printf(threadArgs.message);
+         printf("%s\n", threadArgs.message);
     }
     return threadArgs.result;
 }
