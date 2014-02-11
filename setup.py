@@ -19,6 +19,7 @@ import traceback
 from setuptools import setup, Extension
 from numpy import get_include
 from distutils.command.build import build as _build
+from Cython.Distutils import build_ext
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'javabridge'))
 from locate import *
@@ -128,10 +129,16 @@ def build_findlibjvm():
     source = 'java/org/cellprofiler/findlibjvm.java'
     build_jar_from_single_source(jar, source)
 
+def build_test():
+    jar = 'javabridge/jars/test.jar'
+    source = 'java/org/cellprofiler/javabridge/test/RealRect.java'
+    build_jar_from_single_source(jar, source)
+
 def build_java():
     print "running build_java"
     build_runnablequeue()
     build_findlibjvm()
+    build_test()
 
 class build(_build):
     def run(self, *args, **kwargs):
@@ -166,6 +173,7 @@ high-level API.''',
                 'javabridge = javabridge.noseplugin:JavabridgePlugin'
                 ]},
           test_suite="nose.collector",
-          cmdclass={'build': build})
+          cmdclass={'build': build,
+                    'build_ext': build_ext})
     
 

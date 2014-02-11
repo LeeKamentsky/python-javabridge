@@ -37,17 +37,65 @@ JNIEXPORT int MacStartVM(JavaVM **pVM, JavaVMInitArgs *pVMArgs, const char *clas
 
 /**********************************************************
  *
- * EnterJVM - enter the JVM and prevent JVM exit
+ * Stop the JVM
  *
- * Returns 0 if JVM is running, otherwise -1
  *
  **********************************************************/
-JNIEXPORT int EnterJVM();
+
+JNIEXPORT void MacStopVM();
 
 /**********************************************************
  *
- * ExitJVM() - exit the JVM, decreasing the enter-count
- *
+ * Initialize the run loop and synchronization variables
  *
  **********************************************************/
-JNIEXPORT void ExitJVM();
+
+JNIEXPORT void MacRunLoopInit();
+
+/**********************************************************
+ *
+ * Enter the Mac's run loop
+ *
+ **********************************************************/
+
+JNIEXPORT void MacRunLoopRun();
+
+/*************************************************************************
+ *
+ * MacRunLoopReset - reset the run loop state to before start
+ *
+ *************************************************************************/
+
+JNIEXPORT void MacRunLoopReset();
+
+/**********************************************************
+ *
+ * Signal the run loop to stop from some thread
+ *
+ **********************************************************/
+ 
+JNIEXPORT void MacStopRunLoop();
+
+/***************************************************************
+ *
+ * MacIsMainThread - return true if the run loop of this thread
+ *                   is the main run loop
+ *
+ ***************************************************************/
+
+JNIEXPORT int MacIsMainThread();
+
+/*************************************************************************
+ *
+ * MacRunLoopRunInMode - run the event loop until timeout or stopped
+ *
+ *************************************************************************/
+void MacRunLoopRunInMode(double timeInterval);
+
+/****************************************************************************
+ *
+ * MacRunLoopStop - stop the Mac run loop
+ *
+ ****************************************************************************/
+ 
+void MacRunLoopStop();

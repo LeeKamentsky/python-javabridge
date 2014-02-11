@@ -25,12 +25,13 @@ from .jutil import attach, detach, get_env
 
 
 # JavaScript
-from .jutil import run_script
+from .jutil import run_script, unwrap_javascript
 
 
 # Operations on Java objects
 from .jutil import call, get_static_field, static_call, \
-    is_instance_of, make_instance, set_static_field, to_string
+    is_instance_of, make_instance, set_static_field, to_string, \
+    get_field, set_field
 
 # Make Python object that wraps a Java object
 from .jutil import make_method, make_new
@@ -38,7 +39,8 @@ from .jutil import make_method, make_new
 # Useful collection wrappers
 from .jutil import get_dictionary_wrapper, jdictionary_to_string_dictionary, \
     jenumeration_to_string_list, get_enumeration_wrapper, iterate_collection, \
-    iterate_java
+    iterate_java, make_list, get_collection_wrapper, \
+    get_future_wrapper, make_future_task
 
 # Reflection. (These use make_method or make_new internally.)
 from .jutil import get_class_wrapper, get_field_wrapper, class_for_name, \

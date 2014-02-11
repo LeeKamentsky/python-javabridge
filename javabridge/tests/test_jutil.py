@@ -307,12 +307,215 @@ class TestJutil(unittest.TestCase):
         javabridge.execute_runnable_in_main_thread(javabridge.run_script(
             "new java.lang.Runnable() { run:function() {}};"), True)
         
-    def test_06_03_call_main(self):
+    def test_06_03_future_main(self):
         c = javabridge.run_script("""
         new java.util.concurrent.Callable() {
            call: function() { return 2+2; }};""")
-        result = javabridge.execute_callable_in_main_thread(c)
-        self.assertEqual(jutil.unwrap_javascript(result), 4)
+        result = javabridge.execute_future_in_main_thread(
+            javabridge.make_future_task(c, fn_post_process=javabridge.unwrap_javascript))
+        self.assertEqual(result, 4)
+        
+    def test_07_01_wrap_future(self):
+        future = javabridge.run_script("""
+        new java.util.concurrent.FutureTask(
+            new java.util.concurrent.Callable() {
+               call: function() { return 2+2; }});""")
+        wfuture = javabridge.get_future_wrapper(future,
+                                       fn_post_process=javabridge.unwrap_javascript)
+        self.assertFalse(wfuture.isDone())
+        self.assertFalse(wfuture.isCancelled())
+        wfuture.run()
+        self.assertTrue(wfuture.isDone())
+        self.assertEqual(wfuture.get(), 4)
+        
+    def test_07_02_cancel_future(self):
+        future = javabridge.run_script("""
+        new java.util.concurrent.FutureTask(
+            new java.util.concurrent.Callable() {
+               call: function() { return 2+2; }});""")
+        wfuture = javabridge.get_future_wrapper(future,
+                                       fn_post_process=javabridge.unwrap_javascript)
+        wfuture.cancel(True)
+        self.assertTrue(wfuture.isCancelled())
+        self.assertRaises(javabridge.JavaException, wfuture.get)
+        
+    def test_07_03_make_future_task_from_runnable(self):
+        future = javabridge.make_future_task(
+            javabridge.run_script("new java.lang.Runnable() { run: function() {}};"),
+            11)
+        future.run()
+        self.assertEqual(javabridge.call(future.get(), "intValue", "()I"), 11)
+        
+    def test_07_04_make_future_task_from_callable(self):
+        call_able = javabridge.run_script("""
+        new java.util.concurrent.Callable() { 
+            call: function() { return 2+2; }};""")
+        future = javabridge.make_future_task(call_able, 
+                                    fn_post_process=javabridge.unwrap_javascript)
+        future.run()
+        self.assertEqual(future.get(), 4)
+        
+    def test_08_01_wrap_collection(self):
+        c = javabridge.make_instance("java/util/HashSet", "()V")
+        w = javabridge.get_collection_wrapper(c)
+        self.assertFalse(hasattr(w, "addI"))
+        self.assertEqual(w.size(), 0)
+        self.assertEqual(len(w), 0)
+        self.assertTrue(w.isEmpty())
+        
+    def test_08_02_add(self):
+        c = javabridge.get_collection_wrapper(javabridge.make_instance("java/util/HashSet", "()V"))
+        self.assertTrue(c.add("Foo"))
+        self.assertEqual(len(c), 1)
+        self.assertFalse(c.isEmpty())
+        
+    def test_08_03_contains(self):
+        c = javabridge.get_collection_wrapper(javabridge.make_instance("java/util/HashSet", "()V"))
+        c.add("Foo")
+        self.assertTrue(c.contains("Foo"))
+        self.assertFalse(c.contains("Bar"))
+        self.assertIn("Foo", c)
+        self.assertNotIn("Bar", c)
+        
+    def test_08_04_addAll(self):
+        c1 = javabridge.get_collection_wrapper(javabridge.make_instance("java/util/HashSet", "()V"))
+        c1.add("Foo")
+        c1.add("Bar")
+        c2 = javabridge.get_collection_wrapper(javabridge.make_instance("java/util/HashSet", "()V"))
+        c2.add("Baz")
+        c2.addAll(c1.o)
+        self.assertIn("Foo", c2)
+        
+    def test_08_05__add__(self):
+        c1 = javabridge.get_collection_wrapper(javabridge.make_instance("java/util/HashSet", "()V"))
+        c1.add("Foo")
+        c1.add("Bar")
+        c2 = javabridge.get_collection_wrapper(javabridge.make_instance("java/util/HashSet", "()V"))
+        c2.add("Baz")
+        c3 = c1 + c2
+        for k in ("Foo", "Bar", "Baz"):
+            self.assertIn(k, c3)
+        
+        c4 = c3 + ["Hello", "World"]
+        self.assertIn("Hello", c4)
+        self.assertIn("World", c4)
+        
+    def test_08_06__iadd__(self):
+        c1 = javabridge.get_collection_wrapper(javabridge.make_instance("java/util/HashSet", "()V"))
+        c1.add("Foo")
+        c1.add("Bar")
+        c2 = javabridge.get_collection_wrapper(javabridge.make_instance("java/util/HashSet", "()V"))
+        c2.add("Baz")
+        c2 += c1
+        for k in ("Foo", "Bar", "Baz"):
+            self.assertIn(k, c2)
+        c2 += ["Hello", "World"]
+        self.assertIn("Hello", c2)
+        self.assertIn("World", c2)
+        
+    def test_08_07_contains_all(self):
+        c1 = javabridge.get_collection_wrapper(javabridge.make_instance("java/util/HashSet", "()V"))
+        c1.add("Foo")
+        c1.add("Bar")
+        c2 = javabridge.get_collection_wrapper(javabridge.make_instance("java/util/HashSet", "()V"))
+        c2.add("Baz")
+        self.assertFalse(c2.containsAll(c1.o))
+        c2 += c1
+        self.assertTrue(c2.containsAll(c1.o))
+        
+    def test_08_08_remove(self):
+        c1 = javabridge.get_collection_wrapper(javabridge.make_instance("java/util/HashSet", "()V"))
+        c1.add("Foo")
+        c1.add("Bar")
+        c1.remove("Foo")
+        self.assertNotIn("Foo", c1)
+        
+    def test_08_09_removeAll(self):
+        c1 = javabridge.get_collection_wrapper(javabridge.make_instance("java/util/HashSet", "()V"))
+        c1.add("Foo")
+        c1.add("Bar")
+        c2 = javabridge.get_collection_wrapper(javabridge.make_instance("java/util/HashSet", "()V"))
+        c2.add("Foo")
+        c1.removeAll(c2)
+        self.assertNotIn("Foo", c1)
+        
+    def test_08_10_retainAll(self):
+        c1 = javabridge.get_collection_wrapper(javabridge.make_instance("java/util/HashSet", "()V"))
+        c1.add("Foo")
+        c1.add("Bar")
+        c2 = javabridge.get_collection_wrapper(javabridge.make_instance("java/util/HashSet", "()V"))
+        c2.add("Foo")
+        c1.retainAll(c2)
+        self.assertIn("Foo", c1)
+        self.assertNotIn("Bar", c1)
+        
+    def test_08_11_toArray(self):
+        c1 = javabridge.get_collection_wrapper(javabridge.make_instance("java/util/HashSet", "()V"))
+        c1.add("Foo")
+        c1.add("Bar")
+        result = [javabridge.to_string(x) for x in c1.toArray()]
+        self.assertIn("Foo", result)
+        self.assertIn("Bar", result)
+        
+    def test_08_12_make_list(self):
+        l = javabridge.make_list(["Foo", "Bar"])
+        self.assertSequenceEqual(l, ["Foo", "Bar"])
+        self.assertTrue(hasattr(l, "addI"))
+        
+    def test_08_13_addI(self):
+        l = javabridge.make_list(["Foo", "Bar"])
+        l.addI(1, "Baz")
+        self.assertSequenceEqual(l, ["Foo", "Baz", "Bar"])
+        
+    def test_08_14_addAllI(self):
+        l = javabridge.make_list(["Foo", "Bar"])
+        l.addAllI(1, javabridge.make_list(["Baz"]))
+        self.assertSequenceEqual(l, ["Foo", "Baz", "Bar"])
+        
+    def test_08_15_indexOf(self):
+        l = javabridge.make_list(["Foo", "Bar"])
+        self.assertEqual(l.indexOf("Bar"), 1)
+        self.assertEqual(l.lastIndexOf("Foo"), 0)
+        
+    def test_08_16_get(self):
+        l = javabridge.make_list(["Foo", "Bar"])
+        self.assertEqual(l.get(1), "Bar")
+        
+    def test_08_17_set(self):
+        l = javabridge.make_list(["Foo", "Bar"])
+        l.set(1, "Baz")
+        self.assertEqual(l.get(1), "Baz")
+        
+    def test_08_18_subList(self):
+        l = javabridge.make_list(["Foo", "Bar", "Baz", "Hello", "World"])
+        self.assertSequenceEqual(l.subList(1, 3), ["Bar", "Baz"])
+        
+    def test_08_19__getitem__(self):
+        l = javabridge.make_list(["Foo", "Bar", "Baz", "Hello", "World"])
+        self.assertEqual(l[1], "Bar")
+        self.assertEqual(l[-2], "Hello")
+        self.assertSequenceEqual(l[1:3], ["Bar", "Baz"])
+        self.assertSequenceEqual(l[::3], ["Foo", "Hello"])
+        
+    def test_08_20__setitem__(self):
+        l = javabridge.make_list(["Foo", "Bar"])
+        l[1] = "Baz"
+        self.assertEqual(l.get(1), "Baz")
+        
+    def test_08_21__delitem__(self):
+        l = javabridge.make_list(["Foo", "Bar", "Baz"])
+        del l[1]
+        self.assertSequenceEqual(l, ["Foo", "Baz"])
+        
+    def test_09_01_get_field(self):
+        o = javabridge.make_instance("org/cellprofiler/javabridge/test/RealRect", "(DDDD)V", 1, 2, 3, 4)
+        self.assertEqual(javabridge.get_field(o, "x", "D"), 1)
+        
+    def test_09_02_set_field(self):
+        o = javabridge.make_instance("org/cellprofiler/javabridge/test/RealRect", "(DDDD)V", 1, 2, 3, 4)
+        javabridge.set_field(o, "x", "D", 5.5)
+        self.assertEqual(javabridge.get_field(o, "x", "D"), 5.5)
+
         
 if __name__=="__main__":
     unittest.main()
