@@ -676,6 +676,56 @@ def is_instance_of(o, class_name):
     if jexception is not None:
         raise JavaException(jexception)
     return result
+
+def make_call(o, method_name, sig):
+    '''Create a function that calls a method
+    
+    For repeated calls to a method on the same object, this method is
+    faster than "call". The function returned takes raw Java objects
+    which is significantly faster than "call" which parses the
+    signature and casts arguments and return values.
+    
+    :param o: the object on which to make the call or a class name in slash form
+    :param method_name: the name of the method to call
+    :param sig: the function signature
+    
+    :returns: a function that can be called with the object to execute
+              the method
+
+    '''
+    assert o is not None
+    env = get_env()
+    if isinstance(o, basestring):
+        klass = env.find_class(o)
+        bind = False
+    else:
+        klass = env.get_object_class(o)
+        bind = True
+    jexception = env.exception_occurred()
+    if jexception is not None:
+        raise JavaException(jexception)
+    method_id = env.get_method_id(klass, method_name, sig)
+    jexception = env.exception_occurred()
+    if method_id is None:
+        if jexception is not None:
+            raise JavaException(jexception)
+        raise JavaError('Could not find method name = "%s" '
+                        'with signature = "%s"' % (method_name, sig))
+    if bind:
+        def fn(*args):
+            result = env.call_method(o, method_id, *args)
+            x = env.exception_occurred()
+            if x is not None:
+                raise JavaException(x)
+            return result
+    else:
+        def fn(o, *args):
+            result = env.call_method(o, method_id, *args)
+            x = env.exception_occurred()
+            if x is not None:
+                raise JavaException(x)
+            return result
+    return fn
     
 def call(o, method_name, sig, *args):
     '''
@@ -694,27 +744,16 @@ def call(o, method_name, sig, *args):
     'H'
 
     '''
-    assert o is not None
     env = get_env()
-    klass = env.get_object_class(o)
-    jexception = get_env().exception_occurred()
-    if jexception is not None:
-        raise JavaException(jexception)
-    method_id = env.get_method_id(klass, method_name, sig)
-    jexception = get_env().exception_occurred()
-    if method_id is None:
-        if jexception is not None:
-            raise JavaException(jexception)
-        raise JavaError('Could not find method name = "%s" '
-                        'with signature = "%s"' % (method_name, sig))
+    fn = make_call(o, method_name, sig)
     args_sig = split_sig(sig[1:sig.find(')')])
     ret_sig = sig[sig.find(')')+1:]
     nice_args = get_nice_args(args, args_sig)
-    result = env.call_method(o, method_id, *nice_args)
+    result = fn(*nice_args)
     x = env.exception_occurred()
     if x is not None:
         raise JavaException(x)
-    return get_nice_result(result, ret_sig)
+    return get_nice_result(result, ret_sig)    
 
 def static_call(class_name, method_name, sig, *args):
     '''Call a static method on a class
