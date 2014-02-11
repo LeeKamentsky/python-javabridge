@@ -143,7 +143,7 @@ void MacStopVM()
     stopped = 1;
     pthread_cond_signal(&stop_cv);
     pthread_mutex_unlock(&stop_mutex);
-    pthread_join(&thread, NULL);
+    pthread_join(thread, NULL);
 }
 
 static void signal_start()
