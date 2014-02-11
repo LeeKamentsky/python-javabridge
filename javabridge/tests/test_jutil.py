@@ -312,7 +312,7 @@ class TestJutil(unittest.TestCase):
         new java.util.concurrent.Callable() {
            call: function() { return 2+2; }};""")
         result = javabridge.execute_future_in_main_thread(
-            javabridge.make_future_task(c, fn_post_process=javabridge.unwrap_javascript))
+            javabridge.make_future_task(c, fn_post_process=jutil.unwrap_javascript))
         self.assertEqual(result, 4)
         
     def test_07_01_wrap_future(self):
@@ -320,8 +320,8 @@ class TestJutil(unittest.TestCase):
         new java.util.concurrent.FutureTask(
             new java.util.concurrent.Callable() {
                call: function() { return 2+2; }});""")
-        wfuture = javabridge.get_future_wrapper(future,
-                                       fn_post_process=javabridge.unwrap_javascript)
+        wfuture = jutil.get_future_wrapper(future,
+                                           fn_post_process=jutil.unwrap_javascript)
         self.assertFalse(wfuture.isDone())
         self.assertFalse(wfuture.isCancelled())
         wfuture.run()
@@ -333,8 +333,8 @@ class TestJutil(unittest.TestCase):
         new java.util.concurrent.FutureTask(
             new java.util.concurrent.Callable() {
                call: function() { return 2+2; }});""")
-        wfuture = javabridge.get_future_wrapper(future,
-                                       fn_post_process=javabridge.unwrap_javascript)
+        wfuture = jutil.get_future_wrapper(future,
+                                           fn_post_process=jutil.unwrap_javascript)
         wfuture.cancel(True)
         self.assertTrue(wfuture.isCancelled())
         self.assertRaises(javabridge.JavaException, wfuture.get)
@@ -351,7 +351,7 @@ class TestJutil(unittest.TestCase):
         new java.util.concurrent.Callable() { 
             call: function() { return 2+2; }};""")
         future = javabridge.make_future_task(call_able, 
-                                    fn_post_process=javabridge.unwrap_javascript)
+                                    fn_post_process=jutil.unwrap_javascript)
         future.run()
         self.assertEqual(future.get(), 4)
         
