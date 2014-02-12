@@ -7,6 +7,7 @@
 *.class
 /javabridge/jars/findlibjvm.jar
 /javabridge/jars/runnablequeue.jar
+/javabridge/jars/test.jar
 /dist
 /docs/build
 /javabridge.egg-info

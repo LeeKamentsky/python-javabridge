@@ -147,7 +147,7 @@ class AtExit(object):
         
 __start_thread = None        
 
-def start_vm(args, run_headless = False):
+def start_vm(args, run_headless=False):
     '''
     Start the Java Virtual Machine.
 
@@ -375,11 +375,38 @@ def make_future_task(runnable_or_callable,
                      result=None, fn_post_process=None):
     '''Make an instance of java.util.concurrent.FutureTask
     
-    runnable_or_callable - either a java.util.concurrent.Callable or a
-                           java.lang.Runnable which is wrapped inside the Future
-    result - if a Runnable, this is the result that is returned by Future.get
+    :param runnable_or_callable: either a
+                           java.util.concurrent.Callable or a
+                           java.lang.Runnable which is wrapped inside
+                           the Future
+
+    :param result: if a Runnable, this is the result that is returned
+                   by Future.get
     
-    fn_post_process - a postprocessing function run on the result of Future.get
+    :param fn_post_process: a postprocessing function run on the
+                            result of Future.get
+
+
+    Example: Making a future task from a Runnable:
+
+    >>> future = javabridge.make_future_task(
+            javabridge.run_script("new java.lang.Runnable() { run: function() {}};"),
+            11)
+    >>> future.run()
+    >>> javabridge.call(future.get(), "intValue", "()I")
+    11
+
+    Example: Making a future task from a Callable:
+
+    >>> callable = javabridge.run_script("""
+            new java.util.concurrent.Callable() { 
+                call: function() { return 2+2; }};""")
+    >>> future = javabridge.make_future_task(callable, 
+            fn_post_process=jutil.unwrap_javascript)
+    >>> future.run()
+    >>> future.get()
+    4
+
     '''
     if is_instance_of(runnable_or_callable, 'java/util/concurrent/Callable'):
         o = make_instance('java/util/concurrent/FutureTask',
@@ -1011,9 +1038,10 @@ def set_static_field(klass, name, sig, value):
 def get_field(o, name, sig):
     '''Get the value for a field on an object
     
-    o - the object
-    name - the name of the field
-    sig - the signature, typically, 'I' or 'Ljava/lang/String;'
+    :param o: the object
+    :param name: the name of the field
+    :param sig: the signature, typically 'I' or 'Ljava/lang/String;'
+
     '''
     env = get_env()
     klass = env.get_object_class(o)
@@ -1041,10 +1069,10 @@ def get_field(o, name, sig):
 def set_field(o, name, sig, value):
     '''Set the value for a field on an object
     
-    o - the object
-    name - the name of the field
-    sig - the signature, typically, 'I' or 'Ljava/lang/String;'
-    value - the value to set
+    :param o: the object
+    :param name: the name of the field
+    :param sig: the signature, typically 'I' or 'Ljava/lang/String;'
+    :param value: the value to set
     '''
     env = get_env()
     klass = env.get_object_class(o)
@@ -1251,12 +1279,14 @@ def box(value, klass):
     return get_nice_arg(value, sig)
 
 def get_collection_wrapper(collection, fn_wrapper=None):
-    '''Return a wrapper of java.util.collection
+    '''Return a wrapper of java.util.Collection
     
-    collection - an object that implements java.util.collection. If the
-                 object implements the list interface, that is wrapped as well
+    :param collection: an object that implements
+                 java.util.Collection. If the object implements the
+                 list interface, that is wrapped as well
     
-    fn_wrapper - if defined, a function that wraps a java object
+    :param fn_wrapper: if defined, a function that wraps a Java object
+
     '''
     class Collection(object):
         def __init__(self):
@@ -1357,7 +1387,13 @@ def get_collection_wrapper(collection, fn_wrapper=None):
 
 array_list_add_method_id = None
 def make_list(elements=[]):
-    '''Make a wrapped array list, optionally containing the given elements'''
+    '''Make a wrapped java.util.ArrayList.
+
+    The ArrayList will contain the specified elements, if any.
+
+    :param elements: the elements to put in the ArrayList.
+
+    '''
     global array_list_add_method_id
     
     a = get_collection_wrapper(make_instance("java/util/ArrayList", "()V"))
