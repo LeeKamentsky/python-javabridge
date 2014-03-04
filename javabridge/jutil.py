@@ -56,7 +56,7 @@ def _find_jvm_mac():
 
 def _find_jvm_linux():
     #
-    # Run the findlibjvm program which uses java.library.path to
+    # Run the findlibjvm program which uses ``java.library.path`` to
     # find the search path for the JVM.
     #
     import ctypes
@@ -345,13 +345,13 @@ def run_script(script, bindings_in = {}, bindings_out = {},
     return result
 
 def get_future_wrapper(o, fn_post_process=None):
-    '''Wrap a java.util.concurrent.Future as a class
+    '''Wrap a ``java.util.concurrent.Future`` as a class.
     
-    o - the object implementing the Future interface
+    :param o: the object implementing the Future interface
     
-    fn_post_process - a post-processing function to run on the object returned
-                      from o.get(). If you have Future<T>, this can apply
-                      the appropriate wrapper for T so you get back a
+    :param fn_post_process: a post-processing function to run on the object returned
+                      from ``o.get()``. If you have ``Future<T>``, this can apply
+                      the appropriate wrapper for ``T`` so you get back a
                       wrapped class of the appropriate type.
     '''
     class Future(object):
@@ -375,18 +375,18 @@ def get_future_wrapper(o, fn_post_process=None):
 
 def make_future_task(runnable_or_callable, 
                      result=None, fn_post_process=None):
-    '''Make an instance of java.util.concurrent.FutureTask
+    '''Make an instance of ``java.util.concurrent.FutureTask``.
     
     :param runnable_or_callable: either a
-                           java.util.concurrent.Callable or a
-                           java.lang.Runnable which is wrapped inside
-                           the Future
+                           ``java.util.concurrent.Callable`` or a
+                           ``java.lang.Runnable`` which is wrapped inside
+                           the ``Future``
 
-    :param result: if a Runnable, this is the result that is returned
-                   by Future.get
+    :param result: if a ``Runnable``, this is the result that is returned
+                   by ``Future.get``.
     
     :param fn_post_process: a postprocessing function run on the
-                            result of Future.get
+                            result of ``Future.get``.
 
 
     Example: Making a future task from a Runnable:
@@ -423,9 +423,9 @@ def make_future_task(runnable_or_callable,
 def execute_runnable_in_main_thread(runnable, synchronous=False):
     '''Execute a runnable on the main thread
     
-    :param runnable: a Java object implementing java.lang.Runnable
+    :param runnable: a Java object implementing ``java.lang.Runnable``.
     
-    :param synchronous: True if we should wait for the runnable to finish
+    :param synchronous: ``True`` if we should wait for the runnable to finish.
     
     Hint: to make a runnable using JavaScript::
     
@@ -451,7 +451,7 @@ def execute_runnable_in_main_thread(runnable, synchronous=False):
 def execute_future_in_main_thread(future):
     '''Execute a Future in the main thread
     
-    :param future: a future, wrapped by get_future_wrapper
+    :param future: a future, wrapped by :py:func:`javabridge.get_future_wrapper`
     
     Synchronize with the return, running the event loop.
 
@@ -560,7 +560,7 @@ def mac_get_future_value(future):
 def execute_callable_in_main_thread(jcallable):
     '''Execute a callable on the main thread, returning its value
     
-    :param jcallable: a Java object implementing java.util.concurrent.Callable
+    :param jcallable: a Java object implementing ``java.util.concurrent.Callable``
     
     :returns: the result of evaluating the callable's "call" method in the
               main thread.
@@ -1121,7 +1121,9 @@ def get_nice_args(args, sig):
             for arg, subsig in zip(args, sig)]
 
 def get_nice_arg(arg, sig):
-    '''Convert an argument into a Java type when appropriate'''
+    '''Convert an argument into a Java type when appropriate.
+
+    '''
     env = get_env()
     is_java = (isinstance(arg, _javabridge.JB_Object) or
                isinstance(arg, _javabridge.JB_Class))
@@ -1281,10 +1283,10 @@ def box(value, klass):
     return get_nice_arg(value, sig)
 
 def get_collection_wrapper(collection, fn_wrapper=None):
-    '''Return a wrapper of java.util.Collection
+    '''Return a wrapper of ``java.util.Collection``
     
     :param collection: an object that implements
-                 java.util.Collection. If the object implements the
+                 ``java.util.Collection``. If the object implements the
                  list interface, that is wrapped as well
     
     :param fn_wrapper: if defined, a function that wraps a Java object
@@ -1389,11 +1391,11 @@ def get_collection_wrapper(collection, fn_wrapper=None):
 
 array_list_add_method_id = None
 def make_list(elements=[]):
-    '''Make a wrapped java.util.ArrayList.
+    '''Make a wrapped ``java.util.ArrayList``.
 
-    The ArrayList will contain the specified elements, if any.
+    The ``ArrayList`` will contain the specified elements, if any.
 
-    :param elements: the elements to put in the ArrayList.
+    :param elements: the elements to put in the ``ArrayList``.
 
     '''
     global array_list_add_method_id
@@ -1415,7 +1417,7 @@ def make_list(elements=[]):
     return a
 
 def get_dictionary_wrapper(dictionary):
-    '''Return a wrapper of java.util.Dictionary.
+    '''Return a wrapper of ``java.util.Dictionary``.
 
     :param dictionary: Java object that implements the ``java.util.Dictionary`` interface.
     :returns: a Python instance that wraps the Java dictionary.
@@ -1448,7 +1450,9 @@ def get_dictionary_wrapper(dictionary):
     return Dictionary()
 
 def get_map_wrapper(o):
-    '''Return a wrapper of java.util.Map'''
+    '''Return a wrapper of ``java.util.Map``
+    
+    '''
     assert is_instance_of(o, 'java/util/Map')
     class Map(object):
         def __init__(self):
@@ -1482,7 +1486,9 @@ def get_map_wrapper(o):
     return Map()
 
 def make_map(**kwargs):
-    '''Create a wrapped java.util.HashMap from arbitrary keyword arguments'''
+    '''Create a wrapped ``java.util.HashMap`` from arbitrary keyword arguments.
+
+    '''
     hashmap = get_map_wrapper(make_instance('java/util/HashMap', "()V"))
     for k, v in kwargs.iteritems():
         hashmap[k] = v
@@ -1646,7 +1652,7 @@ def make_instance(class_name, sig, *args):
     return result
 
 def class_for_name(classname, ldr="system"):
-    '''Return a java.lang.Class for the given name
+    '''Return a ``java.lang.Class`` for the given name.
     
     :param classname: the class name in dotted form, e.g. "java.lang.String"
 
@@ -1664,18 +1670,30 @@ def get_class_wrapper(obj, is_class = False):
     reflection). The returned wrapper class will have the following
     methods:
 
-    * getAnnotation() -> java.lang.annotation.Annotation
-    * getAnnotations() -> array of java.lang.annotation.Annotation
-    * getCanonicalName() -> java.lang.String
-    * getClasses() -> array of java.lang.Class
-    * getContructor(signature) -> java.lang.reflect.Constructor
-    * getFields() -> array of java.lang.reflect.Field
-    * getField(field_name) -> java.lang.reflect.Field
-    * getMethods() -> array of java.lang.reflect.Method
-    * getMethod(method_name) -> java.lang.reflect.Method
-    * cast(class) -> object
-    * isPrimitive() -> boolean
-    * newInstance() -> object
+    ``getAnnotation()``
+       ``java.lang.annotation.Annotation``
+    ``getAnnotations()``
+       array of ``java.lang.annotation.Annotation``
+    ``getCanonicalName()``
+       ``java.lang.String``
+    ``getClasses()``
+       array of ``java.lang.Class``
+    ``getContructor(signature)``
+       ``java.lang.reflect.Constructor``
+    ``getFields()``
+       array of ``java.lang.reflect.Field``
+    ``getField(field_name)``
+       ``java.lang.reflect.Field``
+    ``getMethods()``
+       array of ``java.lang.reflect.Method``
+    ``getMethod(method_name)``
+       ``java.lang.reflect.Method``
+    ``cast(class)``
+       object
+    ``isPrimitive()``
+       boolean
+    ``newInstance()``
+       object
  
     '''
     if is_class:
@@ -1750,29 +1768,52 @@ def get_field_wrapper(field):
     Return a wrapper for the java.lang.reflect.Field class. The
     returned wrapper class will have the following methods:
 
-    * getAnnotation() -> java.lang.annotation.Annotation
-    * getBoolean() -> bool
-    * getByte -> byte
-    * getChar -> char
-    * getDouble -> double
-    * getFloat -> float
-    * getInt -> int
-    * getShort -> short
-    * getLong -> long
-    * getDeclaredAnnotations() -> array of java.lang.annotation.Annotation
-    * getGenericType -> java.lang.reflect.Type
-    * getModifiers() -> Python list of strings indicating the modifier flags
-    * getName() -> java.lang.String()
-    * getType() -> java.lang.Class()
-    * set(object, object) -> void
-    * setBoolean(bool) -> void
-    * setByte(byte) -> void
-    * setChar(char) -> void
-    * setDouble(double) -> void
-    * setFloat(float) -> void
-    * setInt(int) -> void
-    * setShort(short) -> void
-    * setLong(long) -> void
+    ``getAnnotation()``
+       java.lang.annotation.Annotation
+    ``getBoolean()``
+       bool
+    ``getByte``
+       byte
+    ``getChar``
+       char
+    ``getDouble``
+       double
+    ``getFloat``
+       float
+    ``getInt``
+       int
+    ``getShort``
+       short
+    ``getLong``
+       long
+    ``getDeclaredAnnotations()``
+       array of java.lang.annotation.Annotation
+    ``getGenericType``
+       java.lang.reflect.Type
+    ``getModifiers()``
+       Python list of strings indicating the modifier flags
+    ``getName()``
+       java.lang.String()
+    ``getType()``
+       java.lang.Class()
+    ``set(object, object)``
+       void
+    ``setBoolean(bool)``
+       void
+    ``setByte(byte)``
+       void
+    ``setChar(char)``
+       void
+    ``setDouble(double)``
+       void
+    ``setFloat(float)``
+       void
+    ``setInt(int)``
+       void
+    ``setShort(short)``
+       void
+    ``setLong(long)``
+       void
 
     '''
     class Field(object):
@@ -1833,11 +1874,16 @@ def get_constructor_wrapper(obj):
     Get a wrapper for calling methods on the constructor object. The
     wraper class will have the following methods:
 
-    * getParameterTypes() -> array of java.lang.Class
-    * getName() -> java.lang.String
-    * newInstance(array of objects) -> object
-    * getAnnotation() -> java.lang.annotation.Annotation
-    * getModifiers() -> Python list of strings indicating the modifier flags
+    ``getParameterTypes()``
+       array of ``java.lang.Class``
+    ``getName()``
+       ``java.lang.String``
+    ``newInstance(array of objects)``
+       object
+    ``getAnnotation()``
+       ``java.lang.annotation.Annotation``
+    ``getModifiers()``
+       Python list of strings indicating the modifier flags
 
     '''
     class Constructor(object):
@@ -1860,11 +1906,16 @@ def get_method_wrapper(obj):
     Get a wrapper for calling methods on the method object. The
     wrapper class will have the following methods:
 
-    * getParameterTypes() -> array of java.lang.Class
-    * getName() -> java.lang.String
-    * invoke(this, arguments) -> objec
-    * getAnnotation() -> java.lang.annotation.Annotation
-    * getModifiers() -> Python list of strings indicating the modifier flags
+    ``getParameterTypes()``
+       array of ``java.lang.Class``
+    ``getName()``
+       ``java.lang.String``
+    ``invoke(this, arguments)``
+       object
+    ``getAnnotation()``
+       ``java.lang.annotation.Annotation``
+    ``getModifiers()``
+       Python list of strings indicating the modifier flags
 
     '''
     class Method(object):

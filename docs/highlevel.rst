@@ -42,14 +42,17 @@ signatures of everything in a class.
 Operations on Java objects
 --------------------------
 .. autofunction:: javabridge.call
+.. autofunction:: javabridge.make_call
 .. autofunction:: javabridge.get_field
 .. autofunction:: javabridge.set_field
 .. autofunction:: javabridge.get_static_field
 .. autofunction:: javabridge.static_call
+.. autofunction:: javabridge.make_static_call
 .. autofunction:: javabridge.is_instance_of
 .. autofunction:: javabridge.make_instance
 .. autofunction:: javabridge.set_static_field
 .. autofunction:: javabridge.to_string
+.. autofunction:: javabridge.get_nice_arg
 
 Make Python objects that wrap Java objects
 ------------------------------------------
@@ -77,6 +80,8 @@ Useful collection wrappers
 .. autofunction:: javabridge.iterate_collection
 .. autofunction:: javabridge.iterate_java
 .. autofunction:: javabridge.make_list
+.. autofunction:: javabridge.get_map_wrapper
+.. autofunction:: javabridge.make_map
 
 Reflection
 ----------
@@ -97,6 +102,7 @@ the AWT main thread, which is not accessible from Python.
 .. autofunction:: javabridge.execute_runnable_in_main_thread
 .. autofunction:: javabridge.execute_future_in_main_thread
 .. autofunction:: javabridge.execute_callable_in_main_thread
+.. autofunction:: javabridge.get_future_wrapper
 
 Exceptions
 ----------
