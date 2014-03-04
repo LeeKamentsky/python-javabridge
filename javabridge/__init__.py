@@ -57,8 +57,6 @@ from .jutil import execute_callable_in_main_thread, \
 # Exceptions
 from .jutil import JavaError, JavaException, JVMNotFoundError
 
-from .jutil import get_jvm_heap_size_arg
-
 from ._javabridge import mac_enter_run_loop, mac_stop_run_loop, mac_run_loop_init
     
 # Don't expose: AtExit, attach_ext_env, get_nice_args,
