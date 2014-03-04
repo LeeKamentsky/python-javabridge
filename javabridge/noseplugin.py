@@ -35,7 +35,7 @@ class JavabridgePlugin(Plugin):
     score = 100
 
     def begin(self):
-        javabridge.start_vm(['-Djava.class.path=' + self.class_path],
+        javabridge.start_vm(['-Djava.class.path=' + self.class_path] + self.extra_jvm_args,
                             run_headless=True)
 
     def options(self, parser, env=os.environ):
