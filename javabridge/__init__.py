@@ -31,15 +31,18 @@ from .jutil import run_script
 # Operations on Java objects
 from .jutil import call, get_static_field, static_call, \
     is_instance_of, make_instance, set_static_field, to_string, \
-    get_field, set_field
+    get_field, set_field, make_static_call
 
 # Make Python object that wraps a Java object
-from .jutil import make_method, make_new
+from .jutil import make_method, make_new, make_call
+
+from .jutil import get_nice_arg
 
 # Useful collection wrappers
 from .jutil import get_dictionary_wrapper, jdictionary_to_string_dictionary, \
     jenumeration_to_string_list, get_enumeration_wrapper, iterate_collection, \
-    iterate_java, make_list, get_collection_wrapper, make_future_task
+    iterate_java, make_list, get_collection_wrapper, make_future_task, \
+    make_map, get_map_wrapper
 
 # Reflection. (These use make_method or make_new internally.)
 from .jutil import get_class_wrapper, get_field_wrapper, class_for_name, \
@@ -48,12 +51,17 @@ from .jutil import get_class_wrapper, get_field_wrapper, class_for_name, \
 # Ensure that callables, runnables and futures that use AWT run in the
 # AWT main thread, which is not accessible from Python.
 from .jutil import execute_callable_in_main_thread, \
-    execute_runnable_in_main_thread, execute_future_in_main_thread
+    execute_runnable_in_main_thread, execute_future_in_main_thread, \
+    get_future_wrapper
 
 # Exceptions
 from .jutil import JavaError, JavaException, JVMNotFoundError
+
+from .jutil import get_jvm_heap_size_arg
+
+from ._javabridge import mac_enter_run_loop, mac_stop_run_loop, mac_run_loop_init
     
-# Don't expose: AtExit, attach_ext_env, get_nice_arg, get_nice_args,
+# Don't expose: AtExit, attach_ext_env, get_nice_args,
 # make_run_dictionary, run_in_main_thread, split_sig, unwrap_javascript,
 # print_all_stack_traces
 

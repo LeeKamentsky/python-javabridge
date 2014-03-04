@@ -338,6 +338,8 @@ def run_script(script, bindings_in = {}, bindings_out = {},
     except JavaException, e:
         if is_instance_of(e.throwable, "org/mozilla/javascript/WrappedException"):
             raise JavaException(call(e.throwable, "unwrap", "()Ljava/lang/Object;"))
+        else:
+            raise
     finally:
         static_call("org/mozilla/javascript/Context", "exit", "()V")
     return result
@@ -480,7 +482,7 @@ def mac_get_future_value(future):
     if __run_headless:
         return future.raw_get()
     if sys.maxsize > 2**32:
-        if javabridge.mac_is_main_thread():
+        if _javabridge.mac_is_main_thread():
             #
             # Haven't figured out how to run a modal event loop
             # on OS/X - tried CFRunLoopInMode with 1/4 sec timeout and
@@ -493,7 +495,7 @@ def mac_get_future_value(future):
     import time
     app = wx.GetApp()
     synchronize_without_event_loop = \
-        (app is None and not __run_headless) or not javabridge.mac_is_main_thread()
+        (app is None and not __run_headless) or not _javabridge.mac_is_main_thread()
     if synchronize_without_event_loop:
         logger.debug("Synchronizing without event loop")
         #
@@ -1565,7 +1567,7 @@ def iterate_java(iterator, fn_wrapper=None):
             raise JavaException(x)
         yield item if fn_wrapper is None else fn_wrapper(item)
         
-def iterate_collection(c):
+def iterate_collection(c, fn_wrapper=None):
     '''
     Make a Python iterator over the elements of a Java collection
 
@@ -1574,7 +1576,8 @@ def iterate_collection(c):
     [u'Foo', u'Bar']
 
     '''
-    return iterate_java(call(c, "iterator", "()Ljava/util/Iterator;"))
+    return iterate_java(call(c, "iterator", "()Ljava/util/Iterator;"),
+                        fn_wrapper=fn_wrapper)
         
 def jenumeration_to_string_list(enumeration):
     '''Convert a Java enumeration to a Python list of strings

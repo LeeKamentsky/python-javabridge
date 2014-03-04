@@ -34,14 +34,33 @@ class TestJavabridge(unittest.TestCase):
         string_class = self.env.find_class('java/lang/String')
         self.assertTrue(isinstance(string_class, jb.JB_Class))
 
-    def test_01_03_new_string_utf(self):
+    def test_01_03_00_new_string_utf(self):
         jstring = self.env.new_string_utf("Hello, world")
         self.assertTrue(isinstance(jstring, jb.JB_Object))
         
-    def test_01_04_get_string_utf(self):
+    def test_01_03_01_new_string_unicode(self):
+        s = u"Hola ni\u00F1os"
+        jstring = self.env.new_string(s)
+        self.assertEqual(self.env.get_string_utf(jstring).decode("utf-8"), s)
+        
+    def test_01_03_02_new_string_string(self):
+        s = "Hello, world"
+        jstring = self.env.new_string(s)
+        self.assertEqual(self.env.get_string_utf(jstring), s)
+        
+    def test_01_03_03_new_string_zero_length(self):
+        jstring = self.env.new_string(u"")
+        self.assertEqual(self.env.get_string_utf(jstring), "")
+        
+    def test_01_04_00_get_string_utf(self):
         jstring = self.env.new_string_utf("Hello, world")
         pstring = self.env.get_string_utf(jstring)
         self.assertEqual(pstring, "Hello, world")
+
+    def test_01_04_01_get_string(self):
+        s = u"Hola ni\u00F1os"
+        jstring = self.env.new_string(s)
+        self.assertTrue(self.env.get_string(jstring), s)        
         
     def test_01_05_get_object_class(self):
         jstring = self.env.new_string_utf("Hello, world")
@@ -334,7 +353,9 @@ class TestJavabridge(unittest.TestCase):
         self.assertTrue(method_id is not None)
         self.assertFalse(self.env.call_static_method(klass, method_id, 
                                                 self.env.new_string_utf("os.name")))
-        
+        self.assertTrue(self.env.call_static_method(klass, method_id,
+                                                    self.env.new_string_utf("awt.nativeDoubleBuffering")))
+
     def test_04_02_call_static_byte(self):
         klass = self.env.find_class("java/lang/Byte")
         method_id = self.env.get_static_method_id(klass, "parseByte",'(Ljava/lang/String;)B')
