@@ -22,7 +22,6 @@ import re
 import subprocess
 import sys
 import uuid
-import _javabridge
 from .locate import find_javahome
 
 logger = logging.getLogger(__name__)
@@ -79,6 +78,7 @@ def _find_jvm():
 
     if jvm_dir is None:
         raise JVMNotFoundError()
+    return jvm_dir
 
 class JavaError(ValueError):
     '''An error caused by using the Javabridge incorrectly'''
@@ -115,6 +115,10 @@ class JavaException(Exception):
         finally:
             env.exception_clear()
 
+if sys.platform == "win32":
+    # Need to fix up executable path to pick up jvm.dll
+    os.environ["PATH"] = os.environ["PATH"] + os.pathsep + _find_jvm()
+import _javabridge
 __vm = None
 __wake_event = threading.Event()
 __dead_event = threading.Event()

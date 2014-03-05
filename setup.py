@@ -31,10 +31,6 @@ def ext_modules():
     extra_link_args = None
     if is_win:
         extra_link_args = ['/MANIFEST']
-        extensions += [Extension(name="_get_proper_case_filename",
-                                 sources=["get_proper_case_filename.c"],
-                                 libraries=["shlwapi", "shell32", "ole32"],
-                                 extra_link_args=extra_link_args)]
     try:
         java_home = find_javahome()
         jdk_home = find_jdk()
@@ -108,12 +104,13 @@ def package_path(relpath):
 
 def build_jar_from_single_source(jar, source):
     if needs_compilation(jar, source):
-        javac_command = ['javac', package_path(source)]
+        javac_loc = find_javac_cmd()
+        javac_command = [javac_loc, package_path(source)]
         print ' '.join(javac_command)
         subprocess.check_call(javac_command)
         if not os.path.exists(os.path.dirname(jar)):
             os.mkdir(os.path.dirname(jar))
-        jar_command = ['jar', 'cf', package_path(jar)]
+        jar_command = [find_jar_cmd(), 'cf', package_path(jar)]
         for klass in glob.glob(source[:source.rindex('.')] + '*.class'):
             jar_command.extend(['-C', package_path('java'), klass[klass.index('/') + 1:]])
         print ' '.join(jar_command)
