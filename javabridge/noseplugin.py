@@ -33,6 +33,7 @@ class JavabridgePlugin(Plugin):
     enabled = False
     name = "javabridge"
     score = 100
+    extra_jvm_args = []
 
     def begin(self):
         javabridge.start_vm(['-Djava.class.path=' + self.class_path] + self.extra_jvm_args,
