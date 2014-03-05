@@ -66,13 +66,45 @@ def find_jdk():
         return "Doesn't matter"
     if is_win:
         import _winreg
-        jdk_key_path = 'SOFTWARE\\JavaSoft\\Java Development Kit'
-        kjdk = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, jdk_key_path)
-        kjdk_values = dict([_winreg.EnumValue(kjdk, i)[:2]
-                             for i in range(_winreg.QueryInfoKey(kjdk)[1])])
-        current_version = kjdk_values['CurrentVersion']
-        kjdk_current = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
-                                       jdk_key_path + '\\' + current_version)
-        kjdk_current_values = dict([_winreg.EnumValue(kjdk_current, i)[:2]
-                                    for i in range(_winreg.QueryInfoKey(kjdk_current)[1])])
-        return kjdk_current_values['JavaHome']
+        import exceptions
+        try:
+            jdk_key_path = 'SOFTWARE\\JavaSoft\\Java Development Kit'
+            kjdk = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, jdk_key_path)
+            kjdk_values = dict([_winreg.EnumValue(kjdk, i)[:2]
+                                 for i in range(_winreg.QueryInfoKey(kjdk)[1])])
+            current_version = kjdk_values['CurrentVersion']
+            kjdk_current = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
+                                           jdk_key_path + '\\' + current_version)
+            kjdk_current_values = dict([_winreg.EnumValue(kjdk_current, i)[:2]
+                                        for i in range(_winreg.QueryInfoKey(kjdk_current)[1])])
+            return kjdk_current_values['JavaHome']
+        except exceptions.WindowsError as e:
+            if e.errno == 2:
+                raise RuntimeError(
+                    "Failed to find the Java Development Kit. Please download and install the Oracle JDK 1.6 or later")
+            else:
+                raise
+            
+def find_javac_cmd():
+    """Find the javac executable"""
+    if is_win:
+        jdk_base = find_jdk()
+        javac = os.path.join(jdk_base, "bin", "javac.exe")
+        if os.path.isfile(javac):
+            return javac
+        raise RuntimeError("Failed to find javac.exe in its usual location under the JDK (%s)" % javac)
+    else:
+        # will be along path for other platforms
+        return "javac"
+
+def find_jar_cmd():
+    """Find the javac executable"""
+    if is_win:
+        jdk_base = find_jdk()
+        javac = os.path.join(jdk_base, "bin", "jar.exe")
+        if os.path.isfile(javac):
+            return javac
+        raise RuntimeError("Failed to find jar.exe in its usual location under the JDK (%s)" % javac)
+    else:
+        # will be along path for other platforms
+        return "jar"

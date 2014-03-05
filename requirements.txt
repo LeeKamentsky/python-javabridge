@@ -1,1 +1,3 @@
 numpy
+Cython>=0.18.0
+
