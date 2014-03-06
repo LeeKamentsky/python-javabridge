@@ -893,7 +893,7 @@ cdef class JB_Env:
 
         :param c: class holding the method (e.g. from :py:meth:`.find_class`)
 	:param m: the method ID from :py:meth:`.get_static_method_id`
-        :param \\*args: the arguments to the method call. Arguments
+        :param args: the arguments to the method call. Arguments
 		      should appear in the same order as the
 		      signature. Arguments will be coerced into the
 		      type of the signature.
@@ -1419,7 +1419,7 @@ cdef class JB_Env:
         :param m: the method ID. You can get this by calling
 	          get_method_id with a name of "<init>" and a return
 	          type of V
-        :param *args: the arguments to the method call. Arguments
+        :param args: the arguments to the method call. Arguments
                       should appear in the same order as the
                       signature. Arguments will be coerced into the
                       type of the signature.
