@@ -349,12 +349,12 @@ class TestJavabridge(unittest.TestCase):
     
     def test_04_01_call_static_bool(self):
         klass = self.env.find_class("java/lang/Boolean")
-        method_id = self.env.get_static_method_id(klass, "getBoolean",'(Ljava/lang/String;)Z')
+        method_id = self.env.get_static_method_id(klass, "parseBoolean",'(Ljava/lang/String;)Z')
         self.assertTrue(method_id is not None)
-        self.assertFalse(self.env.call_static_method(klass, method_id, 
-                                                self.env.new_string_utf("os.name")))
-        self.assertTrue(self.env.call_static_method(klass, method_id,
-                                                    self.env.new_string_utf("awt.nativeDoubleBuffering")))
+        self.assertFalse(self.env.call_static_method(
+            klass, method_id, self.env.new_string_utf("false")))
+        self.assertTrue(self.env.call_static_method(
+            klass, method_id, self.env.new_string_utf("true")))
 
     def test_04_02_call_static_byte(self):
         klass = self.env.find_class("java/lang/Byte")
