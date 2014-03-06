@@ -16,6 +16,7 @@ API
 .. autofunction:: javabridge.activate_awt
 .. autofunction:: javabridge.deactivate_awt
 
+
 Environment
 +++++++++++
 

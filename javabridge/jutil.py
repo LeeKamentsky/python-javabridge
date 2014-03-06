@@ -23,6 +23,7 @@ import subprocess
 import sys
 import uuid
 from .locate import find_javahome
+import javabridge
 
 logger = logging.getLogger(__name__)
 
@@ -151,22 +152,30 @@ class AtExit(object):
         
 __start_thread = None        
 
-def start_vm(args, run_headless=False):
-    '''
-    Start the Java Virtual Machine.
+def start_vm(args=[], class_path=None, max_heap_size=None, run_headless=False):
+    '''Start the Java Virtual Machine.
 
     :param args: a list of strings, encoding arbitrary startup options
       for the VM. In particular, strings on the form
       ``"-D<name>=<value>"`` are used to set Java system
-      properties. For example, ``"-Djava.class.path=…"`` sets the
-      class path. (For other startup options, see `"The Invocation API"
-      <http://docs.oracle.com/javase/6/docs/technotes/guides/jni/spec/invocation.html>`_.)
+      properties. For other startup options, see `"The Invocation API"
+      <http://docs.oracle.com/javase/6/docs/technotes/guides/jni/spec/invocation.html>`_.
+
+    :param class_path: a list of strings constituting a class search
+      path. Each string can be a directory, JAR archive, or ZIP
+      archive. The default value, `None`, causes the class path in
+      ``javabridge.JARS`` to be used.
+
+    :param max_heap_size: string that specifies the maximum size, in
+      bytes, of the memory allocation pool. This value must be a multiple
+      of 1024 greater than 2MB. Append the letter k or K to indicate
+      kilobytes, or m or M to indicate megabytes.
 
     :param run_headless: if true, set the ``java.awt.headless`` Java
       property. See `"Using Headless Mode in the Java SE Platform"
       <http://www.oracle.com/technetwork/articles/javase/headless-136834.html>`_.
 
-    :throws: :py:exception:JVMNotFoundError
+    :throws: :py:exc:`javabridge.JVMNotFoundError`
 
     '''
     global __vm
@@ -177,6 +186,13 @@ def start_vm(args, run_headless=False):
     if __vm is not None:
         return
     start_event = threading.Event()
+
+    if class_path is None:
+        class_path = javabridge.JARS
+    if len(class_path) > 0:
+        args.append("-Djava.class.path=" + os.pathsep.join(class_path))
+    if max_heap_size:
+        args.append("-Xmx" + max_heap_size)
     
     def start_thread(args=args, run_headless=run_headless):
         global __vm

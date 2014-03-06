@@ -15,7 +15,7 @@ import os
 import wx
 import javabridge
 
-javabridge.start_vm(['-Djava.class.path=' + os.pathsep.join(javabridge.JARS)])
+javabridge.start_vm()
 
 class EmptyApp(wx.App):
     def OnInit(self):

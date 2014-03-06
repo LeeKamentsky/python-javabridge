@@ -21,7 +21,7 @@ class EmptyApp(wx.PySimpleApp):
 
         return True
 
-javabridge.start_vm(['-Djava.class.path=' + os.pathsep.join(javabridge.JARS)])
+javabridge.start_vm()
 
 try: 
     app = EmptyApp(False)
