@@ -10,6 +10,9 @@ piece of JavaScript.
 
 .. autofunction:: javabridge.run_script
 
+For more information on using Rhino with the JVM see
+https://developer.mozilla.org/en-US/docs/Rhino/Scripting_Java
+
 Examples:
 
     >>> javabridge.run_script("2 + 2")
@@ -22,5 +25,31 @@ Examples:
     >>> javabridge.run_script("var result = 2 + 2;", bindings_out=outputs)
     >>> outputs["result"]
     4
+    
+    >>> javabridge.run_script("java.lang.Math.abs(v)", bindings_in=dict(v=-1.5))
+    1.5
 
-TODO: Strings, numbers, etc converted; other things not.
+A conversion is necessary when converting from Python primitives and objects
+to Java and JavaScript primitives and objects. Python primitives are boxed into
+Java objects - Javascript will automatically unbox them when calling a
+method that takes primitive arguments (e.g. the call to Math.abs(double) as
+in the above example. The following is a table
+of bidirectional translations from Python to Java / Javascript and vice-versa:
+
++-------------------------+------------------------+----------------------+
+| Python                  | Java - boxed           | Java-primitive       |
++=========================+========================+======================+
+| bool                    | java.lang.Boolean      | boolean              |
++-------------------------+------------------------+----------------------+
+| int                     | java.lang.Integer      | int                  |
++-------------------------+------------------------+----------------------+
+| long                    | java.lang.Long         | long                 |
++-------------------------+------------------------+----------------------+
+| float                   | java.lang.Double       | double               |
++-------------------------+------------------------+----------------------+
+| unicode                 | java.lang.String       | N/A                  |
++-------------------------+------------------------+----------------------+
+| str (Python->java only) | java.lang.String       | N/A                  |
++-------------------------+------------------------+----------------------+
+| None                    | null                   | N/A                  |
++-------------------------+------------------------+----------------------+
