@@ -8,6 +8,26 @@ This API is high level only in comparison to :doc:`the low-level API<lowlevel>`:
 Signatures
 ----------
 
+Javabridge uses method signatures when it uses the JNI method lookup APIs.
+The method signatures are also used to convert between Python and Java
+primitives and objects. If you use the high-level API, as opposed to scripting,
+you will need to learn how to construct a signature for a class method. For example,
+java.lang.String has the following three methods:
+::
+
+    public char charAt(int index)
+    public int indexOf(String str)
+    public byte [] getString(String charsetName)
+    
+charAt has the signature, "(I)C", because it takes one integer argument (I) and
+its return value is a char (C).
+
+indexOf has the signature, "(Ljava/lang/String;)I", "L" and ";" bracket a
+class name which is represented as a path instead of with the dotted syntax.
+
+getString has the signature, "(Ljava/lang/String;)[B. "[B" uses "[" to indicate
+that an array will be returned and "B" indicates that the array is of type, byte.
+
 The signature syntax is described in `JNI Types and Data Structures <http://docs.oracle.com/javase/1.5.0/docs/guide/jni/spec/types.html>`_. An example: “(ILjava/lang/String;)[I” takes an integer and string as parameters and returns an array of integers. 
 
 Cheat sheet: 
@@ -72,6 +92,11 @@ The functions ``make_new`` and ``make_method`` create Python methods that wrap J
 
 Useful collection wrappers
 --------------------------
+The collection wrappers take a Java object that implements some interface
+and return a corresponding Python object that wraps the interface's methods
+and in addition provide Python-style access to the Java object. The Java
+object itself is, by convention, saved as self.o in the Python object.
+
 .. autofunction:: javabridge.get_collection_wrapper
 .. autofunction:: javabridge.get_dictionary_wrapper
 .. autofunction:: javabridge.get_enumeration_wrapper
@@ -95,8 +120,9 @@ These functions make class wrappers suitable for introspection. These wrappers a
 
 Executing in the correct thread
 -------------------------------
-Ensure that callables, runniables and futures that use AWT run in
-the AWT main thread, which is not accessible from Python.
+Ensure that callables, runnables and futures that use AWT run in
+the AWT main thread, which is not accessible from Python for some operating
+systems.
 
 .. autofunction:: javabridge.make_future_task
 .. autofunction:: javabridge.execute_runnable_in_main_thread

@@ -1294,6 +1294,21 @@ def get_collection_wrapper(collection, fn_wrapper=None):
                  list interface, that is wrapped as well
     
     :param fn_wrapper: if defined, a function that wraps a Java object
+    
+    The returned value is a Python object, duck-typed as a sequence. Items
+    can be retrieved by index or by slicing. You can also iterate through
+    the collection::
+    
+        for o in get_collection_wrapper(jobject):
+            # do something
+        
+    If you supply a function wrapper, indexing and iteration operations
+    will return the result of calling the function wrapper on the objects
+    in the collection::
+    
+        for d in get_collection_wrapper(list_of_hashmaps, get_map_wrapper):
+            # a map wrapper on the hashmap is returned
+            print d["Foo"]
 
     '''
     class Collection(object):
@@ -1401,6 +1416,19 @@ def make_list(elements=[]):
 
     :param elements: the elements to put in the ``ArrayList``.
 
+    Examples::
+        >>> mylist = make_list(["Hello", "World", 2])
+        >>> print "\\n".join([to_string(o) for o in mylist])
+        Hello
+        World
+        2
+        >>> print "%s, %s." % (mylist[0], mylist[1].lower())
+        Hello, world.
+        >>> get_class_wrapper(mylist.o)
+        java.util.ArrayList
+        public boolean java.util.ArrayList.add(java.lang.Object)
+        public void java.util.ArrayList.add(int,java.lang.Object)
+        ...
     '''
     global array_list_add_method_id
     
@@ -1456,6 +1484,15 @@ def get_dictionary_wrapper(dictionary):
 def get_map_wrapper(o):
     '''Return a wrapper of ``java.util.Map``
     
+    :param o: a Java object that implements the ``java.util.Map`` interface
+    
+    Returns a Python object duck typed as a dictionary.
+    You can fetch values from the Java object using the Python array syntax::
+    
+        > d = get_map_wrapper(jmap)
+        > d["Foo"] = "Bar"
+        > print d["Foo"]
+        Bar
     '''
     assert is_instance_of(o, 'java/util/Map')
     class Map(object):
@@ -1492,6 +1529,15 @@ def get_map_wrapper(o):
 def make_map(**kwargs):
     '''Create a wrapped ``java.util.HashMap`` from arbitrary keyword arguments.
 
+    Example::
+    
+        > d = make_map(foo="Bar")
+        > print d["foo"]
+        Bar
+        > get_class_wrapper(d.o)
+        java.util.HashMap
+        public java.lang.Object java.util.HashMap.get(java.lang.Object)
+        public java.lang.Object java.util.HashMap.put(java.lang.Object,java.lang.Object)
     '''
     hashmap = get_map_wrapper(make_instance('java/util/HashMap', "()V"))
     for k, v in kwargs.iteritems():
