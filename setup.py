@@ -16,9 +16,9 @@ import os
 import sys
 import subprocess
 import traceback
-from distutils.core import setup, Extension
+from setuptools import setup, Extension
 from numpy import get_include
-from distutils.command.build_ext import build_ext as _build_ext
+from Cython.Distutils import build_ext as _build_ext
 from Cython.Build import cythonize
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'javabridge'))
