@@ -70,7 +70,7 @@ def ext_modules():
             javabridge_sources += [ "mac_javabridge_utils.c" ]
             include_dirs += ['/System/Library/Frameworks/JavaVM.framework/Headers']
             extra_link_args = ['-framework', 'JavaVM']
-        elif sys.platform.startswith('linux'):
+        elif is_linux:
             include_dirs += [os.path.join(java_home,'include'),
                              os.path.join(java_home,'include','linux')]
             library_dirs = [os.path.join(java_home,'jre','lib','amd64','server')]
