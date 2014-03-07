@@ -12,6 +12,7 @@ All rights reserved.
 import os
 import sys
 
+is_linux = sys.platform.startswith('linux')
 is_win = sys.platform.startswith("win")
 is_win64 = (is_win and (os.environ["PROCESSOR_ARCHITECTURE"] == "AMD64"))
 is_msvc = (is_win and sys.version_info[0] >= 2 and sys.version_info[1] >= 6)
