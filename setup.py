@@ -80,7 +80,9 @@ def ext_modules():
     elif is_linux:
         include_dirs += [os.path.join(java_home,'include'),
                          os.path.join(java_home,'include','linux')]
-        library_dirs = [os.path.join(java_home,'jre','lib','amd64','server')]
+        library_dirs = [os.path.join(java_home,'jre','lib', arch, cs)
+                        for arch in ['amd64', 'i386']
+                        for cs in ['client', 'server']]
         libraries = ["jvm"]
     extension_kwargs = dict(
         name="javabridge._javabridge",
