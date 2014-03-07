@@ -37,9 +37,23 @@ def find_javahome():
     
     if os.environ.has_key('JAVA_HOME'):
         return os.environ['JAVA_HOME']
-    if sys.platform == 'darwin':
+    elif sys.platform == 'darwin':
         return "Doesn't matter"
-    if is_win:
+    elif is_linux:
+        import subprocess
+        def get_out(cmd):
+            p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+            o, ignore = p.communicate()
+            if p.poll() != 0:
+                raise Exception("Error finding javahome on linux: %s" % cmd)
+            o = o.strip()
+            return o
+        java_bin = get_out(["which", "java"])
+        java_dir = get_out(["readlink", "-f", java_bin])
+        jdk_dir = os.path.join(java_dir, "..", "..", "..")
+        jdk_dir = os.path.abspath(jdk_dir)
+        return jdk_dir
+    elif is_win:
         import _winreg
         java_key_path = 'SOFTWARE\\JavaSoft\\Java Runtime Environment'
         looking_for = java_key_path
