@@ -167,6 +167,7 @@ cell image analysis software CellProfiler (cellprofiler.org).''',
                        'Programming Language :: Java',
                        ],
           license='BSD License',
+          install_requires=['numpy', 'Cython', 'Pyrex'],
           package_data={"javabridge": ['jars/*.jar']},
           ext_modules=ext_modules(),
           cmdclass={'build_ext': build_ext,})
