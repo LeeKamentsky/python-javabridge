@@ -16,74 +16,79 @@ import os
 import sys
 import subprocess
 import traceback
-from setuptools import setup, Extension
+from distutils.core import setup, Extension
 from numpy import get_include
-from distutils.command.build import build as _build
-from Cython.Distutils import build_ext
+from distutils.command.build_ext import build_ext as _build_ext
+from Cython.Build import cythonize
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'javabridge'))
 from locate import *
 
 logger = logging.getLogger(__name__)
 
+
+class JavaNotFoundException(Exception):
+    def __init__(self):
+        super(JavaNotFoundException, self).__init__("Cannot find Java.")
+
+
 def ext_modules():
     extensions = []
     extra_link_args = None
     if is_win:
         extra_link_args = ['/MANIFEST']
-    try:
-        java_home = find_javahome()
-        jdk_home = find_jdk()
-        logger.debug("Using jdk_home = %s" % jdk_home)
-        include_dirs = [get_include()]
-        libraries = None
-        library_dirs = None
-        javabridge_sources = [ "_javabridge.pyx" ]
-        if is_win:
-            if jdk_home is not None:
-                jdk_include = os.path.join(jdk_home, "include")
-                jdk_include_plat = os.path.join(jdk_include, sys.platform)
-                include_dirs += [jdk_include, jdk_include_plat]
-            if is_mingw:
-                #
-                # Build libjvm from jvm.dll on Windows.
-                # This assumes that we're using mingw32 for build
-                #
-                cmd = ["dlltool", "--dllname", 
-                       os.path.join(jdk_home,"jre\\bin\\client\\jvm.dll"),
-                       "--output-lib","libjvm.a",
-                       "--input-def","jvm.def",
-                       "--kill-at"]
-                p = subprocess.Popen(cmd)
-                p.communicate()
-                library_dirs = [os.path.abspath(".")]
-            else:
-                #
-                # Use the MSVC lib in the JDK
-                #
-                jdk_lib = os.path.join(jdk_home, "lib")
-                library_dirs = [jdk_lib]
-                javabridge_sources.append("strtoull.c")
+    java_home = find_javahome()
+    if java_home is None:
+        raise JavaNotFoundException()
+    jdk_home = find_jdk()
+    logger.debug("Using jdk_home = %s" % jdk_home)
+    include_dirs = [get_include()]
+    libraries = None
+    library_dirs = None
+    javabridge_sources = [ "_javabridge.pyx" ]
+    if is_win:
+        if jdk_home is not None:
+            jdk_include = os.path.join(jdk_home, "include")
+            jdk_include_plat = os.path.join(jdk_include, sys.platform)
+            include_dirs += [jdk_include, jdk_include_plat]
+        if is_mingw:
+            #
+            # Build libjvm from jvm.dll on Windows.
+            # This assumes that we're using mingw32 for build
+            #
+            cmd = ["dlltool", "--dllname", 
+                   os.path.join(jdk_home,"jre\\bin\\client\\jvm.dll"),
+                   "--output-lib","libjvm.a",
+                   "--input-def","jvm.def",
+                   "--kill-at"]
+            p = subprocess.Popen(cmd)
+            p.communicate()
+            library_dirs = [os.path.abspath(".")]
+        else:
+            #
+            # Use the MSVC lib in the JDK
+            #
+            jdk_lib = os.path.join(jdk_home, "lib")
+            library_dirs = [jdk_lib]
+            javabridge_sources.append("strtoull.c")
 
-            libraries = ["jvm"]
-        elif sys.platform == 'darwin':
-            javabridge_sources += [ "mac_javabridge_utils.c" ]
-            include_dirs += ['/System/Library/Frameworks/JavaVM.framework/Headers']
-            extra_link_args = ['-framework', 'JavaVM']
-        elif is_linux:
-            include_dirs += [os.path.join(java_home,'include'),
-                             os.path.join(java_home,'include','linux')]
-            library_dirs = [os.path.join(java_home,'jre','lib','amd64','server')]
-            libraries = ["jvm"]
-        extensions += [Extension(name="javabridge._javabridge",
-                                 sources=javabridge_sources,
-                                 libraries=libraries,
-                                 library_dirs=library_dirs,
-                                 include_dirs=include_dirs,
-                                 extra_link_args=extra_link_args)]
-    except Exception, e:
-        print "WARNING: Java and JVM is not installed - Images will be loaded using PIL (%s)"%(str(e))
-
+        libraries = ["jvm"]
+    elif sys.platform == 'darwin':
+        javabridge_sources += [ "mac_javabridge_utils.c" ]
+        include_dirs += ['/System/Library/Frameworks/JavaVM.framework/Headers']
+        extra_link_args = ['-framework', 'JavaVM']
+    elif is_linux:
+        include_dirs += [os.path.join(java_home,'include'),
+                         os.path.join(java_home,'include','linux')]
+        library_dirs = [os.path.join(java_home,'jre','lib','amd64','server')]
+        libraries = ["jvm"]
+    extensions += cythonize([Extension(name="javabridge._javabridge",
+                                      sources=javabridge_sources,
+                                      libraries=libraries,
+                                      library_dirs=library_dirs,
+                                      runtime_library_dirs=library_dirs,
+                                      include_dirs=include_dirs,
+                                      extra_link_args=extra_link_args)])
     return extensions
 
 def needs_compilation(target, *sources):
@@ -137,10 +142,10 @@ def build_java():
     build_findlibjvm()
     build_test()
 
-class build(_build):
+class build_ext(_build_ext):
     def run(self, *args, **kwargs):
         build_java()
-        return _build.run(self, *args, **kwargs)
+        return _build_ext.run(self, *args, **kwargs)
 
 
 if __name__ == '__main__':
@@ -164,12 +169,6 @@ cell image analysis software CellProfiler (cellprofiler.org).''',
           license='BSD License',
           package_data={"javabridge": ['jars/*.jar']},
           ext_modules=ext_modules(),
-          tests_require="nose",
-          entry_points={'nose.plugins.0.10': [
-                'javabridge = javabridge.noseplugin:JavabridgePlugin'
-                ]},
-          test_suite="nose.collector",
-          cmdclass={'build': build,
-                    'build_ext': build_ext})
+          cmdclass={'build_ext': build_ext,})
     
 
