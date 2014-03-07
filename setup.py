@@ -16,7 +16,8 @@ import os
 import sys
 import subprocess
 import traceback
-from setuptools import setup, Extension
+from setuptools import setup
+from Cython.Distutils.extension import Extension
 from numpy import get_include
 from Cython.Distutils import build_ext as _build_ext
 from Cython.Build import cythonize
@@ -148,7 +149,7 @@ if __name__ == '__main__':
         os.chdir(os.path.dirname(__file__))
 
     setup(name="javabridge",
-          version='1.0.0pr8',
+          version='1.0.0pr9',
           description="Python wrapper for the Java Native Interface",
           long_description='''The python-javabridge package makes it easy to start a Java virtual
 machine (JVM) from Python and interact with it. Python code can
