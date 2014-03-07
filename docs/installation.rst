@@ -17,8 +17,8 @@ Dependencies
 ------------
 
 The Javabridge requires Python 2.6 or above, Numpy, the Java
-Development Kit, and Cython. Pyrex is also necessary for installation
-with pip to work.
+Development Kit, a C compiler, and Cython. Pyrex is also necessary for
+installation with pip to work.
 
 On CentOS 6, these dependencies can be installed as follows:
 
@@ -33,7 +33,8 @@ On CentOS 6, these dependencies can be installed as follows:
 Running the unit tests
 ----------------------
 
-Running the unit tests requires Nose.
+Running the unit tests requires Nose. Some of the tests require Python
+2.7 or above.
 
 1. Build and install in the source code tree so that the unit tests can run::
 
