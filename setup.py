@@ -82,13 +82,17 @@ def ext_modules():
                          os.path.join(java_home,'include','linux')]
         library_dirs = [os.path.join(java_home,'jre','lib','amd64','server')]
         libraries = ["jvm"]
-    extensions += cythonize([Extension(name="javabridge._javabridge",
-                                      sources=javabridge_sources,
-                                      libraries=libraries,
-                                      library_dirs=library_dirs,
-                                      runtime_library_dirs=library_dirs,
-                                      include_dirs=include_dirs,
-                                      extra_link_args=extra_link_args)])
+    extension_kwargs = dict(
+        name="javabridge._javabridge",
+        sources=javabridge_sources,
+        libraries=libraries,
+        library_dirs=library_dirs,
+        include_dirs=include_dirs,
+        extra_link_args=extra_link_args)
+    if not is_win:
+        extension_kwargs["runtime_library_dirs"] =library_dirs
+
+    extensions += cythonize([Extension(**extension_kwargs)])
     return extensions
 
 def needs_compilation(target, *sources):
