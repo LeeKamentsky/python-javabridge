@@ -27,6 +27,45 @@ import javabridge
 
 logger = logging.getLogger(__name__)
 
+
+class JavaError(ValueError):
+    '''An error caused by using the Javabridge incorrectly'''
+    def __init__(self, message=None):
+        super(JavaError,self).__init__(message)
+
+
+class JVMNotFoundError(JavaError):
+    '''Failed to find The Java Runtime Environment'''
+    def __init__(self):
+        super(JVMNotFoundError, self).__init__("Can't find the Java Virtual Machine")
+        
+
+class JavaException(Exception):
+    '''Represents a Java exception thrown inside the JVM'''
+    def __init__(self, throwable):
+        '''Initialize by calling exception_occurred'''
+        env = get_env()
+        env.exception_describe()
+        self.throwable = throwable
+        try:
+            if self.throwable is None:
+                raise ValueError("Tried to create a JavaException but there was no current exception")
+            #
+            # The following has to be done by hand because the exception can't be
+            # cleared at this point
+            #
+            klass = env.get_object_class(self.throwable)
+            method_id = env.get_method_id(klass, 'getMessage', 
+                                          '()Ljava/lang/String;')
+            if method_id is not None:
+                message = env.call_method(self.throwable, method_id)
+                if message is not None:
+                    message = env.get_string_utf(message)
+                    super(JavaException, self).__init__(message)
+        finally:
+            env.exception_clear()
+
+
 def _find_jvm_windows():
     # Look for JAVA_HOME and in the registry
     java_home = find_javahome()
@@ -54,71 +93,21 @@ def _find_jvm_mac():
     os.environ['PATH'] = os.environ['PATH'] + ':' + jvm_dir
     return jvm_dir
 
-def _find_jvm_linux():
-    #
-    # Run the findlibjvm program which uses ``java.library.path`` to
-    # find the search path for the JVM.
-    #
-    import ctypes
-    class_path = os.path.join(os.path.dirname(__file__), 'jars', 'findlibjvm.jar')
-    p = subprocess.Popen(["java","-cp", class_path, "findlibjvm"],
-                         stdout=subprocess.PIPE)
-    stdout, stderr = p.communicate()
-    jvm_dir = stdout.strip()
-    ctypes.CDLL(os.path.join(jvm_dir, "libjvm.so"))
-    return jvm_dir
-
 def _find_jvm():
     jvm_dir = None
     if sys.platform.startswith('win'):
         jvm_dir = _find_jvm_windows()
+        if jvm_dir is None:
+            raise JavaNotFoundException()
     elif sys.platform == 'darwin':
         jvm_dir = _find_jvm_mac()
-    elif sys.platform.startswith('linux'):
-        jvm_dir = _find_jvm_linux()
-
-    if jvm_dir is None:
-        raise JVMNotFoundError()
     return jvm_dir
 
-class JavaError(ValueError):
-    '''An error caused by using the Javabridge incorrectly'''
-    def __init__(self, message=None):
-        super(JavaError,self).__init__(message)
-
-class JVMNotFoundError(JavaError):
-    '''Failed to find The Java Runtime Environment'''
-    def __init__(self):
-        super(JVMNotFoundError, self).__init__("Can't find the Java Virtual Machine")
-        
-class JavaException(Exception):
-    '''Represents a Java exception thrown inside the JVM'''
-    def __init__(self, throwable):
-        '''Initialize by calling exception_occurred'''
-        env = get_env()
-        env.exception_describe()
-        self.throwable = throwable
-        try:
-            if self.throwable is None:
-                raise ValueError("Tried to create a JavaException but there was no current exception")
-            #
-            # The following has to be done by hand because the exception can't be
-            # cleared at this point
-            #
-            klass = env.get_object_class(self.throwable)
-            method_id = env.get_method_id(klass, 'getMessage', 
-                                          '()Ljava/lang/String;')
-            if method_id is not None:
-                message = env.call_method(self.throwable, method_id)
-                if message is not None:
-                    message = env.get_string_utf(message)
-                    super(JavaException, self).__init__(message)
-        finally:
-            env.exception_clear()
 
 if sys.platform == "win32":
     # Need to fix up executable path to pick up jvm.dll
     os.environ["PATH"] = os.environ["PATH"] + os.pathsep + _find_jvm()
+
 import _javabridge
 __vm = None
 __wake_event = threading.Event()
@@ -130,6 +119,7 @@ __main_thread_closures = []
 __run_headless = False
 
 RQCLS = "org/cellprofiler/runnablequeue/RunnableQueue"
+
 
 class AtExit(object):
     '''AtExit runs a function as the main thread exits from the __main__ function

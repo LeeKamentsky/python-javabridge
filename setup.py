@@ -27,11 +27,6 @@ from locate import *
 logger = logging.getLogger(__name__)
 
 
-class JavaNotFoundException(Exception):
-    def __init__(self):
-        super(JavaNotFoundException, self).__init__("Cannot find Java.")
-
-
 def ext_modules():
     extensions = []
     extra_link_args = None
@@ -39,7 +34,7 @@ def ext_modules():
         extra_link_args = ['/MANIFEST']
     java_home = find_javahome()
     if java_home is None:
-        raise JavaNotFoundException()
+        raise JVMNotFoundError()
     jdk_home = find_jdk()
     logger.debug("Using jdk_home = %s" % jdk_home)
     include_dirs = [get_include()]
@@ -132,11 +127,6 @@ def build_runnablequeue():
     source = 'java/org/cellprofiler/runnablequeue/RunnableQueue.java'
     build_jar_from_single_source(jar, source)
 
-def build_findlibjvm():
-    jar = 'javabridge/jars/findlibjvm.jar'
-    source = 'java/org/cellprofiler/findlibjvm.java'
-    build_jar_from_single_source(jar, source)
-
 def build_test():
     jar = 'javabridge/jars/test.jar'
     source = 'java/org/cellprofiler/javabridge/test/RealRect.java'
@@ -145,7 +135,6 @@ def build_test():
 def build_java():
     print "running build_java"
     build_runnablequeue()
-    build_findlibjvm()
     build_test()
 
 class build_ext(_build_ext):
