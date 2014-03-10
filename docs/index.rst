@@ -27,6 +27,7 @@ Contents:
    highlevel
    lowlevel
    unittesting
+   developers
 
 
 Indices and tables
