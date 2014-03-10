@@ -26,14 +26,6 @@ from locate import *
 
 logger = logging.getLogger(__name__)
 
-def in_current_dir(basename):
-    return os.path.join(os.path.dirname(__file__), basename)
-
-def decide_use_cython(basenames):
-    return any([needs_compilation(in_current_dir(basename + '.c'),
-                                  in_current_dir(basename + '.pyx'))
-                for basename in basenames])
-
 def ext_modules():
     extensions = []
     extra_link_args = None
@@ -47,16 +39,11 @@ def ext_modules():
     include_dirs = [get_include()]
     libraries = None
     library_dirs = None
-    pyx_basenames = ['_javabridge']
+    javabridge_sources = ['_javabridge.c']
     if os.uname()[0] == 'Darwin':
-        pyx_basenames += ['_javabridge_mac']
+        javabridge_sources += ['_javabridge_mac.c']
     else:
-        pyx_basenames += ['_javabridge_nomac']
-    use_cython = decide_use_cython(pyx_basenames)
-    if use_cython:
-        javabridge_sources = [basename + '.pyx' for basename in pyx_basenames]
-    else:
-        javabridge_sources = [basename + '.c' for basename in pyx_basenames]
+        javabridge_sources += ['_javabridge_nomac.c']
     if is_win:
         if jdk_home is not None:
             jdk_include = os.path.join(jdk_home, "include")
@@ -106,9 +93,6 @@ def ext_modules():
         extension_kwargs["runtime_library_dirs"] =library_dirs
 
     extensions += [Extension(**extension_kwargs)]
-    if use_cython:
-        from Cython.Build import cythonize
-        extensions = cythonize(extensions)
     return extensions
 
 def needs_compilation(target, *sources):
