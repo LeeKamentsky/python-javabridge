@@ -11,6 +11,12 @@ All rights reserved.
 
 import os.path
 
+try:
+    from _version import __version__
+except ImportError:
+    # We're running in a tree that doesn't have a _version.py, so we don't know what our version is.
+    __version__ = "0.0.0"
+
 _jars_dir = os.path.join(os.path.dirname(__file__), 'jars')
 
 #: List of absolute paths to JAR files that are required for the

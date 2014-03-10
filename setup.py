@@ -13,6 +13,7 @@ import errno
 import glob
 import logging
 import os
+import re
 import sys
 import subprocess
 import traceback
@@ -143,13 +144,50 @@ class build_ext(_build_ext):
         build_java()
         return _build_ext.run(self, *args, **kwargs)
 
+def get_version():
+    """Get version from git or file system.
+
+    If this is a git repository, try to get the version number by
+    running ``git describe``, then store it in
+    javabridge/_version.py. Otherwise, try to load the version number
+    from that file. If both methods fail, quietly return None.
+
+    """
+    git_version = None
+    if os.path.exists(os.path.join(os.path.dirname(__file__), '.git')):
+        import subprocess
+        try:
+            git_version = subprocess.check_output(['git', 'describe']).strip()
+        except:
+            pass
+
+    version_file = os.path.join(os.path.dirname(__file__), 'javabridge', 
+                                '_version.py')
+    if os.path.exists(version_file):
+        with open(version_file) as f:
+            cached_version_line = f.read().strip()
+        try:
+            # From http://stackoverflow.com/a/3619714/17498
+            cached_version = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", 
+                                       cached_version_line, re.M).group(1)
+        except:
+            raise RuntimeError("Unable to find version in %s" % version_file)
+    else:
+        cached_version = None
+
+    if git_version and git_version != cached_version:
+        with open(version_file, 'w') as f:
+            print >>f, '__version__ = "%s"' % git_version
+
+    return git_version or cached_version
+
 
 if __name__ == '__main__':
     if '/' in __file__:
         os.chdir(os.path.dirname(__file__))
 
     setup(name="javabridge",
-          version='1.0.0pr9',
+          version=get_version(),
           description="Python wrapper for the Java Native Interface",
           long_description='''The python-javabridge package makes it easy to start a Java virtual
 machine (JVM) from Python and interact with it. Python code can
@@ -164,7 +202,7 @@ cell image analysis software CellProfiler (cellprofiler.org).''',
                        ],
           license='BSD License',
           install_requires=['numpy', 'Cython', 'Pyrex'],
-          package_data={"javabridge": ['jars/*.jar']},
+          package_data={"javabridge": ['jars/*.jar', 'VERSION']},
           ext_modules=ext_modules(),
           cmdclass={'build_ext': build_ext,})
     
