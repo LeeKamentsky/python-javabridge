@@ -17,17 +17,14 @@ import re
 import sys
 import subprocess
 import traceback
-from setuptools import setup
-from Cython.Distutils.extension import Extension
+from setuptools import setup, Extension
+from setuptools.command.build_ext import build_ext as _build_ext
 from numpy import get_include
-from Cython.Distutils import build_ext as _build_ext
-from Cython.Build import cythonize
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'javabridge'))
 from locate import *
 
 logger = logging.getLogger(__name__)
-
 
 def ext_modules():
     extensions = []
@@ -42,7 +39,14 @@ def ext_modules():
     include_dirs = [get_include()]
     libraries = None
     library_dirs = None
-    javabridge_sources = [ "_javabridge.pyx" ]
+    use_cython = needs_compilation(os.path.join(os.path.dirname(__file__),
+                                                '_javabridge.c'),
+                                   os.path.join(os.path.dirname(__file__),
+                                                '_javabridge.pyx'))
+    if use_cython:
+        javabridge_sources = ["_javabridge.pyx"]
+    else:
+        javabridge_sources = ["_javabridge.c"]
     if is_win:
         if jdk_home is not None:
             jdk_include = os.path.join(jdk_home, "include")
@@ -91,7 +95,10 @@ def ext_modules():
     if not is_win:
         extension_kwargs["runtime_library_dirs"] =library_dirs
 
-    extensions += cythonize([Extension(**extension_kwargs)])
+    extensions += [Extension(**extension_kwargs)]
+    if use_cython:
+        from Cython.Build import cythonize
+        extensions = cythonize(extensions)
     return extensions
 
 def needs_compilation(target, *sources):
@@ -201,9 +208,7 @@ cell image analysis software CellProfiler (cellprofiler.org).''',
                        'Programming Language :: Java',
                        ],
           license='BSD License',
-          install_requires=['numpy', 'Cython', 'Pyrex'],
+          install_requires=['numpy'],
           package_data={"javabridge": ['jars/*.jar', 'VERSION']},
           ext_modules=ext_modules(),
           cmdclass={'build_ext': build_ext,})
-    
-
