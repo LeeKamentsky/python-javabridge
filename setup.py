@@ -26,6 +26,14 @@ from locate import *
 
 logger = logging.getLogger(__name__)
 
+def in_current_dir(basename):
+    return os.path.join(os.path.dirname(__file__), basename)
+
+def decide_use_cython(basenames):
+    return any([needs_compilation(in_current_dir(basename + '.c'),
+                                  in_current_dir(basename + '.pyx'))
+                for basename in basenames])
+
 def ext_modules():
     extensions = []
     extra_link_args = None
@@ -39,14 +47,16 @@ def ext_modules():
     include_dirs = [get_include()]
     libraries = None
     library_dirs = None
-    use_cython = needs_compilation(os.path.join(os.path.dirname(__file__),
-                                                '_javabridge.c'),
-                                   os.path.join(os.path.dirname(__file__),
-                                                '_javabridge.pyx'))
-    if use_cython:
-        javabridge_sources = ["_javabridge.pyx"]
+    pyx_basenames = ['_javabridge']
+    if os.uname()[0] == 'Darwin':
+        pyx_basenames += ['_javabridge_mac']
     else:
-        javabridge_sources = ["_javabridge.c"]
+        pyx_basenames += ['_javabridge_nomac']
+    use_cython = decide_use_cython(pyx_basenames)
+    if use_cython:
+        javabridge_sources = [basename + '.pyx' for basename in pyx_basenames]
+    else:
+        javabridge_sources = [basename + '.c' for basename in pyx_basenames]
     if is_win:
         if jdk_home is not None:
             jdk_include = os.path.join(jdk_home, "include")
@@ -209,6 +219,11 @@ cell image analysis software CellProfiler (cellprofiler.org).''',
                        ],
           license='BSD License',
           install_requires=['numpy'],
+          tests_require="nose",
+          entry_points={'nose.plugins.0.10': [
+                'javabridge = javabridge.noseplugin:JavabridgePlugin'
+                ]},
+          test_suite="nose.collector",
           package_data={"javabridge": ['jars/*.jar', 'VERSION']},
           ext_modules=ext_modules(),
           cmdclass={'build_ext': build_ext,})

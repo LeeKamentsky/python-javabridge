@@ -1,5 +1,7 @@
 /build
 /_javabridge.c
+/_javabridge_mac.c
+/_javabridge_nomac.c
 *.pyc
 *.pyd
 /javabridge/_javabridge.so

@@ -16,9 +16,8 @@ Install without pip
 Dependencies
 ------------
 
-The Javabridge requires Python 2.6 or above, Numpy, the Java
-Development Kit, a C compiler, and Cython. Pyrex is also necessary for
-installation with pip to work.
+The Javabridge requires Python 2.6 or above, Numpy, the Java Runtime
+Environment, and a C compiler.
 
 On CentOS 6, these dependencies can be installed as follows::
 
@@ -42,7 +41,7 @@ Running the unit tests requires Nose. Some of the tests require Python
 
 2. Run the unit tests::
 
-    python nosetests.py
+    python setup.py nosetests
 
 
 

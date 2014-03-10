@@ -14,6 +14,7 @@ import sys
 import threading
 cimport numpy as np
 cimport cython
+cimport _javabridge_osspecific
 
 cdef extern from "Python.h":
     ctypedef int Py_intptr_t
@@ -39,7 +40,7 @@ cdef extern from "numpy/arrayobject.h":
         cdef Py_intptr_t *strides
     cdef void import_array()
     cdef int  PyArray_ITEMSIZE(np.ndarray)
-    
+
 import_array()
 
 cdef extern from "jni.h":
@@ -292,45 +293,18 @@ cdef extern from "jni.h":
 
     jint JNI_CreateJavaVM(JavaVM **pvm, void **penv, void *args) nogil
     jint JNI_GetDefaultJavaVMInitArgs(void *args) nogil
-    
-IF UNAME_SYSNAME == "Darwin":
-    cdef extern from "mac_javabridge_utils.h":
-        int MacStartVM(JavaVM **, JavaVMInitArgs *pVMArgs, char *class_name) nogil
-        void MacStopVM() nogil
-        void MacRunLoopInit() nogil
-        void MacRunLoopRun() nogil
-        void MacRunLoopStop() nogil
-        void MacRunLoopReset() nogil
-        int MacIsMainThread() nogil
-        void MacRunLoopRunInMode(double) nogil
 
-    cdef void StopVM(JavaVM *vm) nogil:
-        MacStopVM()
-        
-ELSE:
-    cdef int MacStartVM(JavaVM **pvm, JavaVMInitArgs *pVMArgs, char *class_name) nogil:
-        return -1
-	
-    cdef void StopVM(JavaVM *vm) nogil:
-        vm[0].DestroyJavaVM(vm)
-	
-    cdef void MacRunLoopInit() nogil:
-        pass
-        
-    cdef void MacRunLoopRun() nogil:
-        pass
-	
-    cdef void MacRunLoopStop() nogil:
-        pass
-        
-    cdef void MacRunLoopReset() nogil:
-        pass
-        
-    cdef int MacIsMainThread() nogil:
-        return 0
-        
-    cdef void MacRunLoopRunInMode(double timeout) nogil:
-        pass
+cdef extern from "mac_javabridge_utils.h":
+    int MacStartVM(JavaVM **, JavaVMInitArgs *pVMArgs, char *class_name) nogil
+    void MacStopVM() nogil
+    void MacRunLoopInit() nogil
+    void MacRunLoopRun() nogil
+    void MacRunLoopStop() nogil
+    void MacRunLoopReset() nogil
+    int MacIsMainThread() nogil
+    void MacRunLoopRunInMode(double) nogil
+
+cdef extern void StopVM(JavaVM *vm) nogil
 
 def mac_run_loop_init():
     MacRunLoopInit()
