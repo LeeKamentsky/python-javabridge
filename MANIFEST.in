@@ -3,6 +3,5 @@ include mac_javabridge_utils.h
 include _javabridge.c
 include _javabridge_mac.c
 include _javabridge_nomac.c
-include nosetests.py
 recursive-include javabridge/tests *.py
 
