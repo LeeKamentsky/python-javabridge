@@ -19,13 +19,20 @@ Dependencies
 The Javabridge requires Python 2.6 or above, Numpy, the Java Runtime
 Environment, and a C compiler.
 
-On CentOS 6, these dependencies can be installed as follows::
+On CentOS 6, the dependencies can be installed as follows::
 
     yum install gcc numpy python-devel java-1.6.0-openjdk-devel
     curl -O https://raw.github.com/pypa/pip/master/contrib/get-pip.py
     python get-pip.py
-    pip install cython
-    pip install --allow-external Pyrex --allow-unverified Pyrex Pyrex
+
+On Fedora 19, the dependencies can be installed as follows::
+
+    yum install gcc numpy python-devel java-1.7.0-openjdk-devel python-pip openssl
+
+On Ubuntu 13.10 and Debian 7.0, the dependencies can be installed as follows::
+
+   apt-get install openjdk-6-jdk python-pip python-numpy python-dev
+
 
 
 

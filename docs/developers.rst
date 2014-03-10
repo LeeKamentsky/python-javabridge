@@ -4,6 +4,8 @@ For Javabridge developers
 Build from git repository
 -------------------------
 
+::
+
     git clone git@github.com:CellProfiler/python-javabridge.git
     cd python-javabridge
     cython *.pyx
@@ -12,6 +14,8 @@ Build from git repository
 
 Make source distribution and publish
 ------------------------------------
+
+::
 
     git tag -a -m 'A commit message' '1.0.0pr11'
     git push --tags   # Not necessary, but you'll want to do it at some point

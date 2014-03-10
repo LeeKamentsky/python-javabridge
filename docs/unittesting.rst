@@ -11,7 +11,7 @@ to Nose.
 To use the plugin for your own project, in the ``[nosetests]`` section
 to your ``setup.cfg``, add ``with-javabridge = True``. You can also
 specify a classpath; the jar files required for javabridge to function
-(:py:data:javabridge.JARS) will be added to this path::
+(:py:data:`javabridge.JARS`) will be added to this path::
 
     [nosetests]
     with-javabridge = True
