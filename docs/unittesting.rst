@@ -17,6 +17,18 @@ specify a classpath; the jar files required for javabridge to function
     with-javabridge = True
     classpath = my-project/jars/foo.jar
 
-You should then be able to run setuptools's nosetests command::
+You should then be able to run the ``nosetests`` command::
+
+    nosetests
+
+On some installations, setuptools's nosetests command will also work::
 
     python setup.py nosetests
+
+If you prefer, these options can also be given on the command line::
+
+    nosetests --with-javabridge=True --classpath=my-project/jars/foo.jar
+
+or::
+
+    python setup.py nosetests --with-javabridge=True --classpath=my-project/jars/foo.jar

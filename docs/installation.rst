@@ -48,7 +48,12 @@ Running the unit tests requires Nose. Some of the tests require Python
 
 2. Run the unit tests::
 
+    nosetests
+
+On some installations, the following will also work::
+
     python setup.py nosetests
+
 
 
 
