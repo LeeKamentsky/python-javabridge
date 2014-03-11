@@ -16,8 +16,8 @@ Install without pip
 Dependencies
 ------------
 
-The Javabridge requires Python 2.6 or above, Numpy, the Java Runtime
-Environment, and a C compiler.
+The Javabridge requires Python 2.6 or above, Numpy, the Java
+Development Kit (JDK), and a C compiler.
 
 On CentOS 6, the dependencies can be installed as follows::
 
