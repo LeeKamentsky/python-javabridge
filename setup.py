@@ -11,7 +11,6 @@ All rights reserved.
 
 import errno
 import glob
-import logging
 import os
 import re
 import sys
@@ -21,10 +20,30 @@ from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext as _build_ext
 from numpy import get_include
 
+# Hack to avoid importing the javabridge package
 sys.path.append(os.path.join(os.path.dirname(__file__), 'javabridge'))
 from locate import *
 
-logger = logging.getLogger(__name__)
+def in_cwd(basename):
+    return os.path.join(os.path.dirname(__file__), basename)
+
+def build_cython():
+    """Compile the pyx files if we have them.
+    
+    The git repository has the .pyx files but not the .c files, and
+    the source distributions that are uploaded to PyPI have the .c
+    files and not the .pyx files. (The reason for the latter is that
+    some versions of pip discovers the .pyx files and implicitly adds
+    a dependency on Cython.) Therefore, if we have the .pyx files,
+    compile them.
+
+    """
+    stems = ['_javabridge', '_javabridge_mac', '_javabridge_nomac']
+    pyx_filenames = [in_cwd(s + '.pyx') for s in stems]
+    if any(map(os.path.exists, pyx_filenames)):
+        cmd = ['cython'] + pyx_filenames
+        print ' '.join(cmd)
+        subprocess.check_call(cmd)
 
 def ext_modules():
     extensions = []
@@ -35,7 +54,7 @@ def ext_modules():
     if java_home is None:
         raise JVMNotFoundError()
     jdk_home = find_jdk()
-    logger.debug("Using jdk_home = %s" % jdk_home)
+    print "Using jdk_home =", jdk_home
     include_dirs = [get_include()]
     libraries = None
     library_dirs = None
@@ -143,6 +162,7 @@ def build_java():
 class build_ext(_build_ext):
     def run(self, *args, **kwargs):
         build_java()
+        build_cython()
         return _build_ext.run(self, *args, **kwargs)
 
 def get_version():
