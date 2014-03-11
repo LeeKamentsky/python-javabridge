@@ -1,3 +1,5 @@
+.. _unit-testing:
+
 Unit testing
 ============
 
