@@ -13,6 +13,7 @@ import os
 import sys
 
 is_linux = sys.platform.startswith('linux')
+is_mac = sys.platform == 'darwin'
 is_win = sys.platform.startswith("win")
 is_win64 = (is_win and (os.environ["PROCESSOR_ARCHITECTURE"] == "AMD64"))
 is_msvc = (is_win and sys.version_info[0] >= 2 and sys.version_info[1] >= 6)
@@ -37,7 +38,7 @@ def find_javahome():
     
     if os.environ.has_key('JAVA_HOME'):
         return os.environ['JAVA_HOME']
-    elif sys.platform == 'darwin':
+    elif is_mac:
         return "Doesn't matter"
     elif is_linux:
         import subprocess
@@ -77,7 +78,7 @@ def find_javahome():
 
 def find_jdk():
     """Find the JDK under Windows"""
-    if sys.platform == 'darwin':
+    if is_mac:
         return "Doesn't matter"
     if is_win:
         import _winreg
