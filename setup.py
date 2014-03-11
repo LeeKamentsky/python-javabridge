@@ -40,7 +40,7 @@ def ext_modules():
     libraries = None
     library_dirs = None
     javabridge_sources = ['_javabridge.c']
-    if os.uname()[0] == 'Darwin':
+    if is_mac:
         javabridge_sources += ['_javabridge_mac.c']
     else:
         javabridge_sources += ['_javabridge_nomac.c']
@@ -71,7 +71,7 @@ def ext_modules():
             javabridge_sources.append("strtoull.c")
 
         libraries = ["jvm"]
-    elif sys.platform == 'darwin':
+    elif is_mac:
         javabridge_sources += [ "mac_javabridge_utils.c" ]
         include_dirs += ['/System/Library/Frameworks/JavaVM.framework/Headers']
         extra_link_args = ['-framework', 'JavaVM']
