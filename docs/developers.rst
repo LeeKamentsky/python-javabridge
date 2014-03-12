@@ -20,7 +20,7 @@ Make source distribution and publish
     git tag -a -m 'A commit message' '1.0.0pr11'
     git push --tags   # Not necessary, but you'll want to do it at some point
     git clean -fdx
-    cython *.pyx
+    python setup.py develop
     python setup.py sdist upload
     python setup.py build_sphinx
     python setup.py upload_sphinx

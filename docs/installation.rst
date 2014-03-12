@@ -44,11 +44,17 @@ Running the unit tests requires Nose. Some of the tests require Python
 
 1. Build and install in the source code tree so that the unit tests can run::
 
-    python setup.py build_ext --inplace
+    python setup.py develop
 
 2. Run the unit tests::
 
+    nosetests
+
+On Linux and MacOS X, the following should also work::
+
     python setup.py nosetests
 
+See the section :ref:`unit-testing` for how to run unit tests for your
+own projects that use Javabridge.
 
 
