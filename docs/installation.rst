@@ -33,7 +33,23 @@ On Ubuntu 13.10 and Debian 7.0, the dependencies can be installed as follows::
 
    apt-get install openjdk-6-jdk python-pip python-numpy python-dev
 
+On Windows
 
+If you do not have a C compiler installed, you can install the Windows SDK 7.1
+and .Net Framework 4.0 to perform the compile steps. You should install
+a JDK appropriate for your Java project - the Windows build is tested with
+the Oracle JDK v 1.7. The paths to PIP and Python should be in your PATH 
+(``set PATH=%PATH%;c:\\Python27;c:\\Python27\\scripts`` if Python and PIP installed
+to the default locations). The following steps should perform the install:
+
+    Open a Windows SDK command prompt (found in the Start menu under 
+    Microsoft Windows SDK). Set the path to Python and PIP if needed.
+    
+    Issue the commands::
+    
+        set MSSdk=1
+        set DISTUTILS_USE_SDK=1
+        pip install javabridge
 
 
 Running the unit tests
