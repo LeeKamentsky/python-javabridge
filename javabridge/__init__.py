@@ -31,7 +31,7 @@ from .jutil import attach, detach, get_env
 
 
 # JavaScript
-from .jutil import run_script
+from .jutil import run_script, unwrap_javascript
 
 
 # Operations on Java objects
@@ -71,4 +71,4 @@ from ._javabridge import mac_enter_run_loop, mac_stop_run_loop, mac_run_loop_ini
 
 
 # Low-level API
-from ._javabridge import JB_Env, JB_Object
+from ._javabridge import JB_Env, JB_Object, JB_Class

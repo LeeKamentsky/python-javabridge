@@ -275,9 +275,11 @@ def start_vm(args=[], class_path=None, max_heap_size=None, run_headless=False):
 def unwrap_javascript(o):
     '''Unwrap an object such as NativeJavaObject
     
-    o - an object, possibly implementing org.mozilla.javascript.Wrapper
+    :param o: an object, possibly implementing org.mozilla.javascript.Wrapper
     
-    return nice version
+    :returns: result of calling the wrapper's unwrap method if a wrapper,
+              otherwise the unboxed value for boxed types such as
+              java.lang.Integer, and if not boxed, return the Java object.
     '''
     if is_instance_of(o, "org/mozilla/javascript/Wrapper"):
         o = call(o, "unwrap", "()Ljava/lang/Object;")

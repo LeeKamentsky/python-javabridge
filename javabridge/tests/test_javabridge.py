@@ -16,7 +16,7 @@ import numpy as np
 import unittest
 
 import javabridge
-jb = javabridge._javabridge
+jb = javabridge
 
 
 class TestJavabridge(unittest.TestCase):
