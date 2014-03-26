@@ -1614,8 +1614,13 @@ def iterate_java(iterator, fn_wrapper=None):
     '''
     global iterator_has_next_id, iterator_next_id
     env = get_env()
+    iterator_class = env.find_class("java/util/Iterator")
+    if not isinstance(iterator, javabridge.JB_Object):
+        raise JavaError("%s is not a Javabridge JB_Object" % repr(iterator))
+    if not env.is_instance_of(iterator, iterator_class):
+        raise JavaError("%s does not implement the java.util.Iterator interface" %
+                        get_class_wrapper(iterator).getCanonicalName())
     if iterator_has_next_id is None:
-        iterator_class = env.find_class("java/util/Iterator")
         iterator_has_next_id = env.get_method_id(iterator_class, "hasNext", "()Z")
         iterator_next_id = env.get_method_id(iterator_class, "next", "()Ljava/lang/Object;")
     while(True):

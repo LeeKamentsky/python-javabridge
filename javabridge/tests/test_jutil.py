@@ -513,6 +513,14 @@ class TestJutil(unittest.TestCase):
         o = javabridge.make_instance("org/cellprofiler/javabridge/test/RealRect", "(DDDD)V", 1, 2, 3, 4)
         javabridge.set_field(o, "x", "D", 5.5)
         self.assertEqual(javabridge.get_field(o, "x", "D"), 5.5)
+        
+    def test_10_01_iterate_java_on_non_iterator(self):
+        #
+        # Regression test of issue #11: the expression below segfaulted
+        #
+        def fn():
+            list(javabridge.iterate_java(javabridge.make_list(range(10)).o))
+        self.assertRaises(javabridge.JavaError, fn)
 
         
 if __name__=="__main__":
