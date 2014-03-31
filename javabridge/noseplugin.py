@@ -38,21 +38,32 @@ class JavabridgePlugin(Plugin):
     def begin(self):
         javabridge.start_vm(self.extra_jvm_args,
                             class_path=self.class_path.split(os.pathsep),
-                            run_headless=True)
+                            run_headless=self.headless,
+                            max_heap_size=self.max_heap_size)
 
     def options(self, parser, env=os.environ):
         super(JavabridgePlugin, self).options(parser, env=env)
         parser.add_option("--classpath", action="store",
-                          default=env.get('CLASSPATH'),
+                          default=env.get('NOSE_CLASSPATH'),
                           metavar="PATH",
                           dest="classpath",
-                          help="Additional class path for JVM")
+                          help="Additional class path for JVM [NOSE_CLASSPATH]")
+        parser.add_option("--no-headless", action="store_true",
+                          default=bool(env.get('NOSE_NO_HEADLESS')),
+                          dest="no_headless",
+                          help="Set Java environment variable, java.awt.headless to false to allow AWT calls [NOSE_NO_HEADLESS]")
+        parser.add_option("--max-heap-size", action="store",
+                          default=env.get('NOSE_MAX_HEAP_SIZE'),
+                          dest="max_heap_size",
+                          help="Set the maximum heap size argument to the JVM as in the -Xmx command-line argument [NOSE_MAX_HEAP_SIZE]")
 
     def configure(self, options, conf):
         super(JavabridgePlugin, self).configure(options, conf)
         self.class_path = os.pathsep.join(javabridge.JARS)
         if options.classpath:
             self.class_path = os.pathsep.join([options.classpath, self.class_path])
+        self.headless = not options.no_headless
+        self.max_heap_size = options.max_heap_size
 
     def prepareTestRunner(self, testRunner):
         '''Need to make the test runner call finalize if in Wing

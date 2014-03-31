@@ -48,8 +48,6 @@ def build_cython():
 def ext_modules():
     extensions = []
     extra_link_args = None
-    if is_win:
-        extra_link_args = ['/MANIFEST']
     java_home = find_javahome()
     if java_home is None:
         raise JVMNotFoundError()
@@ -85,6 +83,7 @@ def ext_modules():
             #
             # Use the MSVC lib in the JDK
             #
+            extra_link_args = ['/MANIFEST']
             jdk_lib = os.path.join(jdk_home, "lib")
             library_dirs = [jdk_lib]
             javabridge_sources.append("strtoull.c")

@@ -283,9 +283,11 @@ def start_vm(args=[], class_path=None, max_heap_size=None, run_headless=False):
 def unwrap_javascript(o):
     '''Unwrap an object such as NativeJavaObject
     
-    o - an object, possibly implementing org.mozilla.javascript.Wrapper
+    :param o: an object, possibly implementing org.mozilla.javascript.Wrapper
     
-    return nice version
+    :returns: result of calling the wrapper's unwrap method if a wrapper,
+              otherwise the unboxed value for boxed types such as
+              java.lang.Integer, and if not boxed, return the Java object.
     '''
     if is_instance_of(o, "org/mozilla/javascript/Wrapper"):
         o = call(o, "unwrap", "()Ljava/lang/Object;")
@@ -1622,8 +1624,13 @@ def iterate_java(iterator, fn_wrapper=None):
     '''
     global iterator_has_next_id, iterator_next_id
     env = get_env()
+    iterator_class = env.find_class("java/util/Iterator")
+    if not isinstance(iterator, javabridge.JB_Object):
+        raise JavaError("%s is not a Javabridge JB_Object" % repr(iterator))
+    if not env.is_instance_of(iterator, iterator_class):
+        raise JavaError("%s does not implement the java.util.Iterator interface" %
+                        get_class_wrapper(iterator).getCanonicalName())
     if iterator_has_next_id is None:
-        iterator_class = env.find_class("java/util/Iterator")
         iterator_has_next_id = env.get_method_id(iterator_class, "hasNext", "()Z")
         iterator_next_id = env.get_method_id(iterator_class, "next", "()Ljava/lang/Object;")
     while(True):

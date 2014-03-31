@@ -19,8 +19,6 @@ import unittest
 import sys
 
 import javabridge
-jb = javabridge._javabridge
-from javabridge import jutil
 
 class TestJutil(unittest.TestCase):
 
@@ -132,7 +130,7 @@ class TestJutil(unittest.TestCase):
         # open a second environment, then use it and delete it.
         #
         env = self.env
-        self.assertTrue(isinstance(env,javabridge._javabridge.JB_Env))
+        self.assertTrue(isinstance(env,javabridge.JB_Env))
         class MyInteger:
             new_fn = javabridge.make_new("java/lang/Integer",'(I)V')
             def __init__(self, value):
@@ -150,7 +148,7 @@ class TestJutil(unittest.TestCase):
         
     def test_02_02_delete_in_environment(self):
         env = self.env
-        self.assertTrue(isinstance(env,javabridge._javabridge.JB_Env))
+        self.assertTrue(isinstance(env, javabridge.JB_Env))
         class MyInteger:
             new_fn = javabridge.make_new("java/lang/Integer",'(I)V')
             def __init__(self, value):
@@ -312,7 +310,7 @@ class TestJutil(unittest.TestCase):
         new java.util.concurrent.Callable() {
            call: function() { return 2+2; }};""")
         result = javabridge.execute_future_in_main_thread(
-            javabridge.make_future_task(c, fn_post_process=jutil.unwrap_javascript))
+            javabridge.make_future_task(c, fn_post_process=javabridge.unwrap_javascript))
         self.assertEqual(result, 4)
         
     def test_07_01_wrap_future(self):
@@ -320,8 +318,8 @@ class TestJutil(unittest.TestCase):
         new java.util.concurrent.FutureTask(
             new java.util.concurrent.Callable() {
                call: function() { return 2+2; }});""")
-        wfuture = jutil.get_future_wrapper(future,
-                                           fn_post_process=jutil.unwrap_javascript)
+        wfuture = javabridge.get_future_wrapper(
+            future, fn_post_process=javabridge.unwrap_javascript)
         self.assertFalse(wfuture.isDone())
         self.assertFalse(wfuture.isCancelled())
         wfuture.run()
@@ -333,8 +331,8 @@ class TestJutil(unittest.TestCase):
         new java.util.concurrent.FutureTask(
             new java.util.concurrent.Callable() {
                call: function() { return 2+2; }});""")
-        wfuture = jutil.get_future_wrapper(future,
-                                           fn_post_process=jutil.unwrap_javascript)
+        wfuture = javabridge.get_future_wrapper(
+            future, fn_post_process=javabridge.unwrap_javascript)
         wfuture.cancel(True)
         self.assertTrue(wfuture.isCancelled())
         self.assertRaises(javabridge.JavaException, wfuture.get)
@@ -350,8 +348,8 @@ class TestJutil(unittest.TestCase):
         call_able = javabridge.run_script("""
         new java.util.concurrent.Callable() { 
             call: function() { return 2+2; }};""")
-        future = javabridge.make_future_task(call_able, 
-                                    fn_post_process=jutil.unwrap_javascript)
+        future = javabridge.make_future_task(
+            call_able, fn_post_process=javabridge.unwrap_javascript)
         future.run()
         self.assertEqual(future.get(), 4)
         
@@ -515,6 +513,14 @@ class TestJutil(unittest.TestCase):
         o = javabridge.make_instance("org/cellprofiler/javabridge/test/RealRect", "(DDDD)V", 1, 2, 3, 4)
         javabridge.set_field(o, "x", "D", 5.5)
         self.assertEqual(javabridge.get_field(o, "x", "D"), 5.5)
+        
+    def test_10_01_iterate_java_on_non_iterator(self):
+        #
+        # Regression test of issue #11: the expression below segfaulted
+        #
+        def fn():
+            list(javabridge.iterate_java(javabridge.make_list(range(10)).o))
+        self.assertRaises(javabridge.JavaError, fn)
 
     def test_10_01_class_path(self):
         for arg in ['-cp', '-classpath', '-Djava.class.path=foo']:
