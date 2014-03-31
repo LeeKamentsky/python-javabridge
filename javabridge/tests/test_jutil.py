@@ -516,6 +516,11 @@ class TestJutil(unittest.TestCase):
         javabridge.set_field(o, "x", "D", 5.5)
         self.assertEqual(javabridge.get_field(o, "x", "D"), 5.5)
 
+    def test_10_01_class_path(self):
+        for arg in ['-cp', '-classpath', '-Djava.class.path=foo']:
+            with self.assertRaises(ValueError):
+                javabridge.start_vm([arg])
+
         
 if __name__=="__main__":
     unittest.main()

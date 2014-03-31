@@ -149,7 +149,10 @@ def start_vm(args=[], class_path=None, max_heap_size=None, run_headless=False):
       for the VM. In particular, strings on the form
       ``"-D<name>=<value>"`` are used to set Java system
       properties. For other startup options, see `"The Invocation API"
-      <http://docs.oracle.com/javase/6/docs/technotes/guides/jni/spec/invocation.html>`_.
+      <http://docs.oracle.com/javase/6/docs/technotes/guides/jni/spec/invocation.html>`_. Options
+      that set the class path (``-cp``, ``-classpath``, and
+      ``-Djava.class.path``) are not allowed here; instead, use the
+      `class_path` keyword argument.
 
     :param class_path: a list of strings constituting a class search
       path. Each string can be a directory, JAR archive, or ZIP
@@ -170,6 +173,11 @@ def start_vm(args=[], class_path=None, max_heap_size=None, run_headless=False):
     '''
     global __vm
     global __start_thread
+
+    # Put this before the __vm check so the unit test can test it even
+    # though the JVM is already started.
+    if '-cp' in args or '-classpath' in args or any(arg.startswith('-Djava.class.path=') for arg in args):
+        raise ValueError("Cannot set Java class path in the \"args\" argument to start_vm. Use the class_path keyword argument to javabridge.start_vm instead.")
 
     _find_jvm()
     
