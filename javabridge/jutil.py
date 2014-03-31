@@ -744,6 +744,8 @@ def get_env():
     Note: call start_vm() and attach() before calling this
     '''
     global __thread_local_env
+    if not hasattr(__thread_local_env, 'env'):
+        attach()
     return __thread_local_env.env
 
 def detach():
