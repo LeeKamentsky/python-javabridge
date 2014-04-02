@@ -20,6 +20,16 @@ import sys
 
 import javabridge
 
+# Monkey patch some half-corrent implementations of methods that only
+# appeared in Python 2.7.
+if not hasattr(unittest.TestCase, 'assertIn'):
+    unittest.TestCase.assertIn = lambda self, a, b: self.assertTrue(a in b)
+if not hasattr(unittest.TestCase, 'assertNotIn'):
+    unittest.TestCase.assertNotIn = lambda self, a, b: self.assertTrue(a not in b)
+if not hasattr(unittest.TestCase, 'assertSequenceEqual'):
+    unittest.TestCase.assertSequenceEqual = lambda self, a, b: self.assertTrue([aa == bb for aa, bb in zip(a, b)])
+
+
 class TestJutil(unittest.TestCase):
 
     def setUp(self):
@@ -524,8 +534,7 @@ class TestJutil(unittest.TestCase):
 
     def test_10_01_class_path(self):
         for arg in ['-cp', '-classpath', '-Djava.class.path=foo']:
-            with self.assertRaises(ValueError):
-                javabridge.start_vm([arg])
+            self.assertRaises(ValueError, lambda: javabridge.start_vm([arg]))
 
         
 if __name__=="__main__":
