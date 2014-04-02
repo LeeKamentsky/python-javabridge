@@ -4,8 +4,9 @@
 # centos_javabridge Docker image.
 #
 # Jenkins will run docker to spn up a container based on the
-# centos_javabridge image, then run this script with the source
-# distribution .tar.gz on standard input.
+# centos_javabridge image, mount the "dist" subdirectory of the
+# Jenkins workspace as a volume, then run this script inside the
+# container.
 #
 # This script installs the source distribution and runs the unit
 # tests.
@@ -13,11 +14,9 @@
 set -e
 set -x
 
-cat > /tmp/python-javabridge.tar.gz
 mkdir /javabridge
 cd /javabridge
-tar xvzf /tmp/python-javabridge.tar.gz
+tar xvzf /dist/*.tar.gz
 cd *
 python setup.py develop
 python setup.py nosetests
-
