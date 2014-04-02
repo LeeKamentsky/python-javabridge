@@ -11,4 +11,5 @@ set -x
 
 here=$(dirname "$0")
 cd "$here"/..
+python setup.py develop
 python setup.py sdist
