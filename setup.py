@@ -177,7 +177,8 @@ def get_version():
     if os.path.exists(os.path.join(os.path.dirname(__file__), '.git')):
         import subprocess
         try:
-            git_version = subprocess.check_output(['git', 'describe']).strip()
+            git_version = subprocess.Popen(['git', 'describe'], 
+                                           stdout=subprocess.PIPE).communicate()[0].strip()
         except:
             pass
 
