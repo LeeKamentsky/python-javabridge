@@ -10,7 +10,5 @@ set -e
 set -x
 
 here=$(dirname "$0")
-python "$here"/get-pip.py
-pip install cython
 cd "$here"/..
 python setup.py sdist

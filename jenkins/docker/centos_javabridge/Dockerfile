@@ -6,4 +6,3 @@ FROM centos
 MAINTAINER Vebjorn Ljosa, ljosa@broad.mit.edu
 RUN yum install -y python-setuptools numpy gcc python-devel java-1.7.0-openjdk-devel which
 
-
