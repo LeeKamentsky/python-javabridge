@@ -5,4 +5,4 @@ include _javabridge.c
 include _javabridge_mac.c
 include _javabridge_nomac.c
 recursive-include javabridge/tests *.py
-
+recursive-include javabridge/jars *.jar
