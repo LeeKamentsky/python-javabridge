@@ -1,5 +1,5 @@
-# Build on centos_javabridge by installing Cython.
-# Cython is needed for building the Javabridge but not for testing it.
+# Build on centos_javabridge by installing software that is required
+# for building the javabridge but not for testing it.
 
 FROM centos_javabridge
 MAINTAINER Vebjorn Ljosa, ljosa@broad.mit.edu
