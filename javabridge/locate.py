@@ -49,7 +49,7 @@ def find_javahome():
                 raise Exception("Error finding javahome on linux: %s" % cmd)
             o = o.strip()
             return o
-        java_bin = get_out(["which", "java"])
+        java_bin = get_out(["type", "-p", "java"])
         java_dir = get_out(["readlink", "-f", java_bin])
         jdk_dir = os.path.join(java_dir, "..", "..", "..")
         jdk_dir = os.path.abspath(jdk_dir)
