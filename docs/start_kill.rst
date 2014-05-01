@@ -35,8 +35,7 @@ Using the JVM in headless mode is straighforward::
     import os
     import javabridge
     
-    javabridge.start_vm(['-Djava.class.path=' + os.pathsep.join(javabridge.JARS)], 
-                run_headless=True)
+    javabridge.start_vm(run_headless=True)
     try:
         print javabridge.run_script('java.lang.String.format("Hello, %s!", greetee);', 
                                     dict(greetee='world'))
@@ -56,7 +55,7 @@ OS X. Here is an example, using a wxPython app to provide the event loop::
     import wx
     import javabridge
 
-    javabridge.start_vm(['-Djava.class.path=' + os.pathsep.join(javabridge.JARS)])
+    javabridge.start_vm()
 
     class EmptyApp(wx.App):
         def OnInit(self):
@@ -100,7 +99,7 @@ wxPython for GUI on the Python side::
 
             return True
 
-    javabridge.start_vm(['-Djava.class.path=' + os.pathsep.join(javabridge.JARS)])
+    javabridge.start_vm()
 
     try: 
         app = EmptyApp(False)
