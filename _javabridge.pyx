@@ -464,10 +464,16 @@ cdef fill_values(orig_sig, args, jvalue **pvalues):
                  return ValueError("%s is not a Java object"%str(arg))
             if sig[0] == '[':
                  if len(sig) == 1:
-                     raise ValueError("Bad signature: %s"%orig_sig)
-                 if sig[1] != 'L':
+                      raise ValueError("Bad signature: %s"%orig_sig)
+                 non_bracket_ind = 1
+                 try:
+                      while sig[non_bracket_ind] == '[':
+                           non_bracket_ind += 1
+                 except IndexError:
+                      raise ValueError("Bad signature: %s"%orig_sig)
+                 if sig[non_bracket_ind] != 'L':
                      # An array of primitive type:
-                     sig = sig[2:]
+                     sig = sig[(non_bracket_ind+1):]
                      continue
             sig = sig[sig.find(';')+1:]
         else:
