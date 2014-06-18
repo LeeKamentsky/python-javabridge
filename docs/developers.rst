@@ -24,3 +24,15 @@ Make source distribution and publish
     python setup.py sdist upload
     python setup.py build_sphinx
     python setup.py upload_sphinx
+
+Upload source distribution built by Jenkins
+-------------------------------------------
+
+::
+
+    git tag -a -m 'A commit message' '1.0.4'
+    git push --tags   # Not necessary, but you'll want to do it at some point
+    # Kick off a new Jenkins build manually, wait for it, and download.
+    twine upload javabridge-1.0.4.tar.gz
+    python setup.py build_sphinx
+    python setup.py upload_sphinx
