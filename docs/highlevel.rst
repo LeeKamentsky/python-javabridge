@@ -3,7 +3,10 @@
 High-level API
 ===============
 
-This API is high level only in comparison to :doc:`the low-level API<lowlevel>`: the resulting code can still be cumbersome and verbose because of the need to handle signatures when navigating the JVM's object structure. It is often more convenient to interact with a piece of :doc:`JavaScript running on the JVM<javascript>`.
+The high-level API can wrap a Java object or class so that its methods and fields
+can be referenced by dot syntax. It also has functions that offload some
+of the burden of exception handling and type conversion, thus providing a
+mid-level compromise between ease of use and performance.
 
 Signatures
 ----------
@@ -58,6 +61,10 @@ The signatures are difficult, but you can cheat: the JDK has a
 Java class file disassembler called ``javap`` that prints out the
 signatures of everything in a class.
 
+Wrapping Java objects using reflection
+--------------------------------------
+.. autoclass:: javabridge.JWrapper(o)
+.. autoclass:: javabridge.JClassWrapper(class_name)
 
 Operations on Java objects
 --------------------------
@@ -74,8 +81,8 @@ Operations on Java objects
 .. autofunction:: javabridge.to_string
 .. autofunction:: javabridge.get_nice_arg
 
-Make Python objects that wrap Java objects
-------------------------------------------
+Hand-coding Python objects that wrap Java objects
+-------------------------------------------------
 The functions ``make_new`` and ``make_method`` create Python methods that wrap Java constructors and methods, respectively. The function can be used to create Python wrapper classes for Java classes. Example::
 
     >>> class Integer:
