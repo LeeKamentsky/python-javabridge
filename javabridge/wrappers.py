@@ -67,10 +67,10 @@ class JWrapper(object):
                 fn = getattr(self, name)
                 fn.__doc__ = fn.__doc__ +"\n"+J.to_string(jmethod)
             self.methods[name].append(method)
-        jfields = self.class_wrapper.getFields()
-        fields = env.get_object_array_elements(jfields)
         
     def __getattr__(self, name):
+        if name in ("o", "class_wrapper", "methods"):
+            raise AttributeError()
         try:
             jfield = self.klass.getField(name)
         except:
@@ -186,6 +186,8 @@ class JClassWrapper(object):
             self.methods[name].append(method)
         
     def __getattr__(self, name):
+        if name in ("klass", "static_methods", "methods", "cname"):
+            raise AttributeError()
         try:
             jfield = self.klass.getField(name)
         except:
@@ -356,6 +358,9 @@ def cast(o, klass):
           'Ljava/lang/Object;'):
         if csig == 'Ljava/lang/CharSequence;':
             csig = 'Ljava/lang/String;'
+        elif csig == 'C' and isinstance(o, basestring) and len(o) != 1:
+            raise TypeError("Failed to convert string of length %d to char" %
+                            len(o))
         return J.get_nice_arg(o, csig)
     raise TypeError("Failed to convert argument to %s" % csig)
 
