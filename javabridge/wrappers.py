@@ -50,15 +50,15 @@ class JWrapper(object):
         self.o = o
         self.class_wrapper = J.get_class_wrapper(o)
         env = J.get_env()
-        methods = env.get_object_array_elements(self.class_wrapper.getMethods())
-        self.methods = {}
-        for jmethod in methods:
+        jmethods = env.get_object_array_elements(self.class_wrapper.getMethods())
+        methods = {}
+        for jmethod in jmethods:
             if (J.call(jmethod, "getModifiers", "()I") & STATIC) == STATIC:
                 continue
             method = J.get_method_wrapper(jmethod)
             name = method.getName()
-            if name not in self.methods:
-                self.methods[name] = []
+            if name not in methods:
+                methods[name] = []
                 fn = lambda naame=name: lambda *args: self.__call(naame, *args)
                 fn = fn()
                 fn.__doc__ = J.to_string(jmethod)
@@ -66,13 +66,17 @@ class JWrapper(object):
             else:
                 fn = getattr(self, name)
                 fn.__doc__ = fn.__doc__ +"\n"+J.to_string(jmethod)
-            self.methods[name].append(method)
+            methods[name].append(method)
+        self.methods = methods
         
     def __getattr__(self, name):
         if name in ("o", "class_wrapper", "methods"):
             raise AttributeError()
+        if not hasattr(self, "methods"):
+            # not initialized
+            raise AttributeError()
         try:
-            jfield = self.klass.getField(name)
+            jfield = self.class_wrapper.getField(name)
         except:
             raise AttributeError()
     
@@ -86,8 +90,12 @@ class JWrapper(object):
         return result
     
     def __setattr__(self, name, value):
+        if name in ("o", "class_wrapper", "methods") or \
+           not hasattr(self, "methods"):
+            object.__setattr__(self, name, value)
+            return
         try:
-            jfield = self.klass.getField(name)
+            jfield = self.class_wrapper.getField(name)
         except:
             object.__setattr__(self, name, value)
             return
@@ -167,15 +175,15 @@ class JClassWrapper(object):
         self.klass = J.get_class_wrapper(J.class_for_name(class_name), True)
         self.static_methods = {}
         env = J.get_env()
-        methods = env.get_object_array_elements(self.klass.getMethods())
-        self.methods = {}
-        for jmethod in methods:
+        jmethods = env.get_object_array_elements(self.klass.getMethods())
+        methods = {}
+        for jmethod in jmethods:
             if (J.call(jmethod, "getModifiers", "()I") & STATIC) != STATIC:
                 continue
             method = J.get_method_wrapper(jmethod)
             name = method.getName()
-            if name not in self.methods:
-                self.methods[name] = []
+            if name not in methods:
+                methods[name] = []
                 fn = lambda naame=name: lambda *args: self.__call_static(naame, *args)
                 fn = fn()
                 fn.__doc__ = J.to_string(jmethod)
@@ -183,10 +191,13 @@ class JClassWrapper(object):
             else:
                 fn = getattr(self, name)
                 fn.__doc__ = fn.__doc__ +"\n"+J.to_string(jmethod)
-            self.methods[name].append(method)
+            methods[name].append(method)
+        self.methods = methods
         
     def __getattr__(self, name):
         if name in ("klass", "static_methods", "methods", "cname"):
+            raise AttributeError()
+        if not hasattr(self, "methods"):
             raise AttributeError()
         try:
             jfield = self.klass.getField(name)
@@ -203,6 +214,10 @@ class JClassWrapper(object):
         return result
     
     def __setattr__(self, name, value):
+        if name in ("klass", "static_methods", "methods", "cname") or\
+           not hasattr(self, "methods"):
+            object.__setattr__(self, name, value)
+            return
         try:
             jfield = self.klass.getField(name)
         except:

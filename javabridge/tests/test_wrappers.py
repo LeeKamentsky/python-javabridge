@@ -28,6 +28,17 @@ class TestJWrapper(unittest.TestCase):
         result = obj.replace("Hello,", "Goodbye cruel")
         self.assertEquals(result, "Goodbye cruel world.")
         
+    def test_02_01_get_field(self):
+        obj = J.JClassWrapper("org.cellprofiler.javabridge.test.RealRect")(
+            1.5, 2.5, 3.5, 4.5)
+        self.assertEquals(obj.x, 1.5)
+        
+    def test_02_02_set_field(self):
+        obj = J.JClassWrapper("org.cellprofiler.javabridge.test.RealRect")(
+            1.5, 2.5, 3.5, 4.5)
+        obj.x = 2.5
+        self.assertEquals(obj.x, 2.5)
+        
 class TestJClassWrapper(unittest.TestCase):
     def test_01_01_init(self):
         c = J.JClassWrapper("java.lang.Integer")
