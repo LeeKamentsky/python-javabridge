@@ -5,12 +5,13 @@ accompanying file LICENSE for details.
 
 Copyright (c) 2003-2009 Massachusetts Institute of Technology
 Copyright (c) 2009-2013 Broad Institute
-All rights reserved.
+All rights reserved.lo
 
 """
 
 import os
 import sys
+import logging
 
 is_linux = sys.platform.startswith('linux')
 is_mac = sys.platform == 'darwin'
@@ -19,6 +20,7 @@ is_win64 = (is_win and (os.environ["PROCESSOR_ARCHITECTURE"] == "AMD64"))
 is_msvc = (is_win and sys.version_info[0] >= 2 and sys.version_info[1] >= 6)
 is_mingw = (is_win and not is_msvc)
 
+logger = logging.getLogger(__name__)
 
 def find_javahome():
     """Find JAVA_HOME if it doesn't exist"""
