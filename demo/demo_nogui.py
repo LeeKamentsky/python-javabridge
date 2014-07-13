@@ -11,12 +11,16 @@ All rights reserved.
 
 """
 
+from __future__ import print_function
+
+from __future__ import absolute_import
+
 import os
 import javabridge
 
 javabridge.start_vm(run_headless=True)
 try:
-    print javabridge.run_script('java.lang.String.format("Hello, %s!", greetee);', 
-                                dict(greetee='world'))
+    print(javabridge.run_script('java.lang.String.format("Hello, %s!", greetee);', 
+                                dict(greetee='world')))
 finally:
     javabridge.kill_vm()

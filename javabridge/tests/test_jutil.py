@@ -9,6 +9,8 @@ All rights reserved.
 
 '''
 
+from __future__ import absolute_import
+
 __version__="$Revision$"
 
 import gc
@@ -89,7 +91,7 @@ class TestJutil(unittest.TestCase):
         d = javabridge.get_dictionary_wrapper(properties)
         self.assertTrue(d.size() > 10)
         self.assertFalse(d.isEmpty())
-        keys = javabridge.get_enumeration_wrapper(d.keys())
+        keys = javabridge.get_enumeration_wrapper(list(d.keys()))
         values = javabridge.get_enumeration_wrapper(d.elements())
         n_elems = d.size()
         for i in range(n_elems):
@@ -105,8 +107,8 @@ class TestJutil(unittest.TestCase):
         properties = javabridge.static_call("java/lang/System", "getProperties",
                                    "()Ljava/util/Properties;")
         d = javabridge.get_dictionary_wrapper(properties)
-        keys = javabridge.jenumeration_to_string_list(d.keys())
-        enum = javabridge.get_enumeration_wrapper(d.keys())
+        keys = javabridge.jenumeration_to_string_list(list(d.keys()))
+        enum = javabridge.get_enumeration_wrapper(list(d.keys()))
         for i in range(d.size()):
             key = javabridge.to_string(enum.nextElement())
             self.assertEqual(key, keys[i])
@@ -116,7 +118,7 @@ class TestJutil(unittest.TestCase):
                                    "()Ljava/util/Properties;")
         d = javabridge.get_dictionary_wrapper(properties)
         pyd = javabridge.jdictionary_to_string_dictionary(properties)
-        keys = javabridge.jenumeration_to_string_list(d.keys())
+        keys = javabridge.jenumeration_to_string_list(list(d.keys()))
         for key in keys:
             value = javabridge.to_string(d.get(key))
             self.assertEqual(pyd[key], value)
@@ -529,7 +531,7 @@ class TestJutil(unittest.TestCase):
         # Regression test of issue #11: the expression below segfaulted
         #
         def fn():
-            list(javabridge.iterate_java(javabridge.make_list(range(10)).o))
+            list(javabridge.iterate_java(javabridge.make_list(list(range(10))).o))
         self.assertRaises(javabridge.JavaError, fn)
 
     def test_10_01_class_path(self):

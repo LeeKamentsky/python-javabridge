@@ -10,6 +10,10 @@ All rights reserved.
 
 '''
 
+from __future__ import print_function
+
+from __future__ import absolute_import
+
 import codecs
 import gc
 import inspect
@@ -336,7 +340,7 @@ def run_script(script, bindings_in = {}, bindings_out = {},
         scope = make_instance("org/mozilla/javascript/ImporterTopLevel",
                               "(Lorg/mozilla/javascript/Context;)V",
                               context)
-        for k, v in bindings_in.iteritems():
+        for k, v in bindings_in.items():
             call(scope, "put", 
                  "(Ljava/lang/String;Lorg/mozilla/javascript/Scriptable;"
                  "Ljava/lang/Object;)V", k, scope, v)
@@ -355,7 +359,7 @@ def run_script(script, bindings_in = {}, bindings_out = {},
                 "(Ljava/lang/String;"
                 "Lorg/mozilla/javascript/Scriptable;)"
                 "Ljava/lang/Object;", k, scope))
-    except JavaException, e:
+    except JavaException as e:
         if is_instance_of(e.throwable, "org/mozilla/javascript/WrappedException"):
             raise JavaException(call(e.throwable, "unwrap", "()Ljava/lang/Object;"))
         else:
@@ -632,7 +636,7 @@ def run_in_main_thread(closure, synchronous):
         def synchronous_closure():
             try:
                 result[0] = closure()
-            except Exception, e:
+            except Exception as e:
                 logger.exception("Caught exception when executing closure")
                 exception[0] = e
             done_event.set()
@@ -655,7 +659,7 @@ def print_all_stack_traces():
     for stak in stal:
         stakes = get_env().get_object_array_elements(stak)
         for stake in stakes:
-            print to_string(stake)
+            print(to_string(stake))
             
 CLOSE_ALL_WINDOWS = """
         new java.lang.Runnable() { 
@@ -1558,7 +1562,7 @@ def make_map(**kwargs):
         public java.lang.Object java.util.HashMap.put(java.lang.Object,java.lang.Object)
     '''
     hashmap = get_map_wrapper(make_instance('java/util/HashMap', "()V"))
-    for k, v in kwargs.iteritems():
+    for k, v in kwargs.items():
         hashmap[k] = v
     return hashmap
 
@@ -1578,7 +1582,7 @@ def jdictionary_to_string_dictionary(hashtable):
 
     '''
     jhashtable = get_dictionary_wrapper(hashtable)
-    jkeys = jhashtable.keys()
+    jkeys = list(jhashtable.keys())
     keys = jenumeration_to_string_list(jkeys)
     result = {}
     for key in keys:
@@ -2025,7 +2029,7 @@ def make_run_dictionary(jobject_address):
     d = get_dictionary_wrapper(jmap)
     
     result = {}
-    keys = jenumeration_to_string_list(d.keys())
+    keys = jenumeration_to_string_list(list(d.keys()))
     for key in keys:
         result[key] = d.get(key)
     return result

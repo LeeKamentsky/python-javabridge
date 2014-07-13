@@ -9,6 +9,8 @@ All rights reserved.
 
 '''
 
+from __future__ import absolute_import
+
 __version__="$Revision$"
 
 import os
@@ -445,7 +447,7 @@ class TestJavabridge(unittest.TestCase):
         klass = self.env.find_class("java/security/Key")
         field_id = self.env.get_static_field_id(klass, "serialVersionUID", "J")
         result = self.env.get_static_long_field(klass, field_id)
-        self.assertEqual(result, 6603384152749567654l) # see http://java.sun.com/j2se/1.4.2/docs/api/constant-values.html#java.security.Key.serialVersionUID
+        self.assertEqual(result, 6603384152749567654) # see http://java.sun.com/j2se/1.4.2/docs/api/constant-values.html#java.security.Key.serialVersionUID
     
     def test_05_07_get_static_float_field(self):
         klass = self.env.find_class("java/lang/Float")

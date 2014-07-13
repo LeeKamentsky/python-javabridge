@@ -19,6 +19,8 @@
 # If you're wondering how this is created, the secret is
 # "contrib/build-installer" from the pip repository.
 
+
+from __future__ import absolute_import
 ZIPFILE = b"""
 UEsDBBQAAAAIAPw4PESuKzUKeAwAAOokAAAPAAAAcGlwL19faW5pdF9fLnB5pRprb+M28rt/BTdp
 IKlrq00PxQHBuejdNosu0HaD7O71gKwhyBJts5FFlZSceNv+95sZkiJlKWkPp0VjSeQ8OO8Z9fzF
