@@ -37,7 +37,7 @@ from .jutil import run_script, unwrap_javascript
 # Operations on Java objects
 from .jutil import call, get_static_field, static_call, \
     is_instance_of, make_instance, set_static_field, to_string, \
-    get_field, set_field, make_static_call
+    get_field, set_field, make_static_call, make_object_array
 
 # Make Python object that wraps a Java object
 from .jutil import make_method, make_new, make_call, box

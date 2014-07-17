@@ -114,6 +114,7 @@ object itself is, by convention, saved as self.o in the Python object.
 .. autofunction:: javabridge.make_list
 .. autofunction:: javabridge.get_map_wrapper
 .. autofunction:: javabridge.make_map
+.. autofunction:: javabridge.make_object_array
 
 Reflection
 ----------

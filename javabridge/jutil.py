@@ -1724,6 +1724,35 @@ def make_instance(class_name, sig, *args):
         raise JavaException(jexception)
     return result
 
+def make_object_array(classname, elements):
+    '''Make an object array containing the given elements
+    
+    :param classname: the class name in dotted form
+    :param elements: a sequence of elements
+    
+    example:
+    
+    > my_string_array = make_object_array("java.lang.String", ["foo", "bar"])
+    '''
+    env = get_env()
+    slash_class_name = classname.replace(".", "/")
+    klass = env.find_class(slash_class_name)
+    jexception = env.exception_occurred()
+    if jexception is not None:
+        raise JavaException(jexception)
+    result = env.make_object_array(len(elements), klass)
+    jexception = env.exception_occurred()
+    if jexception is not None:
+        raise JavaException(jexception)
+    for i, element in enumerate(elements):
+        if not isinstance(element, javabridge.JB_Object):
+            element = get_nice_arg(element, "L%s;" % slash_class_name)
+        env.set_object_array_element(result, i, element)
+        jexception = env.exception_occurred()
+        if jexception is not None:
+            raise JavaException(jexception)
+    return result
+
 def class_for_name(classname, ldr="system"):
     '''Return a ``java.lang.Class`` for the given name.
     

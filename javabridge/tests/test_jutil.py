@@ -535,7 +535,32 @@ class TestJutil(unittest.TestCase):
     def test_10_01_class_path(self):
         for arg in ['-cp', '-classpath', '-Djava.class.path=foo']:
             self.assertRaises(ValueError, lambda: javabridge.start_vm([arg]))
-
+            
+    def test_11_01_make_object_array_strings(self):
+        strings = ("foo", "bar")
+        a = javabridge.make_object_array("java.lang.String", strings)
+        contents = [javabridge.to_string(x) for x in
+                    javabridge.get_env().get_object_array_elements(a)]
+        self.assertEquals(tuple(contents), strings)
+        
+    def test_11_02_make_object_array_java(self):
+        strings = ("foo", "bar")
+        jstrings = [javabridge.get_env().new_string_utf(x) for x in strings]
+        a = javabridge.make_object_array("java.lang.String", jstrings)
+        contents = [javabridge.to_string(x) for x in
+                    javabridge.get_env().get_object_array_elements(a)]
+        self.assertEquals(tuple(contents), strings)
+        
+    def test_11_03_bad_classname(self):
+        self.assertRaises(javabridge.JavaException,
+                          javabridge.make_object_array,
+                          "foo.bar.%^*%", [ "blah", "blah" ])
+        
+    def test_11_04_bad_element(self):
+        class_object = javabridge.class_for_name("java.lang.Object")
+        self.assertRaises(javabridge.JavaException,
+                          javabridge.make_object_array,
+                          "java.lang.Number", [class_object])
         
 if __name__=="__main__":
     unittest.main()
