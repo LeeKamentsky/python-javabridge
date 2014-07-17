@@ -68,42 +68,40 @@ class JWrapper(object):
                 fn.__doc__ = fn.__doc__ +"\n"+J.to_string(jmethod)
             methods[name].append(method)
         self.methods = methods
+        jfields = env.get_object_array_elements(self.class_wrapper.getFields())
+        field_names = {}
+        for jfield in jfields:
+            if (J.call(jfield, "getModifiers", "()I") & STATIC) == STATIC:
+                continue
+            field_name = J.call(jfield, "getName", "()Ljava/lang/String;")
+            klass = J.call(jfield, "getType", "()Ljava/lang/Class;")
+            field_names[field_name] = klass
+        self.field_names = field_names
         
     def __getattr__(self, name):
-        if name in ("o", "class_wrapper", "methods"):
+        if name == "field_names":
             raise AttributeError()
-        if not hasattr(self, "methods"):
+        if not hasattr(self, "field_names"):
             # not initialized
             raise AttributeError()
-        try:
-            jfield = self.class_wrapper.getField(name)
-        except:
+        if name not in self.field_names:
             raise AttributeError()
     
-        STATIC = J.get_static_field("java/lang/reflect/Modifier", "STATIC", "I")
-        if (J.call(jfield, "getModifiers", "()I") & STATIC) == STATIC:
-            raise AttributeError()
-        klass = J.call(jfield, "getType", "()Ljava/lang/Class;")
+        klass = self.field_names[name]
         result = J.get_field(self.o, name, sig(klass))
         if isinstance(result, J.JB_Object):
             result = JWrapper(result)
         return result
     
     def __setattr__(self, name, value):
-        if name in ("o", "class_wrapper", "methods") or \
-           not hasattr(self, "methods"):
+        if name == "field_names" or not hasattr(self, "field_names"):
             object.__setattr__(self, name, value)
             return
-        try:
-            jfield = self.class_wrapper.getField(name)
-        except:
+        if name not in self.field_names:
             object.__setattr__(self, name, value)
             return
     
-        STATIC = J.get_static_field("java/lang/reflect/Modifier", "STATIC", "I")
-        if (J.call(jfield, "getModifiers", "()I") & STATIC) == STATIC:
-            raise AttributeError()
-        klass = J.call(jfield, "getType", "()Ljava/lang/Class;")
+        klass = self.field_names[name]
         result = J.set_field(self.o, name, sig(klass), value)
             
     def __call(self, method_name, *args):
@@ -193,34 +191,33 @@ class JClassWrapper(object):
                 fn.__doc__ = fn.__doc__ +"\n"+J.to_string(jmethod)
             methods[name].append(method)
         self.methods = methods
+        jfields = env.get_object_array_elements(self.klass.getFields())
+        field_names = {}
+        for jfield in jfields:
+            if (J.call(jfield, "getModifiers", "()I") & STATIC) != STATIC:
+                continue
+            field_name = J.call(jfield, "getName", "()Ljava/lang/String;")
+            klass = J.call(jfield, "getType", "()Ljava/lang/Class;")
+            field_names[field_name] = klass
+        self.field_names = field_names
         
     def __getattr__(self, name):
-        if name in ("klass", "static_methods", "methods", "cname"):
+        if name == "field_names" or not hasattr(self, "field_names"):
             raise AttributeError()
-        if not hasattr(self, "methods"):
-            raise AttributeError()
-        try:
-            jfield = self.klass.getField(name)
-        except:
+        if name not in self.field_names:
             raise AttributeError("Could not find field %s" % name)
     
-        STATIC = J.get_static_field("java/lang/reflect/Modifier", "STATIC", "I")
-        if (J.call(jfield, "getModifiers", "()I") & STATIC) != STATIC:
-            raise AttributeError("Field %s is not static" % name)
-        klass = J.call(jfield, "getType", "()Ljava/lang/Class;")
+        klass = self.field_names[name]
         result = J.get_static_field(self.cname, name, sig(klass))
         if isinstance(result, J.JB_Object):
             result = JWrapper(result)
         return result
     
     def __setattr__(self, name, value):
-        if name in ("klass", "static_methods", "methods", "cname") or\
-           not hasattr(self, "methods"):
+        if name == "field_names" or not hasattr(self, "field_names"):
             object.__setattr__(self, name, value)
             return
-        try:
-            jfield = self.klass.getField(name)
-        except:
+        if name not in self.field_names:
             return object.__setattr__(self, name, value)
 
         STATIC = J.get_static_field("java/lang/reflect/Modifier", "STATIC", "I")
