@@ -56,6 +56,10 @@ class JavabridgePlugin(Plugin):
                           default=env.get('NOSE_MAX_HEAP_SIZE'),
                           dest="max_heap_size",
                           help="Set the maximum heap size argument to the JVM as in the -Xmx command-line argument [NOSE_MAX_HEAP_SIZE]")
+        parser.add_option("--jdwp-port", action="store",
+                          default=env.get('NOSE_JDWP_PORT'),
+                          dest="jdwp_port",
+                          help="Set up for Java debugging on the supplied port")
 
     def configure(self, options, conf):
         super(JavabridgePlugin, self).configure(options, conf)
@@ -64,6 +68,11 @@ class JavabridgePlugin(Plugin):
             self.class_path = os.pathsep.join([options.classpath, self.class_path])
         self.headless = not options.no_headless
         self.max_heap_size = options.max_heap_size
+        if options.jdwp_port is not None:
+            self.extra_jvm_args.append((
+                "-agentlib:jdwp=transport=dt_socket,address=127.0.0.1:%s"
+                ",server=y,suspend=n") % options.jdwp_port)
+
 
     def prepareTestRunner(self, testRunner):
         '''Need to make the test runner call finalize if in Wing
