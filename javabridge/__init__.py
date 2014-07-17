@@ -42,6 +42,7 @@ from .jutil import call, get_static_field, static_call, \
 # Make Python object that wraps a Java object
 from .jutil import make_method, make_new, make_call, box
 from .wrappers import JWrapper, JClassWrapper
+from .proxy import InterfaceProxyServer
 
 from .jutil import get_nice_arg
 

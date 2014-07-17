@@ -9,6 +9,8 @@ All rights reserved.
 
 """
 
+import logging
+logger = logging.getLogger(__name__)
 import errno
 import glob
 import os
@@ -42,7 +44,7 @@ def build_cython():
     pyx_filenames = [in_cwd(s + '.pyx') for s in stems]
     if any(map(os.path.exists, pyx_filenames)):
         cmd = ['cython'] + pyx_filenames
-        print ' '.join(cmd)
+        logger.info(' '.join(cmd))
         subprocess.check_call(cmd)
 
 def ext_modules():
@@ -52,7 +54,7 @@ def ext_modules():
     if java_home is None:
         raise JVMNotFoundError()
     jdk_home = find_jdk()
-    print "Using jdk_home =", jdk_home
+    logger.info("Using jdk_home =" + jdk_home)
     include_dirs = [get_include()]
     libraries = None
     library_dirs = None
@@ -129,32 +131,34 @@ def needs_compilation(target, *sources):
 def package_path(relpath):
     return os.path.normpath(os.path.join(os.path.dirname(__file__), relpath))
 
-def build_jar_from_single_source(jar, source):
-    if needs_compilation(jar, source):
-        javac_loc = find_javac_cmd()
-        javac_command = [javac_loc, package_path(source)]
-        print ' '.join(javac_command)
-        subprocess.check_call(javac_command)
-        if not os.path.exists(os.path.dirname(jar)):
-            os.mkdir(os.path.dirname(jar))
-        jar_command = [find_jar_cmd(), 'cf', package_path(jar)]
+def build_jar_from_sources(jar, sources):
+    jar_command = [find_jar_cmd(), 'cf', package_path(jar)]
+    for source in sources:
+        if needs_compilation(jar, source):
+            javac_loc = find_javac_cmd()
+            javac_command = [javac_loc, package_path(source)]
+            logger.info(' '.join(javac_command))
+            subprocess.check_call(javac_command)
+            if not os.path.exists(os.path.dirname(jar)):
+                os.mkdir(os.path.dirname(jar))
         for klass in glob.glob(source[:source.rindex('.')] + '*.class'):
             jar_command.extend(['-C', package_path('java'), klass[klass.index('/') + 1:]])
-        print ' '.join(jar_command)
-        subprocess.check_call(jar_command)
+    logger.info(' '.join(jar_command))
+    subprocess.check_call(jar_command)
 
 def build_runnablequeue():
     jar = 'javabridge/jars/runnablequeue.jar'
-    source = 'java/org/cellprofiler/runnablequeue/RunnableQueue.java'
-    build_jar_from_single_source(jar, source)
+    sources = ['java/org/cellprofiler/runnablequeue/RunnableQueue.java',
+               'java/org/cellprofiler/runnablequeue/InvocationQueue.java']
+    build_jar_from_sources(jar, sources)
 
 def build_test():
     jar = 'javabridge/jars/test.jar'
-    source = 'java/org/cellprofiler/javabridge/test/RealRect.java'
-    build_jar_from_single_source(jar, source)
+    sources = ['java/org/cellprofiler/javabridge/test/RealRect.java']
+    build_jar_from_sources(jar, sources)
 
 def build_java():
-    print "running build_java"
+    logger.info("running build_java")
     build_runnablequeue()
     build_test()
 
