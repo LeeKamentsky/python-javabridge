@@ -80,6 +80,8 @@ def find_javahome():
 
 def find_jdk():
     """Find the JDK under Windows"""
+    if os.environ.has_key('JDK_HOME'):
+        return os.environ['JDK_HOME']
     if is_mac:
         return "Doesn't matter"
     if is_win:
