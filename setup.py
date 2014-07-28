@@ -9,6 +9,10 @@ All rights reserved.
 
 """
 
+from __future__ import print_function
+
+from __future__ import absolute_import
+
 import errno
 import glob
 import os
@@ -42,7 +46,7 @@ def build_cython():
     pyx_filenames = [in_cwd(s + '.pyx') for s in stems]
     if any(map(os.path.exists, pyx_filenames)):
         cmd = ['cython'] + pyx_filenames
-        print ' '.join(cmd)
+        print(' '.join(cmd))
         subprocess.check_call(cmd)
 
 def ext_modules():
@@ -52,7 +56,7 @@ def ext_modules():
     if java_home is None:
         raise JVMNotFoundError()
     jdk_home = find_jdk()
-    print "Using jdk_home =", jdk_home
+    print("Using jdk_home =", jdk_home)
     include_dirs = [get_include()]
     libraries = None
     library_dirs = None
@@ -116,7 +120,7 @@ def ext_modules():
 def needs_compilation(target, *sources):
     try:
         target_date = os.path.getmtime(target)
-    except OSError, e:
+    except OSError as e:
         if e.errno != errno.ENOENT:
             raise
         return True
@@ -133,14 +137,14 @@ def build_jar_from_single_source(jar, source):
     if needs_compilation(jar, source):
         javac_loc = find_javac_cmd()
         javac_command = [javac_loc, package_path(source)]
-        print ' '.join(javac_command)
+        print(' '.join(javac_command))
         subprocess.check_call(javac_command)
         if not os.path.exists(os.path.dirname(jar)):
             os.mkdir(os.path.dirname(jar))
         jar_command = [find_jar_cmd(), 'cf', package_path(jar)]
         for klass in glob.glob(source[:source.rindex('.')] + '*.class'):
             jar_command.extend(['-C', package_path('java'), klass[klass.index('/') + 1:]])
-        print ' '.join(jar_command)
+        print(' '.join(jar_command))
         subprocess.check_call(jar_command)
 
 def build_runnablequeue():
@@ -154,7 +158,7 @@ def build_test():
     build_jar_from_single_source(jar, source)
 
 def build_java():
-    print "running build_java"
+    print("running build_java")
     build_runnablequeue()
     build_test()
 
@@ -177,8 +181,9 @@ def get_version():
     if os.path.exists(os.path.join(os.path.dirname(__file__), '.git')):
         import subprocess
         try:
-            git_version = subprocess.Popen(['git', 'describe'], 
-                                           stdout=subprocess.PIPE).communicate()[0].strip()
+            git_version = str(subprocess.Popen(['git', 'describe'], 
+                              stdout=subprocess.PIPE).communicate()[0].strip())
+            git_version = git_version.lstrip("b'").rstrip("'")
         except:
             pass
 
@@ -198,7 +203,7 @@ def get_version():
 
     if git_version and git_version != cached_version:
         with open(version_file, 'w') as f:
-            print >>f, '__version__ = "%s"' % git_version
+            print('__version__ = "%s"' % git_version, file=f)
 
     return git_version or cached_version
 

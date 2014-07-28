@@ -8,6 +8,8 @@ Copyright (c) 2009-2013 Broad Institute
 All rights reserved.
 
 '''
+
+from __future__ import absolute_import
 import unittest
 import javabridge as J
 

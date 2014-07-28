@@ -9,6 +9,8 @@ All rights reserved.
 
 """
 
+from __future__ import absolute_import
+
 import logging
 from nose.plugins import Plugin
 import os
