@@ -40,9 +40,12 @@ def build_cython():
     """
     stems = ['_javabridge', '_javabridge_mac', '_javabridge_nomac']
     pyx_filenames = [in_cwd(s + '.pyx') for s in stems]
-    if any(map(os.path.exists, pyx_filenames)):
-        cmd = ['cython'] + pyx_filenames
-        print ' '.join(cmd)
+    c_filenames = [in_cwd(s + '.c') for s in stems]
+    nc_pyx_filenames = [
+        pyx for pyx, c in zip(pyx_filenames, c_filenames)
+        if os.path.exists(pyx) and needs_compilation(c, pyx)]
+    if len(nc_pyx_filenames) > 0:
+        cmd = ['cython'] + nc_pyx_filenames
         subprocess.check_call(cmd)
 
 def ext_modules():
