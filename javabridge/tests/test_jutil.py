@@ -190,24 +190,16 @@ class TestJutil(unittest.TestCase):
         jobj = jobjs[0]
         self.assertEqual(javabridge.call(jobj, "intValue", "()I"), my_value)
     
-    #def test_02_04_memory(self):
-        #'''Make sure that memory is truly released when an object is dereferenced'''
-        #env = self.env
-        #self.assertTrue(isinstance(env,javabridge.javabridge.JB_Env))
-        #for i in range(25):
-            #print "starting pass %d" % (i+1)
-            #memory = np.random.uniform(size=1000*1000*10)
-            #jarray = env.make_double_array(memory)
-            #javabridge.static_call("java/util/Arrays", "sort",
-                          #"([D)V", jarray)
-            #sorted_memory = env.get_double_array_elements(jarray)
-            #np.testing.assert_almost_equal(sorted_memory[0], memory.min())
-            #np.testing.assert_almost_equal(sorted_memory[-1], memory.max())
-            #del memory
-            #del sorted_memory
-            #del jarray
-            #gc.collect()
-            
+    def test_02_04_non_java_thread_deletes_it(self):
+        '''Delete a Java object on a not-Java thread'''
+        refs = [javabridge.make_instance("java/lang/Integer", "(I)V", 5)]
+        def run():
+            del refs[0]
+            gc.collect()
+        t = threading.Thread(target = run)
+        t.start()
+        t.join()
+        
     def test_03_01_cw_from_class(self):
         '''Get a class wrapper from a class'''
         c = javabridge.get_class_wrapper(javabridge.make_instance('java/lang/Integer', '(I)V',
