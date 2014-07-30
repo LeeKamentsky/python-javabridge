@@ -40,6 +40,8 @@ class JavabridgePlugin(Plugin):
                             class_path=self.class_path.split(os.pathsep),
                             run_headless=self.headless,
                             max_heap_size=self.max_heap_size)
+        if not self.headless:
+            javabridge.activate_awt()
 
     def options(self, parser, env=os.environ):
         super(JavabridgePlugin, self).options(parser, env=env)
