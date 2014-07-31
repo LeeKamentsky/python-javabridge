@@ -1,4 +1,5 @@
 recursive-include java *.java
+include mac_javabridge_utils.c
 include mac_javabridge_utils.h
 include strtoull.c
 include _javabridge.c
@@ -6,3 +7,4 @@ include _javabridge_mac.c
 include _javabridge_nomac.c
 recursive-include javabridge/tests *.py
 recursive-include javabridge/jars *.jar
+prune *.pyx
