@@ -681,7 +681,7 @@ cdef class JB_Env:
 
     def __init__(self):
         self.env = NULL
-	
+        
     def __repr__(self):
         return "<JB_Env at 0x%x>"%(<size_t>(self.env))
     
@@ -749,7 +749,7 @@ cdef class JB_Env:
         
         :param o: a Java object
         :param c: a Java class
-	:return: True if o is an instance of c otherwise False
+        :return: True if o is an instance of c otherwise False
         '''
         result = self.env[0].IsInstanceOf(self.env, o.o, c.c)
         return result != 0
@@ -780,9 +780,9 @@ cdef class JB_Env:
         :param c: a class retrieved by find_class or get_object_class
         :param name: the method name
         :param sig: the calling signature,
-	            e.g. "(ILjava/lang/String;)D" is a function that
-	            returns a double and takes an integer, a long and
-	            a string as arguments.
+                    e.g. "(ILjava/lang/String;)D" is a function that
+                    returns a double and takes an integer, a long and
+                    a string as arguments.
 
         '''
         cdef:
@@ -844,12 +844,12 @@ cdef class JB_Env:
     def call_method(self, JB_Object o, __JB_MethodID m, *args):
         '''Call a method on an object with arguments
 
-	:param o: object in question
+        :param o: object in question
         :param m: the method ID from :py:meth:`.get_method_id`
         :param \\*args: the arguments to the method call. Arguments
-	              should appear in the same order as the
-	              signature. Arguments will be coerced into the
-	              type of the signature.
+                      should appear in the same order as the
+                      signature. Arguments will be coerced into the
+                      type of the signature.
 
         '''
         cdef:
@@ -941,11 +941,11 @@ cdef class JB_Env:
         '''Call a static method on a class with arguments
 
         :param c: class holding the method (e.g. from :py:meth:`.find_class`)
-	:param m: the method ID from :py:meth:`.get_static_method_id`
+        :param m: the method ID from :py:meth:`.get_static_method_id`
         :param args: the arguments to the method call. Arguments
-		      should appear in the same order as the
-		      signature. Arguments will be coerced into the
-		      type of the signature.
+                      should appear in the same order as the
+                      signature. Arguments will be coerced into the
+                      type of the signature.
 
         '''
         cdef:
@@ -1057,11 +1057,11 @@ cdef class JB_Env:
     def get_object_field(self, JB_Object o, __JB_FieldID field):
         '''Return an object field
 
-	:param o: the Java object to be accessed
-	:param field: the field to be fetched (from :py:meth:`.get_field_id`)
-	
-	:return: the Java object or None if the field's value is null
-	'''
+        :param o: the Java object to be accessed
+        :param field: the field to be fetched (from :py:meth:`.get_field_id`)
+        
+        :return: the Java object or None if the field's value is null
+        '''
         cdef:
             jobject subo
         subo = self.env[0].GetObjectField(self.env, o.o, field.id)
@@ -1074,79 +1074,90 @@ cdef class JB_Env:
         
     def get_boolean_field(self, JB_Object o, __JB_FieldID field):
         '''Return a boolean field's value
-	
-	:param o: the Java object to be accessed
-	:param field: the field to be fetched (from :py:meth:`.get_field_id`)
-	
-	:return: the field's value
-	:rtype: bool
-	'''
+        
+        :param o: the Java object to be accessed
+        :param field: the field to be fetched (from :py:meth:`.get_field_id`)
+        
+        :return: the field's value
+        :rtype: bool
+        '''
         return self.env[0].GetBooleanField(self.env, o.o, field.id) != 0
         
     def get_byte_field(self, JB_Object o, __JB_FieldID field):
         '''Return a byte field's value
-	
-	:param o: the Java object to be accessed
-	:param field: the field to be fetched (from :py:meth:`.get_field_id`)
-	
-	:return: the field's value
-	:rtype: int
-	'''
+        
+        :param o: the Java object to be accessed
+        :param field: the field to be fetched (from :py:meth:`.get_field_id`)
+        
+        :return: the field's value
+        :rtype: int
+        '''
         return self.env[0].GetByteField(self.env, o.o, field.id)
         
+    def get_char_field(self, JB_Object o, __JB_FieldID field):
+        '''Return a char field's value
+        
+        :param o: the Java object to be accessed
+        :param field: the field to be fetched (from :py:meth:`.get_field_id`)
+        
+        :return: the char value stored in the class's field
+        :rtype: unichr
+        '''
+        return unichr(self.env[0].GetCharField(self.env, o.o, field.id))
+
     def get_short_field(self, JB_Object o, __JB_FieldID field):
         '''Return a short field's value
-	
-	:param o: the Java object to be accessed
-	:param field: the field to be fetched (from :py:meth:`.get_field_id`)
-	
-	:return: the field's value
-	:rtype:  int
-	'''
+        
+        :param o: the Java object to be accessed
+        :param field: the field to be fetched (from :py:meth:`.get_field_id`)
+        
+        :return: the field's value
+        :rtype:  int
+        '''
         return self.env[0].GetShortField(self.env, o.o, field.id)
         
     def get_int_field(self, JB_Object o, __JB_FieldID field):
         '''Return an int field's value
-	
-	:param o: the Java object to be accessed
-	:param field: the field to be fetched (from :py:meth:`.get_field_id`)
-	
-	:return: the field's value
-	:rtype:  int
-	'''
+        
+        :param o: the Java object to be accessed
+        :param field: the field to be fetched (from :py:meth:`.get_field_id`)
+        
+        :return: the field's value
+        :rtype:  int
+        '''
         return self.env[0].GetIntField(self.env, o.o, field.id)
         
     def get_long_field(self, JB_Object o, __JB_FieldID field):
         '''Return a long field's value
-	
-	:param o: the Java object to be accessed
-	:param field: the field to be fetched (from :py:meth:`.get_field_id`)
-	
-	:return: the field's value
-	:rtype:  long
-	'''
+        
+        :param o: the Java object to be accessed
+        :param field: the field to be fetched (from :py:meth:`.get_field_id`)
+        
+        :return: the field's value
+        :rtype:  long
+        '''
         return self.env[0].GetLongField(self.env, o.o, field.id)
         
     def get_float_field(self, JB_Object o, __JB_FieldID field):
         '''Return a float field's value
-	
-	:param o: the Java object to be accessed
-	:param field: the field to be fetched (from :py:meth:`.get_field_id`)
-	
-	:return: the field's value
-	:rtype:  float
-	'''
+        
+        :param o: the Java object to be accessed
+        :param field: the field to be fetched (from :py:meth:`.get_field_id`)
+        
+        :return: the field's value
+        :rtype:  float
+        '''
         return self.env[0].GetFloatField(self.env, o.o, field.id)
         
     def get_double_field(self, JB_Object o, __JB_FieldID field):
         '''Return a double field's value
-	
-	:param o: the Java object to be accessed
-	:param field: the field to be fetched (from :py:meth:`.get_field_id`)
-	
-	:return: the field's value
-	:rtype:  float
-	'''
+        
+        :param o: the Java object to be accessed
+        :param field: the field to be fetched (from :py:meth:`.get_field_id`)
+        
+        :return: the field's value
+        :rtype:  float
+        '''
         return self.env[0].GetDoubleField(self.env, o.o, field.id)
         
     def set_object_field(self, JB_Object o, __JB_FieldID field, JB_Object value):
@@ -1156,7 +1167,9 @@ cdef class JB_Env:
         :param field: a field id retrieved from :py:meth:`.get_field_id`
         :param value: the Java object that will become the field's new value
         '''
-        self.env[0].SetObjectField(self.env, o.o, field.id, value.o)
+        cdef:
+            jobject jvalue = NULL if value is None else value.o
+        self.env[0].SetObjectField(self.env, o.o, field.id, jvalue)
         
     def set_boolean_field(self, JB_Object o, __JB_FieldID field, value):
         '''Set one of a Java object's boolean fields
@@ -1249,12 +1262,12 @@ cdef class JB_Env:
     def get_static_field_id(self, JB_Class c, char *name, char *sig):
         '''Look up a static field ID on a class
 
-	:param c: the object's class (e.g. as retrieved from :py:meth:`.find_class`)
-	:param name: the field's name
-	:param sig: the signature of the field (e.g. "java/lang/String")
-	
-	:return: a field ID that can be used in calls to get and get static fields
-	'''
+        :param c: the object's class (e.g. as retrieved from :py:meth:`.find_class`)
+        :param name: the field's name
+        :param sig: the signature of the field (e.g. "java/lang/String")
+        
+        :return: a field ID that can be used in calls to get and get static fields
+        '''
         cdef:
             jfieldID id
             __JB_FieldID jbid
@@ -1270,13 +1283,13 @@ cdef class JB_Env:
         
     def get_static_object_field(self, JB_Class c, __JB_FieldID field):
         '''Return an object field on a class
-	
-	:param c: the class (e.g. as retrieved from :py:meth:`.find_class`)
-	:param field: a field ID retrieved from :py:meth:`.get_static_field_id`
-	
-	:return: the object stored in the class's static field
-	:rtype: JB_Object
-	'''
+        
+        :param c: the class (e.g. as retrieved from :py:meth:`.find_class`)
+        :param field: a field ID retrieved from :py:meth:`.get_static_field_id`
+        
+        :return: the object stored in the class's static field
+        :rtype: JB_Object
+        '''
         cdef:
             jobject o
         o = self.env[0].GetStaticObjectField(self.env, c.c, field.id)
@@ -1289,79 +1302,90 @@ cdef class JB_Env:
         
     def get_static_boolean_field(self, JB_Class c, __JB_FieldID field):
         '''Return a boolean static field's value
-	
-	:param c: the class (e.g. as retrieved from :py:meth:`.find_class`)
-	:param field: a field ID retrieved from :py:meth:`.get_static_field_id`
-	
-	:return: the boolean value stored in the class's static field
-	:rtype: bool
-	'''
+        
+        :param c: the class (e.g. as retrieved from :py:meth:`.find_class`)
+        :param field: a field ID retrieved from :py:meth:`.get_static_field_id`
+        
+        :return: the boolean value stored in the class's static field
+        :rtype: bool
+        '''
         return self.env[0].GetStaticBooleanField(self.env, c.c, field.id) != 0
+        
+    def get_static_char_field(self, JB_Class c, __JB_FieldID field):
+        '''Return a char static field's value
+        
+        :param c: the class (e.g. as returieved from :py:meth:`.find_class`)
+        :param field: a field ID retrieved from :py:meth:`.get_static_field_id`
+        
+        :return: the char value stored in the class's static field
+        :rtype: unichr
+        '''
+        return unichr(self.env[0].GetStaticCharField(self.env, c.c, field.id))
         
     def get_static_byte_field(self, JB_Class c, __JB_FieldID field):
         '''Return a byte static field's value
-	
-	:param c: the class (e.g. as retrieved from :py:meth:`.find_class`)
-	:param field: a field ID retrieved from :py:meth:`.get_static_field_id`
-	
-	:return: the byte value stored in the class's static field
-	:rtype: int
-	'''
+        
+        :param c: the class (e.g. as retrieved from :py:meth:`.find_class`)
+        :param field: a field ID retrieved from :py:meth:`.get_static_field_id`
+        
+        :return: the byte value stored in the class's static field
+        :rtype: int
+        '''
         return self.env[0].GetStaticByteField(self.env, c.c, field.id)
         
     def get_static_short_field(self, JB_Class c, __JB_FieldID field):
         '''Return a short static field's value
-	
-	:param c: the class (e.g. as retrieved from :py:meth:`.find_class`)
-	:param field: a field ID retrieved from :py:meth:`.get_static_field_id`
-	
-	:return: the short stored in the class's static field
-	:rtype: JB_Object
-	'''
+        
+        :param c: the class (e.g. as retrieved from :py:meth:`.find_class`)
+        :param field: a field ID retrieved from :py:meth:`.get_static_field_id`
+        
+        :return: the short stored in the class's static field
+        :rtype: JB_Object
+        '''
         return self.env[0].GetStaticShortField(self.env, c.c, field.id)
         
     def get_static_int_field(self, JB_Class c, __JB_FieldID field):
         '''Return an int field's value
-	
-	:param c: the class (e.g. as retrieved from :py:meth:`.find_class`)
-	:param field: a field ID retrieved from :py:meth:`.get_static_field_id`
-	
-	:return: the integer value stored in the class's static field
-	:rtype: int
-	'''
+        
+        :param c: the class (e.g. as retrieved from :py:meth:`.find_class`)
+        :param field: a field ID retrieved from :py:meth:`.get_static_field_id`
+        
+        :return: the integer value stored in the class's static field
+        :rtype: int
+        '''
         return self.env[0].GetStaticIntField(self.env, c.c, field.id)
         
     def get_static_long_field(self, JB_Class c, __JB_FieldID field):
         '''Return a long field's value
-	
-	:param c: the class (e.g. as retrieved from :py:meth:`.find_class`)
-	:param field: a field ID retrieved from :py:meth:`.get_static_field_id`
-	
-	:return: the long value stored in the class's static field
-	:rtype: long
-	'''
+        
+        :param c: the class (e.g. as retrieved from :py:meth:`.find_class`)
+        :param field: a field ID retrieved from :py:meth:`.get_static_field_id`
+        
+        :return: the long value stored in the class's static field
+        :rtype: long
+        '''
         return self.env[0].GetStaticLongField(self.env, c.c, field.id)
         
     def get_static_float_field(self, JB_Class c, __JB_FieldID field):
         '''Return a float field's value
-	
-	:param c: the class (e.g. as retrieved from :py:meth:`.find_class`)
-	:param field: a field ID retrieved from :py:meth:`.get_static_field_id`
-	
-	:return: the float value stored in the class's static field
-	:rtype: float
-	'''
+        
+        :param c: the class (e.g. as retrieved from :py:meth:`.find_class`)
+        :param field: a field ID retrieved from :py:meth:`.get_static_field_id`
+        
+        :return: the float value stored in the class's static field
+        :rtype: float
+        '''
         return self.env[0].GetStaticFloatField(self.env, c.c, field.id)
         
     def get_static_double_field(self, JB_Class c, __JB_FieldID field):
         '''Return a double field's value
-	
-	:param c: the class (e.g. as retrieved from :py:meth:`.find_class`)
-	:param field: a field ID retrieved from :py:meth:`.get_static_field_id`
-	
-	:return: the double value stored in the class's static field
-	:rtype: float
-	'''
+        
+        :param c: the class (e.g. as retrieved from :py:meth:`.find_class`)
+        :param field: a field ID retrieved from :py:meth:`.get_static_field_id`
+        
+        :return: the double value stored in the class's static field
+        :rtype: float
+        '''
         return self.env[0].GetStaticDoubleField(self.env, c.c, field.id)
         
     def set_static_object_field(self, JB_Class c, __JB_FieldID field, JB_Object o):
@@ -1383,6 +1407,17 @@ cdef class JB_Env:
         cdef:
             jboolean jvalue = 1 if value else 0
         self.env[0].SetStaticBooleanField(self.env, c.c, field.id, jvalue)
+        
+    def set_static_char_field(self, JB_Class c, __JB_FieldID field, value):
+        '''Set a static char field in a class
+
+        :param c: the class in question, e.g. as retrieved from :py:meth:`.find_class`
+        :param field: a field id retrieved from :py:meth:'.get_static_field_id`
+        :param value: a value that will be cast to a short and assigned to the field
+        '''
+        cdef:
+            jchar jvalue = PyUnicode_AS_UNICODE(unicode(value))[0]
+        self.env[0].SetStaticCharField(self.env, c.c, field.id, jvalue)
         
     def set_static_byte_field(self, JB_Class c, __JB_FieldID field, value):
         '''Set a static byte field in a class
@@ -1466,8 +1501,8 @@ cdef class JB_Env:
 
         :param c: class in question
         :param m: the method ID. You can get this by calling
-	          get_method_id with a name of "<init>" and a return
-	          type of V
+                  get_method_id with a name of "<init>" and a return
+                  type of V
         :param args: the arguments to the method call. Arguments
                       should appear in the same order as the
                       signature. Arguments will be coerced into the
@@ -1506,9 +1541,9 @@ cdef class JB_Env:
         
         :param u: a unicode string (ideally) or a string that can be
                   encoded in utf-16 like this: u.encode("utf-16")
-		  
-	:return: a Java string object
-	:rtype: JB_Object
+                  
+        :return: a Java string object
+        :rtype: JB_Object
         '''
         cdef:
             char *s
@@ -1527,11 +1562,11 @@ cdef class JB_Env:
         
     def new_string_utf(self, char *s):
         '''Turn a Python string into a Java string object
-	
-	:param s: a UTF-8 encoded Python string
-	:return: a Java string object
-	:rtype: JB_Object
-	'''
+        
+        :param s: a UTF-8 encoded Python string
+        :return: a Java string object
+        :rtype: JB_Object
+        '''
         cdef:
             jobject o
         o = self.env[0].NewStringUTF(self.env, s)
@@ -1544,11 +1579,11 @@ cdef class JB_Env:
 
     def get_string(self, JB_Object s):
         '''Turn a Java string object into a Python unicode string
-	
-	:param s: a Java object
-	:return: the unicode string representation of the object
-	:rtype: unicode
-	'''
+        
+        :param s: a Java object
+        :return: the unicode string representation of the object
+        :rtype: unicode
+        '''
         cdef:
             jsize nchars = self.env[0].GetStringLength(self.env, s.o)
             const jchar *chars
@@ -1564,10 +1599,10 @@ cdef class JB_Env:
     def get_string_utf(self, JB_Object s):
         '''Turn a Java string object into a Python string
 
-	:param s: a Java object
-	:return: a UTF-8 encoded string representation of the object
-	:rtype: str
-	'''
+        :param s: a Java object
+        :return: a UTF-8 encoded string representation of the object
+        :rtype: str
+        '''
         cdef:
            const char *chars 
         if <int> s.o == 0:
@@ -1579,17 +1614,17 @@ cdef class JB_Env:
 
     def get_array_length(self, JB_Object array):
         '''Return the length of an array
-	
-	:param array: a Java array
-	:return: the number of elements in the array
-	'''
+        
+        :param array: a Java array
+        :return: the number of elements in the array
+        '''
         return self.env[0].GetArrayLength(self.env, array.o)
         
     def get_boolean_array_elements(self, JB_Object array):
         '''Return the contents of a Java boolean array as a numpy array
-	
-	:param array: a Java boolean array
-	'''
+        
+        :param array: a Java boolean array
+        '''
         cdef:
             np.ndarray[dtype=np.uint8_t, ndim=1, negative_indices=False, mode='c'] result
             char *data

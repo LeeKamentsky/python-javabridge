@@ -914,13 +914,16 @@ def get_static_field(klass, name, sig):
         class_name = str(klass)
         klass = env.find_class(class_name)
         if klass is None:
-            raise ValueError("Could not load class %s"%class_name)
+            jexception = get_env().exception_occurred()
+            raise JavaException(jexception)
     field_id = env.get_static_field_id(klass, name, sig)
     if field_id is None:
-        raise JavaError('Could not find field name = %s '
-                        'with signature = %s' %(name, sig))
+        jexception = get_env().exception_occurred()
+        raise JavaException(jexception)
     if sig == 'Z':
         return env.get_static_boolean_field(klass, field_id)
+    elif sig == 'C':
+        return env.get_static_char_field(klass, field_id)
     elif sig == 'B':
         return env.get_static_byte_field(klass, field_id)
     elif sig == 'S':
@@ -955,8 +958,12 @@ def set_static_field(klass, name, sig, value):
         class_name = str(klass)
         klass = env.find_class(class_name)
         if klass is None:
-            raise ValueError("Could not load class %s"%class_name)
+            jexception = get_env().exception_occurred()
+            raise JavaException(jexception)
     field_id = env.get_static_field_id(klass, name, sig)
+    if field_id is None:
+        jexception = get_env().exception_occurred()
+        raise JavaException(jexception)
     if sig == 'Z':
         env.set_static_boolean_field(klass, field_id, value)
     elif sig == 'B':
@@ -971,7 +978,7 @@ def set_static_field(klass, name, sig, value):
     elif sig == 'J':
         env.set_static_long_field(klass, field_id, value)
     elif sig == 'F':
-        env.get_static_float_field(klass, field_id, value)
+        env.set_static_float_field(klass, field_id, value)
     elif sig == 'D':
         env.set_static_double_field(klass, field_id, value)
     else:
@@ -986,14 +993,17 @@ def get_field(o, name, sig):
     :param sig: the signature, typically 'I' or 'Ljava/lang/String;'
 
     '''
+    assert isinstance(o, javabridge.JB_Object)
     env = get_env()
     klass = env.get_object_class(o)
     field_id = env.get_field_id(klass, name, sig)
     if field_id is None:
-        raise JavaError('Could not find field name = %s '
-                        'with signature = %s' %(name, sig))
+        jexception = get_env().exception_occurred()
+        raise JavaException(jexception)
     if sig == 'Z':
         return env.get_boolean_field(o, field_id)
+    elif sig == 'C':
+        return env.get_char_field(o, field_id)
     elif sig == 'B':
         return env.get_byte_field(o, field_id)
     elif sig == 'S':
@@ -1017,11 +1027,17 @@ def set_field(o, name, sig, value):
     :param sig: the signature, typically 'I' or 'Ljava/lang/String;'
     :param value: the value to set
     '''
+    assert isinstance(o, javabridge.JB_Object)
     env = get_env()
     klass = env.get_object_class(o)
     field_id = env.get_field_id(klass, name, sig)
+    if field_id is None:
+        jexception = get_env().exception_occurred()
+        raise JavaException(jexception)
     if sig == 'Z':
         env.set_boolean_field(o, field_id, value)
+    elif sig == 'C':
+        env.set_char_field(o, field_id, value)
     elif sig == 'B':
         env.set_byte_field(o, field_id, value)
     elif sig == 'C':

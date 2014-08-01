@@ -11,6 +11,22 @@ public class RealRect {
 	public double y;
 	public double width;
 	public double height;
+	public char f_char;
+	public byte f_byte;
+	public short f_short;
+	public int f_int;
+	public long f_long;
+	public float f_float;
+	public double f_double;
+	public Object f_object;
+	static public char fs_char;
+	static public byte fs_byte;
+	static public short fs_short;
+	static public int fs_int;
+	static public long fs_long;
+	static public float fs_float;
+	static public double fs_double;
+	static public Object fs_object;
 
 	// -- Constructor --
 
