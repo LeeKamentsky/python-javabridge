@@ -77,7 +77,13 @@ def _find_jvm_windows():
             for place_to_look in ('client','server'):
                 jvm_dir = os.path.join(jre_bin, place_to_look)
                 if os.path.isfile(os.path.join(jvm_dir, "jvm.dll")):
-                    os.environ['PATH'] = ';'.join((os.environ['PATH'], jvm_dir, jre_bin))
+                    new_path = ';'.join((os.environ['PATH'], jvm_dir, jre_bin))
+                    if isinstance(os.environ['PATH'], str) and \
+                       isinstance(new_path, unicode):
+                        # Don't inadvertantly set an environment variable
+                        # to unicode: causes subprocess.check_call to fail
+                        new_path = new_path.encode("utf-8")
+                    os.environ['PATH'] = new_path
                     found_jvm = True
                     break
             if found_jvm:
