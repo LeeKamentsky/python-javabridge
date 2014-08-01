@@ -138,7 +138,7 @@ class AtExit(object):
         
 __start_thread = None        
 
-def start_vm(args=[], class_path=None, max_heap_size=None, run_headless=False):
+def start_vm(args=None, class_path=None, max_heap_size=None, run_headless=False):
     '''Start the Java Virtual Machine.
 
     :param args: a list of strings, encoding arbitrary startup options
@@ -168,6 +168,9 @@ def start_vm(args=[], class_path=None, max_heap_size=None, run_headless=False):
 
     '''
     global __start_thread
+    
+    if args == None:
+        args = []
 
     # Put this before the __vm check so the unit test can test it even
     # though the JVM is already started.
