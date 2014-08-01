@@ -12,6 +12,7 @@ All rights reserved.lo
 import os
 import sys
 import logging
+import subprocess
 
 is_linux = sys.platform.startswith('linux')
 is_mac = sys.platform == 'darwin'
@@ -41,9 +42,13 @@ def find_javahome():
     if os.environ.has_key('JAVA_HOME'):
         return os.environ['JAVA_HOME']
     elif is_mac:
-        return "Doesn't matter"
+        # Use the "java_home" executable to find the location
+        # see "man java_home"
+        try:
+            return subprocess.check_output(["/usr/libexec/java_home"]).strip()
+        except:
+            return "Doesn't matter"
     elif is_linux:
-        import subprocess
         def get_out(cmd):
             p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
             o, ignore = p.communicate()
@@ -83,7 +88,7 @@ def find_jdk():
     if os.environ.has_key('JDK_HOME'):
         return os.environ['JDK_HOME']
     if is_mac:
-        return "Doesn't matter"
+        return find_javahome()
     if is_win:
         import _winreg
         import exceptions
