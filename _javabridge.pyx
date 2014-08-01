@@ -1395,7 +1395,9 @@ cdef class JB_Env:
         :param field: a field id retrieved from :py:meth:'.get_static_field_id`
         :param o: the object that will become the field's new value
         '''
-        self.env[0].SetStaticObjectField(self.env, c.c, field.id, o.o)
+        cdef:
+            jobject jvalue = NULL if o is None else o.o
+        self.env[0].SetStaticObjectField(self.env, c.c, field.id, jvalue)
         
     def set_static_boolean_field(self, JB_Class c, __JB_FieldID field, value):
         '''Set a static boolean field in a class
