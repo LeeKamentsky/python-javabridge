@@ -28,6 +28,16 @@ class TestJWrapper(unittest.TestCase):
         result = obj.replace("Hello,", "Goodbye cruel")
         self.assertEquals(result, "Goodbye cruel world.")
         
+    def test_01_04_call_varargs(self):
+        sclass = J.JWrapper(J.class_for_name("java.lang.String"));
+        for constructor in J.get_env().get_object_array_elements(
+            sclass.getConstructors().o):
+            wconstructor = J.JWrapper(constructor)
+            parameter_types = J.get_env().get_object_array_elements(
+                wconstructor.getParameterTypes().o)
+            c1 = sclass.getConstructor(*parameter_types)
+            self.assertTrue(c1.equals(constructor))
+        
     def test_02_01_get_field(self):
         obj = J.JClassWrapper("org.cellprofiler.javabridge.test.RealRect")(
             1.5, 2.5, 3.5, 4.5)
@@ -51,6 +61,17 @@ class TestJClassWrapper(unittest.TestCase):
     def test_02_03_static_call(self):
         c = J.JClassWrapper("java.lang.Integer")
         self.assertEquals(c.toString(123), "123")
+        
+    def test_02_04_static_call_varargs(self):
+        #
+        # Test calling a static function with a variable number of
+        # arguments.
+        #
+        c = J.JClassWrapper("java.lang.String")
+        self.assertEquals(c.format("Hello, %s.", "world"),
+                                   "Hello, world.")
+        self.assertEquals(c.format("Goodbye %s %s.", "cruel", "world"),
+                          "Goodbye cruel world.")
 
     
 if __name__=="__main__":

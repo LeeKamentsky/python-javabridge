@@ -124,7 +124,7 @@ class JWrapper(object):
                 continue
             if is_var_args:
                 pm1 = len(params)-1
-                args1 = args[:pm1] + [args[pm1:]]
+                args1 = list(args[:pm1]) + [args[pm1:]]
             else:
                 args1 = args
             try:
@@ -247,7 +247,7 @@ class JClassWrapper(object):
                 continue
             if is_var_args:
                 pm1 = len(params)-1
-                args1 = args[:pm1] + [args[pm1:]]
+                args1 = list(args[:pm1]) + [args[pm1:]]
             else:
                 args1 = args
             try:
