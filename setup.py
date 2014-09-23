@@ -18,6 +18,7 @@ import subprocess
 import traceback
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext as _build_ext
+from numpy import get_include
 
 # Hack to avoid importing the javabridge package
 sys.path.append(os.path.join(os.path.dirname(__file__), 'javabridge'))
@@ -48,9 +49,6 @@ def build_cython():
         subprocess.check_call(cmd)
 
 def ext_modules():
-    # Import here so that pip can import setup.py even when it has not
-    # installed numpy yet. See #30.
-    from numpy import get_include
     extensions = []
     extra_link_args = None
     java_home = find_javahome()
