@@ -72,17 +72,24 @@ MacOS X
 Windows
 ^^^^^^^
 
-If you do not have a C compiler installed, you can install the Windows SDK 7.1
-and .Net Framework 4.0 to perform the compile steps. You should install
-a JDK appropriate for your Java project - the Windows build is tested with
-the Oracle JDK v 1.7. The paths to PIP and Python should be in your PATH 
-(``set PATH=%PATH%;c:\\Python27;c:\\Python27\\scripts`` if Python and PIP installed
-to the default locations). The following steps should perform the install:
+If you do not have a C compiler installed, you can install the Windows
+SDK 7.1 and .Net Framework 4.0 to perform the compile steps.
 
-    Open a Windows SDK command prompt (found in the Start menu under 
-    Microsoft Windows SDK). Set the path to Python and PIP if needed.
+You should install a JDK appropriate for your Java project. The
+Windows build is tested with the Oracle JDK 1.7.  Note that the
+bitness needs to match your python: if you use a 32-bit Python, then
+you need a 32-bit JDK; if you use a 64-bit Python, then you need a
+64-bit JDK.
+
+The paths to PIP and Python should be in your PATH (``set
+PATH=%PATH%;c:\\Python27;c:\\Python27\\scripts`` if Python and PIP
+installed to the default locations). The following steps should
+perform the install:
+
+1. Open a Windows SDK command prompt (found in the Start menu under
+   Microsoft Windows SDK). Set the path to Python and PIP if needed.
     
-    Issue the commands::
+2. Issue the commands::
     
         set MSSdk=1
         set DISTUTILS_USE_SDK=1
