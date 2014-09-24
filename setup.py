@@ -18,7 +18,12 @@ import subprocess
 import traceback
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext as _build_ext
-from numpy import get_include
+try:
+    from numpy import get_include
+except ImportError:
+    raise RuntimeError("""Numpy must be installed before installing javabridge.
+It cannot be installed automatically when pip-installing javabridge.
+See https://github.com/CellProfiler/python-javabridge/issues/30""")
 
 # Hack to avoid importing the javabridge package
 sys.path.append(os.path.join(os.path.dirname(__file__), 'javabridge'))
