@@ -138,6 +138,9 @@ def package_path(relpath):
     return os.path.normpath(os.path.join(os.path.dirname(__file__), relpath))
 
 def build_jar_from_single_source(jar, source):
+    if sys.platform == 'win32':
+        jar = jar.replace("/", os.path.sep)
+        source = source.replace("/", os.path.sep)
     if needs_compilation(jar, source):
         javac_loc = find_javac_cmd()
         javac_command = [javac_loc, package_path(source)]
@@ -147,7 +150,7 @@ def build_jar_from_single_source(jar, source):
             os.mkdir(os.path.dirname(jar))
         jar_command = [find_jar_cmd(), 'cf', package_path(jar)]
         for klass in glob.glob(source[:source.rindex('.')] + '*.class'):
-            jar_command.extend(['-C', package_path('java'), klass[klass.index('/') + 1:]])
+            jar_command.extend(['-C', package_path('java'), klass[klass.index(os.path.sep) + 1:]])
         print ' '.join(jar_command)
         subprocess.check_call(jar_command)
 
