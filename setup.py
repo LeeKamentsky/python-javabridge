@@ -150,7 +150,8 @@ def build_jar_from_single_source(jar, source):
             os.mkdir(os.path.dirname(jar))
         jar_command = [find_jar_cmd(), 'cf', package_path(jar)]
         for klass in glob.glob(source[:source.rindex('.')] + '*.class'):
-            jar_command.extend(['-C', package_path('java'), klass[klass.index(os.path.sep) + 1:]])
+            java_klass_path = klass[klass.index(os.path.sep) + 1:].replace(os.path.sep, "/")
+            jar_command.extend(['-C', package_path('java'), java_klass_path])
         print ' '.join(jar_command)
         subprocess.check_call(jar_command)
 
