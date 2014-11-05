@@ -38,9 +38,17 @@ On Fedora 19, the dependencies can be installed as follows::
 
     yum install gcc numpy python-devel java-1.7.0-openjdk-devel python-pip openssl
 
-On Ubuntu 13.10 and Debian 7.0, the dependencies can be installed as follows::
+On Ubuntu 13 and Debian 7, the dependencies can be installed as follows::
 
    apt-get install openjdk-6-jdk python-pip python-numpy python-dev
+
+On Ubuntu 14, the dependencies can be installed as follows::
+
+   apt-get install openjdk-7-jdk python-pip python-numpy python-dev
+
+On Arch Linux, the dependencies can be installed as follows::
+
+   pacman -S jdk7-openjdk python2-pip python2-numpy base-devel
 
 MacOS X
 ^^^^^^^
