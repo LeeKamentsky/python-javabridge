@@ -22,7 +22,7 @@ _jars_dir = os.path.join(os.path.dirname(__file__), 'jars')
 #: List of absolute paths to JAR files that are required for the
 #: Javabridge to work.
 JARS = [os.path.realpath(os.path.join(_jars_dir, name + '.jar'))
-        for name in ['rhino-1.7R4', 'runnablequeue']]
+        for name in ['rhino-1.7R4', 'runnablequeue', 'cpython']]
 
 
 from .jutil import start_vm, kill_vm, activate_awt, deactivate_awt
@@ -66,10 +66,12 @@ from .jutil import JavaError, JavaException, JVMNotFoundError
 
 from ._javabridge import mac_enter_run_loop, mac_stop_run_loop, mac_run_loop_init
     
-# Don't expose: AtExit, attach_ext_env, get_nice_args,
+# Don't expose: AtExit, get_nice_args,
 # make_run_dictionary, run_in_main_thread, split_sig, unwrap_javascript,
 # print_all_stack_traces
 
 
 # Low-level API
 from ._javabridge import JB_Env, JB_Object, JB_Class
+# JNI helpers.
+from ._javabridge import jni_enter, jni_exit

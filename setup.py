@@ -14,10 +14,16 @@ import glob
 import os
 import re
 import sys
+import sysconfig
 import subprocess
 import traceback
+import distutils.log
+from distutils.errors import DistutilsSetupError, DistutilsExecError, LinkError
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext as _build_ext
+from distutils.command.build_clib import build_clib
+from distutils.ccompiler import CCompiler
+
 try:
     from numpy import get_include
 except ImportError:
@@ -53,6 +59,23 @@ def build_cython():
         cmd = ['cython'] + nc_pyx_filenames
         subprocess.check_call(cmd)
 
+def get_jvm_include_dirs():
+    '''Return a sequence of paths to include directories for JVM defs'''
+    jdk_home = find_jdk()
+    include_dirs = []
+    if is_win:
+        if jdk_home is not None:
+            jdk_include = os.path.join(jdk_home, "include")
+            jdk_include_plat = os.path.join(jdk_include, sys.platform)
+            include_dirs += [jdk_include, jdk_include_plat]
+    elif is_mac:
+        include_dirs += ['/System/Library/Frameworks/JavaVM.framework/Headers']
+    elif is_linux:
+        include_dirs += [os.path.join(java_home,'include'),
+                         os.path.join(java_home,'include','linux')]
+        
+    return include_dirs
+    
 def ext_modules():
     extensions = []
     extra_link_args = None
@@ -60,8 +83,7 @@ def ext_modules():
     if java_home is None:
         raise JVMNotFoundError()
     jdk_home = find_jdk()
-    print "Using jdk_home =", jdk_home
-    include_dirs = [get_include()]
+    include_dirs = [get_include()] + get_jvm_include_dirs()
     libraries = None
     library_dirs = None
     javabridge_sources = ['_javabridge.c']
@@ -70,10 +92,6 @@ def ext_modules():
     else:
         javabridge_sources += ['_javabridge_nomac.c']
     if is_win:
-        if jdk_home is not None:
-            jdk_include = os.path.join(jdk_home, "include")
-            jdk_include_plat = os.path.join(jdk_include, sys.platform)
-            include_dirs += [jdk_include, jdk_include_plat]
         if is_mingw:
             #
             # Build libjvm from jvm.dll on Windows.
@@ -99,11 +117,8 @@ def ext_modules():
         libraries = ["jvm"]
     elif is_mac:
         javabridge_sources += [ "mac_javabridge_utils.c" ]
-        include_dirs += ['/System/Library/Frameworks/JavaVM.framework/Headers']
         extra_link_args = ['-framework', 'JavaVM']
     elif is_linux:
-        include_dirs += [os.path.join(java_home,'include'),
-                         os.path.join(java_home,'include','linux')]
         library_dirs = [os.path.join(java_home,'jre','lib', arch, cs)
                         for arch in ['amd64', 'i386']
                         for cs in ['client', 'server']]
@@ -120,6 +135,31 @@ def ext_modules():
 
     extensions += [Extension(**extension_kwargs)]
     return extensions
+
+SO = ".dll" if sys.platform == 'win32' else sysconfig.get_config_var("SO")
+
+def libraries():
+    '''Return the library definitions for build_clib'''
+    #
+    # Create a command to build the JNI native code for
+    # org.cellprofiler.javabridge.CPython
+    #
+    include_dirs = [sysconfig.get_config_var("INCLUDEPY"),
+                    "java"] + get_jvm_include_dirs()
+    # TODO: adjust for Mac and Linux
+    python_lib_dir = os.path.join(
+        sysconfig.get_config_var('platbase'),
+        'LIBS')
+    java2cpython = (
+        "java2cpython"+SO, {
+            'sources': ["java/org_cellprofiler_javabridge_CPython.c"],
+            'include_dirs': include_dirs,
+            'library_dirs': [python_lib_dir],
+            'output_dir': "javabridge/jars",
+            'export_symbols': [
+                'Java_org_cellprofiler_javabridge_CPython_exec'] 
+        })
+    return [java2cpython]
 
 def needs_compilation(target, *sources):
     try:
@@ -159,6 +199,11 @@ def build_runnablequeue():
     jar = 'javabridge/jars/runnablequeue.jar'
     source = 'java/org/cellprofiler/runnablequeue/RunnableQueue.java'
     build_jar_from_single_source(jar, source)
+    
+def build_cpython():
+    jar = 'javabridge/jars/cpython.jar'
+    source = 'java/org/cellprofiler/javabridge/CPython.java'
+    build_jar_from_single_source(jar, source)
 
 def build_test():
     jar = 'javabridge/jars/test.jar'
@@ -166,15 +211,79 @@ def build_test():
     build_jar_from_single_source(jar, source)
 
 def build_java():
-    print "running build_java"
     build_runnablequeue()
     build_test()
+    build_cpython()
 
 class build_ext(_build_ext):
     def run(self, *args, **kwargs):
         build_java()
         build_cython()
         return _build_ext.run(self, *args, **kwargs)
+    
+class build_so(build_clib):
+    '''Build a shared library or .DLL'''
+    def get_library_names(self):
+        '''Override to prevent build_ext from linking stand-alone dlls'''
+        return []
+    
+    def build_libraries(self, libraries):
+        '''Override of build_clib's build_libraries'''
+        #
+        # Taken from distutils build_clib which, itself is lifted
+        # from build_ext.
+        # 
+        for (lib_name, build_info) in libraries:
+            sources = build_info.get('sources')
+            if sources is None or not isinstance(sources, (list, tuple)):
+                raise DistutilsSetupError, \
+                      ("in 'libraries' option (library '%s'), " +
+                       "'sources' must be present and must be " +
+                       "a list of source filenames") % lib_name
+            sources = list(sources)
+
+            distutils.log.info("building '%s' library", lib_name)
+
+            # First, compile the source code to object files in the library
+            # directory.  (This should probably change to putting object
+            # files in a temporary build directory.)
+            macros = build_info.get('macros')
+            include_dirs = build_info.get('include_dirs')
+            libraries = build_info.get('libraries')
+            library_dirs = build_info.get('library_dirs')
+            output_dir = build_info.get('output_dir', self.build_clib)
+            export_symbols = build_info.get('export_symbols')
+            objects = self.compiler.compile(sources,
+                                            output_dir=self.build_temp,
+                                            macros=macros,
+                                            include_dirs=include_dirs,
+                                            debug=self.debug)
+
+            self.compiler.link(
+                CCompiler.SHARED_LIBRARY,
+                objects, lib_name,
+                output_dir=output_dir,
+                debug=self.debug,
+                library_dirs=library_dirs,
+                libraries=libraries,
+                export_symbols=export_symbols)
+            if sys.platform == 'win32':
+                temp_dir = os.path.dirname(objects[0])
+                manifest_name = lib_name +".manifest"
+                if output_dir is not None:
+                    lib_path = os.path.join(output_dir, lib_name)
+                else:
+                    lib_path = os.path.join(temp_dir, lib_name)
+                manifest_file = os.path.join(temp_dir, manifest_name)
+                lib_path = os.path.abspath(lib_path)
+                manifest_file = os.path.abspath(manifest_file)
+                out_arg = '-outputresource:%s;2' % lib_path
+                try:
+                    self.compiler.spawn([
+                        'mt.exe', '-nologo', '-manifest', manifest_file, 
+                        out_arg])
+                except DistutilsExecError, msg:
+                    raise LinkError(msg)
 
 def get_version():
     """Get version from git or file system.
@@ -242,5 +351,8 @@ cell image analysis software CellProfiler (cellprofiler.org).''',
                 ]},
           test_suite="nose.collector",
           package_data={"javabridge": ['jars/*.jar', 'VERSION']},
+          data_files=[("javabridge/jars", glob.glob("javabridge/jars/*%s" % SO))],
+          libraries=libraries(),
           ext_modules=ext_modules(),
-          cmdclass={'build_ext': build_ext,})
+          cmdclass={'build_ext': build_ext,
+                    'build_clib': build_so})

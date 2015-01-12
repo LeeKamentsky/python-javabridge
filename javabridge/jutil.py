@@ -1486,6 +1486,9 @@ def get_map_wrapper(o):
         def __iter__(self):
             return iterate_collection(self.keySet())
         
+        def keys(self):
+            return tuple(iterate_collection(self.keySet(self)))
+        
     return Map()
 
 def make_map(**kwargs):
@@ -1950,28 +1953,20 @@ def get_method_wrapper(obj):
         getModifiers = make_method('getModifiers', '()I')
     return Method()
         
-def attach_ext_env(env_address):
-    '''Attach to an externally supplied Java environment
-    
-    env_address - the numeric address of the env memory pointer
-    '''
-    global __thread_local_env 
-    env = _javabridge.JB_Env()
-    env.set_env(env_address)
-    __thread_local_env.env = env
-    
-def make_run_dictionary(jobject_address):
-    '''Support function for Py_RunString - jobject address -> globals / locals
+def make_run_dictionary(jobject):
+    '''Support function for Py_RunString - jobject -> globals / locals
     
     jobject_address - address of a Java Map of string to object
     '''
-    jmap = get_env().make_jb_object(jobject_address)
-    d = get_dictionary_wrapper(jmap)
-    
     result = {}
-    keys = jenumeration_to_string_list(d.keys())
-    for key in keys:
-        result[key] = d.get(key)
+    jmap = javabridge.JWrapper(jobject)
+    jentry_set = jmap.entrySet()
+    jentry_set_iterator = jentry_set.iterator()
+    while jentry_set_iterator.hasNext():
+        entry = jentry_set_iterator.next()
+        key, value = [o if not isinstance(o, javabridge.JWrapper) else o.o
+                      for o in entry.getKey(), entry.getValue()]
+        result[to_string(key)] = value
     return result
 
 

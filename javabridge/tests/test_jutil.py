@@ -9,8 +9,6 @@ All rights reserved.
 
 '''
 
-__version__="$Revision$"
-
 import gc
 import os
 import numpy as np
@@ -608,6 +606,24 @@ class TestJutil(unittest.TestCase):
         for arg in ['-cp', '-classpath', '-Djava.class.path=foo']:
             self.assertRaises(ValueError, lambda: javabridge.start_vm([arg]))
 
+    def test_11_01_make_run_dictionary(self):
+        from javabridge.jutil import make_run_dictionary
+        o = javabridge.make_instance("java/util/Hashtable", "()V")
+        a = javabridge.make_instance("java/util/ArrayList", "()V")
+        javabridge.call(
+            o, "put", 
+            "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;",
+            "foo", "bar")
+        javabridge.call(
+            o, "put", 
+            "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;",
+            "baz", a)
+        d = make_run_dictionary(o)
+        self.assertIn("foo", d)
+        self.assertEquals(d["foo"], "bar")
+        self.assertIn("baz", d)
+        self.assertTrue(javabridge.call(d["baz"], "equals", 
+                                        "(Ljava/lang/Object;)Z", a))
         
 if __name__=="__main__":
     unittest.main()

@@ -5,6 +5,8 @@ include strtoull.c
 include _javabridge.c
 include _javabridge_mac.c
 include _javabridge_nomac.c
+include java/org_cellprofiler_javabridge_CPython.c
+include java/org_cellprofiler_javabridge_CPython.h
 recursive-include javabridge/tests *.py
 recursive-include javabridge/jars *.jar
 prune *.pyx

@@ -15,19 +15,21 @@ import threading
 cimport numpy as np
 cimport cython
 cimport _javabridge_osspecific
+cimport cpython
 
 cdef extern from "Python.h":
     ctypedef int Py_intptr_t
-    ctypedef short Py_UNICODE
     ctypedef unsigned long Py_ssize_t
-    Py_UNICODE *PyUnicode_AS_UNICODE(object)
-    object PyUnicode_DecodeUTF16(char *s, Py_ssize_t size, char *errors, int *byteorder)
+    ctypedef void (*PyCapsule_Destructor)(object o)
+    bint PyCapsule_CheckExact(object o)
+    object PyCapsule_New(void *pointer, char *name, PyCapsule_Destructor destructor)
+    void* PyCapsule_GetPointer(object capsule, char *name) except? NULL
+    unicode PyUnicode_DecodeUTF16(char *s, Py_ssize_t size, char *errors, int *byteorder)
 
 cdef extern from "stdlib.h":
     ctypedef unsigned long size_t
     void free(void *ptr)
     void *malloc(size_t size)
-    unsigned long long strtoull(char *str, char **end_ptr, int base)
 
 cdef extern from "string.h":
     void *memset(void *, int, int)
@@ -412,6 +414,34 @@ def jb_detach():
     set_thread_local("env", None)
     __vm.detach()
     
+def jni_enter(env):
+    '''Enter Python from Java
+    
+    :param env: pointer to JNIEnv wrapped in a PyCapsule
+    
+    Set this thread's environment to the one passed in through
+    a JNI native call.
+    '''
+    env_stack = get_thread_local("envstack", None)
+    if env_stack is None:
+        env_stack = []
+        set_thread_local("envstack", env_stack)
+    old_env = get_env()
+    if old_env is not None:
+        env_stack.append(old_env)
+    new_env = JB_Env()
+    new_env.set_env(env)
+    set_thread_local("env", new_env)
+
+def jni_exit():
+    '''Exit the JNI from Python'''
+    env_stack = get_thread_local("envstack")
+    if len(env_stack) == 0:
+        set_thread_local("env", None)
+    else:
+        set_thread_local("env", env_stack.pop())
+    
+    
 def reap():
     '''Reap all of the garbage-collected Java objects on the dead_objects list'''
     if len(__dead_objects) > 0:
@@ -513,8 +543,7 @@ cdef fill_values(orig_sig, args, jvalue **pvalues):
             values[i].b = int(arg)
             sig = sig[1:]
         elif sig[0] == 'C': #char
-            usz = PyUnicode_AS_UNICODE(unicode(arg))
-            values[i].c = usz[0]
+            values[i].c = ord(arg[0])
             sig = sig[1:]
         elif sig[0] == 'S': #short
             values[i].s = int(arg)
@@ -685,15 +714,18 @@ cdef class JB_Env:
     def __repr__(self):
         return "<JB_Env at 0x%x>"%(<size_t>(self.env))
     
-    def set_env(self, char *address):
+    def set_env(self, capsule):
         '''Set the JNIEnv to a memory address
         
         address - address as an integer representation of a string
         '''
-        cdef:
-            size_t *cp_addr
-        cp_addr = <size_t *>&(self.env)
-        cp_addr[0] = strtoull(address, NULL, 0)
+        if not PyCapsule_CheckExact(capsule):
+            raise ValueError(
+            "set_env called with something other than a wrapped environment")
+        self.env = <JNIEnv *>PyCapsule_GetPointer(capsule, "env")
+        if not self.env:
+            raise ValueError(
+            "set_env called with non-environment capsule")
         
     def __dealloc__(self):
         self.env = NULL
@@ -1201,7 +1233,7 @@ cdef class JB_Env:
         :param value: should be convertible to unicode and at least 1 char long
         '''
         cdef:
-            jchar jvalue = PyUnicode_AS_UNICODE(unicode(value))[0]
+            jchar jvalue = ord(value[0])
         self.env[0].SetCharField(self.env, o.o, field.id, jvalue)
         
     def set_short_field(self, JB_Object o, __JB_FieldID field, value):
@@ -1418,7 +1450,7 @@ cdef class JB_Env:
         :param value: a value that will be cast to a short and assigned to the field
         '''
         cdef:
-            jchar jvalue = PyUnicode_AS_UNICODE(unicode(value))[0]
+            jchar jvalue = ord(value[0])
         self.env[0].SetStaticCharField(self.env, c.c, field.id, jvalue)
         
     def set_static_byte_field(self, JB_Class c, __JB_FieldID field, value):
@@ -1440,7 +1472,7 @@ cdef class JB_Env:
         :param value: a value that will be assigned to the field
         '''
         cdef:
-            jchar jvalue = PyUnicode_AS_UNICODE(unicode(value))[0]
+            jchar jvalue = ord(value[0])
         self.env[0].SetStaticCharField(self.env, c.c, field.id, jvalue)
         
     def set_static_short_field(self, JB_Class c, __JB_FieldID field, value):
@@ -1892,21 +1924,22 @@ cdef class JB_Env:
         else:
             self.env[0].SetObjectArrayElement(self.env, jbo.o, index, v.o)
         
-    def make_jb_object(self, char *address):
+    def make_jb_object(self, pCapsule):
         '''Wrap a java object in a javabridge object
         
         address - integer representation of the memory address, as a string
         '''
         cdef:
             jobject jobj
-            size_t  *p_addr
-            size_t c_addr = strtoull(address, NULL, 0)
             JB_Object jbo
-        p_addr = <size_t *>&jobj
-        p_addr[0] = c_addr
+        if not PyCapsule_CheckExact(pCapsule):
+            raise ValueError("Argument must be a jobject in a capsule")
+        jobj = <jobject>PyCapsule_GetPointer(pCapsule, "jobject")
+        if not jobj:
+            raise ValueError("Capsule did not contain a jobject")
         jbo = JB_Object()
         jbo.o = jobj
-        jbo.env = self
+        jbo.gc_collect = False
         return jbo
         
 cdef make_jb_object(JB_Env env, jobject o):
