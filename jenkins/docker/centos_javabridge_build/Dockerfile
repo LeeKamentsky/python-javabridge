@@ -2,10 +2,11 @@
 # for building the javabridge but not for testing it.
 
 FROM centos_javabridge
-MAINTAINER Vebjorn Ljosa, ljosa@broad.mit.edu
+MAINTAINER Lee Kamentsky,leek@broadinstitute.org
 
 RUN yum install -y git
 # Copied from https://raw.github.com/pypa/pip/master/contrib/get-pip.py
 ADD get-pip.py /tmp/get-pip.py
 RUN python /tmp/get-pip.py
 RUN pip install cython
+RUN pip install sysconfig

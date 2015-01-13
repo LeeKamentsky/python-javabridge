@@ -3,7 +3,7 @@
 # distribution and run the unit tests.
 
 FROM centos
-MAINTAINER Vebjorn Ljosa, ljosa@broad.mit.edu
+MAINTAINER Lee Kamentsky, leek@broadinstitute.org
 RUN yum install -y python-setuptools numpy gcc python-devel java-1.6.0-openjdk-devel
 
 
