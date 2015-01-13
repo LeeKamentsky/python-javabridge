@@ -9,7 +9,7 @@ All rights reserved.
 
 #include <jni.h>
 #include <stdio.h>
-#include <python.h>
+#include <Python.h>
 #include "org_cellprofiler_javabridge_CPython.h"
 
 int initialized = 0;
