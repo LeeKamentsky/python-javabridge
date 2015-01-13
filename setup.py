@@ -14,7 +14,10 @@ import glob
 import os
 import re
 import sys
-import sysconfig
+try:
+    import sysconfig
+except:
+    import distutils.sysconfig as sysconfig
 import subprocess
 import traceback
 import distutils.log

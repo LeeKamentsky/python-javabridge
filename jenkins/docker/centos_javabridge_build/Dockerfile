@@ -9,4 +9,3 @@ RUN yum install -y git
 ADD get-pip.py /tmp/get-pip.py
 RUN python /tmp/get-pip.py
 RUN pip install cython
-RUN pip install sysconfig
