@@ -154,10 +154,12 @@ def libraries():
         python_lib_dir = os.path.join(
             sysconfig.get_config_var('platbase'),
             'LIBS')
+        java2cpython_file = "java2cpython.dll"
     else:
         python_lib_dir = sysconfig.get_config_var("LIBDIR")
+        java2cpython_file = "libjava2cpython" + SO
     java2cpython = (
-        "java2cpython"+SO, {
+        java2cpython_file, {
             'sources': ["java/org_cellprofiler_javabridge_CPython.c"],
             'include_dirs': include_dirs,
             'library_dirs': [python_lib_dir],
