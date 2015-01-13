@@ -65,6 +65,7 @@ def build_cython():
 def get_jvm_include_dirs():
     '''Return a sequence of paths to include directories for JVM defs'''
     jdk_home = find_jdk()
+    java_home = find_javahome()
     include_dirs = []
     if is_win:
         if jdk_home is not None:
@@ -149,10 +150,12 @@ def libraries():
     #
     include_dirs = [sysconfig.get_config_var("INCLUDEPY"),
                     "java"] + get_jvm_include_dirs()
-    # TODO: adjust for Mac and Linux
-    python_lib_dir = os.path.join(
-        sysconfig.get_config_var('platbase'),
-        'LIBS')
+    if is_win:
+        python_lib_dir = os.path.join(
+            sysconfig.get_config_var('platbase'),
+            'LIBS')
+    else:
+        python_lib_dir = sysconfig.get_config_var("LIBDIR")
     java2cpython = (
         "java2cpython"+SO, {
             'sources': ["java/org_cellprofiler_javabridge_CPython.c"],

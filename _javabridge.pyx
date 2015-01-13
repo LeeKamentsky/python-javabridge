@@ -20,11 +20,9 @@ cimport cpython
 cdef extern from "Python.h":
     ctypedef int Py_intptr_t
     ctypedef unsigned long Py_ssize_t
-    ctypedef void (*PyCapsule_Destructor)(object o)
-    bint PyCapsule_CheckExact(object o)
-    object PyCapsule_New(void *pointer, char *name, PyCapsule_Destructor destructor)
-    void* PyCapsule_GetPointer(object capsule, char *name) except? NULL
     unicode PyUnicode_DecodeUTF16(char *s, Py_ssize_t size, char *errors, int *byteorder)
+    bint PyCObject_Check(object o)
+    void *PyCObject_AsVoidPtr(object o)
 
 cdef extern from "stdlib.h":
     ctypedef unsigned long size_t
@@ -719,10 +717,10 @@ cdef class JB_Env:
         
         address - address as an integer representation of a string
         '''
-        if not PyCapsule_CheckExact(capsule):
+        if not PyCObject_Check(capsule):
             raise ValueError(
             "set_env called with something other than a wrapped environment")
-        self.env = <JNIEnv *>PyCapsule_GetPointer(capsule, "env")
+        self.env = <JNIEnv *>PyCObject_AsVoidPtr(capsule)
         if not self.env:
             raise ValueError(
             "set_env called with non-environment capsule")
@@ -1932,9 +1930,9 @@ cdef class JB_Env:
         cdef:
             jobject jobj
             JB_Object jbo
-        if not PyCapsule_CheckExact(pCapsule):
+        if not PyCObject_Check(pCapsule):
             raise ValueError("Argument must be a jobject in a capsule")
-        jobj = <jobject>PyCapsule_GetPointer(pCapsule, "jobject")
+        jobj = <jobject>PyCObject_AsVoidPtr(pCapsule)
         if not jobj:
             raise ValueError("Capsule did not contain a jobject")
         jbo = JB_Object()
