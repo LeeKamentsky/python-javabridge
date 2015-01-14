@@ -290,7 +290,6 @@ static int add_globals(JNIEnv *pEnv, PyObject *pGlobals) {
     if (result) {
         throwWrappedError(pEnv, __LINE__);
     }
-    Py_DECREF(pMainDict);
     return result;
 }
 
