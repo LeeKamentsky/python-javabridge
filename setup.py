@@ -140,7 +140,9 @@ def ext_modules():
     extensions += [Extension(**extension_kwargs)]
     return extensions
 
-SO = ".dll" if sys.platform == 'win32' else sysconfig.get_config_var("SO")
+SO = ".dll" if sys.platform == 'win32' \
+    else ".dylib" if sys.platform == 'darwin'\
+    else sysconfig.get_config_var("SO")
 
 def needs_compilation(target, *sources):
     try:
