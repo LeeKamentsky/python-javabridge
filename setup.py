@@ -200,8 +200,8 @@ class build_ext(_build_ext):
                 'LIBS')
             lib_name = "java2cpython" + SO
         else:
-            lib_name = sysconfig.get_config_var("LIBDIR") + SO
-            java2cpython_file = "libjava2cpython"
+            python_lib_dir = sysconfig.get_config_var('LIBDIR')
+            lib_name = "libjava2cpython" + SO
         library_dirs = [python_lib_dir]
         output_dir = os.path.splitext(self.get_ext_fullpath("javabridge.jars"))[0]
         export_symbols = ['Java_org_cellprofiler_javabridge_CPython_exec'] 
