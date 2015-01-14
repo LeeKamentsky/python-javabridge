@@ -31,7 +31,7 @@ def fn(numerator, denominator, answer):
     result = int(numerator) / int(denominator)
     javabridge.call(answer, "add", "(Ljava/lang/Object;)Z", str(result))
 fn(numerator, denominator, answer)
-        """
+"""
         jlocals.put("code", code)
         jlocals.put("answer", jref.o)
         self.cpython.execute(code, jlocals.o, None)
@@ -50,7 +50,7 @@ def fn():
     result = int(numerator) / int(denominator)
     javabridge.call(answer, "add", "(Ljava/lang/Object;)Z", str(result))
 fn()
-        """, None, jglobals.o)
+""", None, jglobals.o)
         self.assertEqual(javabridge.to_string(jref.get(0)), "3")
 
     def test_01_04_globals_equals_locals(self):
@@ -68,5 +68,5 @@ def fn():
     result = int(numerator) / int(denominator)
     javabridge.call(answer, "add", "(Ljava/lang/Object;)Z", str(result))
 fn()
-        """, jglobals.o, jglobals.o)
+""", jglobals.o, jglobals.o)
         self.assertEqual(javabridge.to_string(jref.get(0)), "3")        

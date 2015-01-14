@@ -9,6 +9,4 @@ include java/org_cellprofiler_javabridge_CPython.c
 include java/org_cellprofiler_javabridge_CPython.h
 recursive-include javabridge/tests *.py
 recursive-include javabridge/jars *.jar
-recursive-include javabridge/jars *.so
-recursive-include javabridge/jars *.dll
 prune *.pyx

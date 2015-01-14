@@ -19,4 +19,5 @@ cd /javabridge
 tar xvzf /dist/*.tar.gz
 cd *
 python setup.py develop
+python setup.py build_clib
 python setup.py nosetests
