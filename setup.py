@@ -165,7 +165,7 @@ def libraries():
             'sources': ["java/org_cellprofiler_javabridge_CPython.c"],
             'include_dirs': include_dirs,
             'library_dirs': [python_lib_dir],
-            'output_dir': package_path("javabridge/jars"),
+            #'output_dir': package_path("javabridge/jars"),
             'export_symbols': [
                 'Java_org_cellprofiler_javabridge_CPython_exec'] 
         })
