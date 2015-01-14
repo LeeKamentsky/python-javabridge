@@ -165,7 +165,7 @@ def libraries():
             'sources': ["java/org_cellprofiler_javabridge_CPython.c"],
             'include_dirs': include_dirs,
             'library_dirs': [python_lib_dir],
-            'output_dir': "javabridge/jars",
+            'output_dir': package_path("javabridge/jars"),
             'export_symbols': [
                 'Java_org_cellprofiler_javabridge_CPython_exec'] 
         })
@@ -194,7 +194,7 @@ def build_jar_from_single_source(jar, source):
     if needs_compilation(jar, source):
         javac_loc = find_javac_cmd()
         javac_command = [javac_loc, package_path(source)]
-        print ' '.join(javac_command)
+        distutils.log.info('executing "%s"' % (' '.join(javac_command)))
         subprocess.check_call(javac_command)
         if not os.path.exists(os.path.dirname(jar)):
             os.mkdir(os.path.dirname(jar))
@@ -202,7 +202,7 @@ def build_jar_from_single_source(jar, source):
         for klass in glob.glob(source[:source.rindex('.')] + '*.class'):
             java_klass_path = klass[klass.index(os.path.sep) + 1:].replace(os.path.sep, "/")
             jar_command.extend(['-C', package_path('java'), java_klass_path])
-        print ' '.join(jar_command)
+        distutils.log.info('executing "%s"' % (' '.join(jar_command)))
         subprocess.check_call(jar_command)
 
 def build_runnablequeue():
