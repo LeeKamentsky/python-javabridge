@@ -141,7 +141,7 @@ def ext_modules():
     return extensions
 
 SO = ".dll" if sys.platform == 'win32' \
-    else ".dylib" if sys.platform == 'darwin'\
+    else ".jnilib" if sys.platform == 'darwin'\
     else sysconfig.get_config_var("SO")
 
 def needs_compilation(target, *sources):
