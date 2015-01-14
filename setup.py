@@ -141,6 +141,10 @@ def ext_modules():
     return extensions
 
 SO = ".dll" if sys.platform == 'win32' else sysconfig.get_config_var("SO")
+if is_win:
+    java2cpython_file = "java2cpython" + SO
+else:
+    java2cpython_file = "libjava2cpython" + SO
 
 def libraries():
     '''Return the library definitions for build_clib'''
@@ -154,10 +158,8 @@ def libraries():
         python_lib_dir = os.path.join(
             sysconfig.get_config_var('platbase'),
             'LIBS')
-        java2cpython_file = "java2cpython.dll"
     else:
         python_lib_dir = sysconfig.get_config_var("LIBDIR")
-        java2cpython_file = "libjava2cpython" + SO
     java2cpython = (
         java2cpython_file, {
             'sources': ["java/org_cellprofiler_javabridge_CPython.c"],
@@ -358,8 +360,8 @@ cell image analysis software CellProfiler (cellprofiler.org).''',
                 'javabridge = javabridge.noseplugin:JavabridgePlugin'
                 ]},
           test_suite="nose.collector",
-          package_data={"javabridge": ['jars/*.jar', 'VERSION']},
-          data_files=[("javabridge/jars", glob.glob("javabridge/jars/*%s" % SO))],
+          package_data={"javabridge": [
+              'jars/*.jar', 'jars/%s' % java2cpython_file, 'VERSION']},
           libraries=libraries(),
           ext_modules=ext_modules(),
           cmdclass={'build_ext': build_ext,
