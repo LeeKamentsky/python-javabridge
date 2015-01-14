@@ -141,35 +141,6 @@ def ext_modules():
     return extensions
 
 SO = ".dll" if sys.platform == 'win32' else sysconfig.get_config_var("SO")
-if is_win:
-    java2cpython_file = "java2cpython" + SO
-else:
-    java2cpython_file = "libjava2cpython" + SO
-
-def libraries():
-    '''Return the library definitions for build_clib'''
-    #
-    # Create a command to build the JNI native code for
-    # org.cellprofiler.javabridge.CPython
-    #
-    include_dirs = [sysconfig.get_config_var("INCLUDEPY"),
-                    "java"] + get_jvm_include_dirs()
-    if is_win:
-        python_lib_dir = os.path.join(
-            sysconfig.get_config_var('platbase'),
-            'LIBS')
-    else:
-        python_lib_dir = sysconfig.get_config_var("LIBDIR")
-    java2cpython = (
-        java2cpython_file, {
-            'sources': ["java/org_cellprofiler_javabridge_CPython.c"],
-            'include_dirs': include_dirs,
-            'library_dirs': [python_lib_dir],
-            #'output_dir': package_path("javabridge/jars"),
-            'export_symbols': [
-                'Java_org_cellprofiler_javabridge_CPython_exec'] 
-        })
-    return [java2cpython]
 
 def needs_compilation(target, *sources):
     try:
@@ -187,114 +158,102 @@ def needs_compilation(target, *sources):
 def package_path(relpath):
     return os.path.normpath(os.path.join(os.path.dirname(__file__), relpath))
 
-def build_jar_from_single_source(jar, source):
-    if sys.platform == 'win32':
-        jar = jar.replace("/", os.path.sep)
-        source = source.replace("/", os.path.sep)
-    if needs_compilation(jar, source):
-        javac_loc = find_javac_cmd()
-        javac_command = [javac_loc, package_path(source)]
-        distutils.log.info('executing "%s"' % (' '.join(javac_command)))
-        subprocess.check_call(javac_command)
-        if not os.path.exists(os.path.dirname(jar)):
-            os.mkdir(os.path.dirname(jar))
-        jar_command = [find_jar_cmd(), 'cf', package_path(jar)]
-        for klass in glob.glob(source[:source.rindex('.')] + '*.class'):
-            java_klass_path = klass[klass.index(os.path.sep) + 1:].replace(os.path.sep, "/")
-            jar_command.extend(['-C', package_path('java'), java_klass_path])
-        distutils.log.info('executing "%s"' % (' '.join(jar_command)))
-        subprocess.check_call(jar_command)
-
-def build_runnablequeue():
-    jar = 'javabridge/jars/runnablequeue.jar'
-    source = 'java/org/cellprofiler/runnablequeue/RunnableQueue.java'
-    build_jar_from_single_source(jar, source)
-    
-def build_cpython():
-    jar = 'javabridge/jars/cpython.jar'
-    source = 'java/org/cellprofiler/javabridge/CPython.java'
-    build_jar_from_single_source(jar, source)
-
-def build_test():
-    jar = 'javabridge/jars/test.jar'
-    source = 'java/org/cellprofiler/javabridge/test/RealRect.java'
-    build_jar_from_single_source(jar, source)
-
-def build_java():
-    build_runnablequeue()
-    build_test()
-    build_cpython()
-
 class build_ext(_build_ext):
     def run(self, *args, **kwargs):
-        build_java()
+        self.build_java()
         build_cython()
-        return _build_ext.run(self, *args, **kwargs)
+        result = _build_ext.run(self, *args, **kwargs)
+        self.build_java2cpython()
+        return result
+
+    def build_jar_from_single_source(self, jar, source):
+        if sys.platform == 'win32':
+            source = source.replace("/", os.path.sep)
+        jar = self.get_ext_fullpath(jar)
+        jar = os.path.splitext(jar)[0] + ".jar"
+        if needs_compilation(jar, source):
+            javac_loc = find_javac_cmd()
+            javac_command = [javac_loc, package_path(source)]
+            self.spawn(javac_command)
+            if not os.path.exists(os.path.dirname(jar)):
+                os.mkdir(os.path.dirname(jar))
+            jar_command = [find_jar_cmd(), 'cf', package_path(jar)]
+            for klass in glob.glob(source[:source.rindex('.')] + '*.class'):
+                java_klass_path = klass[klass.index(os.path.sep) + 1:].replace(os.path.sep, "/")
+                jar_command.extend(['-C', package_path('java'), java_klass_path])
+            self.spawn(jar_command)
+            
+    def build_java2cpython(self):
+        sources = ["java/org_cellprofiler_javabridge_CPython.c"]
+        distutils.log.info("building java2cpython library")
+        
+
+        # First, compile the source code to object files in the library
+        # directory.  (This should probably change to putting object
+        # files in a temporary build directory.)
+        include_dirs = \
+            [sysconfig.get_config_var("INCLUDEPY"), "java"] +\
+            get_jvm_include_dirs()
+        if is_win:
+            python_lib_dir = os.path.join(
+                sysconfig.get_config_var('platbase'),
+                'LIBS')
+            lib_name = "java2cpython" + SO
+        else:
+            lib_name = sysconfig.get_config_var("LIBDIR") + SO
+            java2cpython_file = "libjava2cpython"
+        library_dirs = [python_lib_dir]
+        output_dir = os.path.splitext(self.get_ext_fullpath("javabridge.jars"))[0]
+        export_symbols = ['Java_org_cellprofiler_javabridge_CPython_exec'] 
+        objects = self.compiler.compile(sources,
+                                        output_dir=self.build_temp,
+                                        include_dirs=include_dirs,
+                                        debug=self.debug)
+
+        self.compiler.link(
+            CCompiler.SHARED_LIBRARY,
+            objects, lib_name,
+            output_dir=output_dir,
+            debug=self.debug,
+            library_dirs=library_dirs,
+            export_symbols=export_symbols)
+        if sys.platform == 'win32':
+            temp_dir = os.path.dirname(objects[0])
+            manifest_name = lib_name +".manifest"
+            lib_path = os.path.join(output_dir, lib_name)
+            manifest_file = os.path.join(temp_dir, manifest_name)
+            lib_path = os.path.abspath(lib_path)
+            manifest_file = os.path.abspath(manifest_file)
+            out_arg = '-outputresource:%s;2' % lib_path
+            try:
+                self.compiler.spawn([
+                    'mt.exe', '-nologo', '-manifest', manifest_file, 
+                    out_arg])
+            except DistutilsExecError, msg:
+                raise LinkError(msg)
+        
+
+    def build_runnablequeue(self):
+        jar = 'javabridge.jars.runnablequeue'
+        source = 'java/org/cellprofiler/runnablequeue/RunnableQueue.java'
+        self.build_jar_from_single_source(jar, source)
+        
+    def build_cpython(self):
+        jar = 'javabridge.jars.cpython'
+        source = 'java/org/cellprofiler/javabridge/CPython.java'
+        self.build_jar_from_single_source(jar, source)
     
-class build_so(build_clib):
-    '''Build a shared library or .DLL'''
-    def get_library_names(self):
-        '''Override to prevent build_ext from linking stand-alone dlls'''
-        return []
+    def build_test(self):
+        jar = 'javabridge.jars.test'
+        source = 'java/org/cellprofiler/javabridge/test/RealRect.java'
+        self.build_jar_from_single_source(jar, source)
     
-    def build_libraries(self, libraries):
-        '''Override of build_clib's build_libraries'''
-        #
-        # Taken from distutils build_clib which, itself is lifted
-        # from build_ext.
-        # 
-        for (lib_name, build_info) in libraries:
-            sources = build_info.get('sources')
-            if sources is None or not isinstance(sources, (list, tuple)):
-                raise DistutilsSetupError, \
-                      ("in 'libraries' option (library '%s'), " +
-                       "'sources' must be present and must be " +
-                       "a list of source filenames") % lib_name
-            sources = list(sources)
+    def build_java(self):
+        self.build_runnablequeue()
+        self.build_test()
+        self.build_cpython()
 
-            distutils.log.info("building '%s' library", lib_name)
-
-            # First, compile the source code to object files in the library
-            # directory.  (This should probably change to putting object
-            # files in a temporary build directory.)
-            macros = build_info.get('macros')
-            include_dirs = build_info.get('include_dirs')
-            libraries = build_info.get('libraries')
-            library_dirs = build_info.get('library_dirs')
-            output_dir = build_info.get('output_dir', self.build_clib)
-            export_symbols = build_info.get('export_symbols')
-            objects = self.compiler.compile(sources,
-                                            output_dir=self.build_temp,
-                                            macros=macros,
-                                            include_dirs=include_dirs,
-                                            debug=self.debug)
-
-            self.compiler.link(
-                CCompiler.SHARED_LIBRARY,
-                objects, lib_name,
-                output_dir=output_dir,
-                debug=self.debug,
-                library_dirs=library_dirs,
-                libraries=libraries,
-                export_symbols=export_symbols)
-            if sys.platform == 'win32':
-                temp_dir = os.path.dirname(objects[0])
-                manifest_name = lib_name +".manifest"
-                if output_dir is not None:
-                    lib_path = os.path.join(output_dir, lib_name)
-                else:
-                    lib_path = os.path.join(temp_dir, lib_name)
-                manifest_file = os.path.join(temp_dir, manifest_name)
-                lib_path = os.path.abspath(lib_path)
-                manifest_file = os.path.abspath(manifest_file)
-                out_arg = '-outputresource:%s;2' % lib_path
-                try:
-                    self.compiler.spawn([
-                        'mt.exe', '-nologo', '-manifest', manifest_file, 
-                        out_arg])
-                except DistutilsExecError, msg:
-                    raise LinkError(msg)
-
+    
 def get_version():
     """Get version from git or file system.
 
@@ -361,8 +320,6 @@ cell image analysis software CellProfiler (cellprofiler.org).''',
                 ]},
           test_suite="nose.collector",
           package_data={"javabridge": [
-              'jars/*.jar', 'jars/%s' % java2cpython_file, 'VERSION']},
-          libraries=libraries(),
+              'jars/*.jar', 'jars/*%s' % SO, 'VERSION']},
           ext_modules=ext_modules(),
-          cmdclass={'build_ext': build_ext,
-                    'build_clib': build_so})
+          cmdclass={'build_ext': build_ext})
