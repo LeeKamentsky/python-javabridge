@@ -66,6 +66,10 @@ from .jutil import JavaError, JavaException, JVMNotFoundError
 
 from ._javabridge import mac_enter_run_loop, mac_stop_run_loop, mac_run_loop_init
     
+# References
+from .jutil import create_jref, redeem_jref, create_and_lock_jref,\
+     lock_jref, unlock_jref
+
 # Don't expose: AtExit, get_nice_args,
 # make_run_dictionary, run_in_main_thread, split_sig, unwrap_javascript,
 # print_all_stack_traces

@@ -625,5 +625,40 @@ class TestJutil(unittest.TestCase):
         self.assertTrue(javabridge.call(d["baz"], "equals", 
                                         "(Ljava/lang/Object;)Z", a))
         
+    def test_12_01_jref(self):
+        o = dict(foo="bar", baz="2")
+        ref_id, ref = javabridge.create_jref(o)
+        alt = javabridge.redeem_jref(ref_id)
+        o["bar"] = "bunny"
+        self.assertDictEqual(alt, o)
+        
+    def test_12_02_jref_lost(self):
+        o = dict(foo="bar", baz="2")
+        ref_id, ref = javabridge.create_jref(o)
+        del ref
+        self.assertRaises(KeyError, javabridge.redeem_jref, ref_id)
+        
+    def test_12_03_jref_create_and_lock(self):
+        cpython = javabridge.JClassWrapper(
+            'org.cellprofiler.javabridge.CPython')()
+        d = javabridge.JClassWrapper('java.util.Hashtable')()
+        result = javabridge.JClassWrapper('java.util.ArrayList')()
+        d.put("result", result)
+        ref_self = javabridge.create_and_lock_jref(self)
+        d.put("self", ref_self)
+        cpython.execute(
+            'import javabridge\n'
+            'x = { "foo":"bar"}\n'
+            'ref_id = javabridge.create_and_lock_jref(x)\n'
+            'javabridge.JWrapper(result).add(ref_id)', d, d)
+        cpython.execute(
+            'import javabridge\n'
+            'ref_id = javabridge.JWrapper(result).get(0)\n'
+            'self = javabridge.redeem_jref(javabridge.to_string(self))\n'
+            'self.assertEqual(javabridge.redeem_jref(ref_id)["foo"], "bar")\n'
+            'javabridge.unlock_jref(ref_id)', d, d)
+        javabridge.unlock_jref(ref_self)
+        self.assertRaises(KeyError, javabridge.redeem_jref, ref_self)
+        
 if __name__=="__main__":
     unittest.main()

@@ -24,6 +24,8 @@ import sys
 import uuid
 from .locate import find_javahome
 import javabridge
+import weakref
+import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -1969,7 +1971,89 @@ def make_run_dictionary(jobject):
         result[to_string(key)] = value
     return result
 
+__weakrefdict = weakref.WeakValueDictionary()
+__strongrefdict = {}
 
+class _JRef(object):
+    '''A reference to some Python value for Java scripting
+    
+    A Java script executed using org.cellprofiler.javabridge.CPython.exec
+    might want to maintain and refer to objects and values. This class
+    wraps the value so that it can be referred to later.
+    '''
+    def __init__(self, value):
+        self.__value = value
+        
+    def __call__(self):
+        return self.__value
+    
+def create_jref(value):
+    '''Create a weak reference to a Python value
+    
+    This routine lets the Java method, CPython.exec(), create weak references
+    which can be redeemed by passing a token to redeem_weak_reference. The
+    routine returns a reference to the value as well and this reference must
+    be stored somewhere (e.g. a global value in a module) for the token to
+    be valid upon redemption.
+    
+    :param value: The value to be redeemed
+    
+    :returns: a tuple of a string token and a reference that must be maintained
+              in order to retrieve it later
+    '''
+    ref = _JRef(value)
+    ref_id = uuid.uuid4().hex
+    __weakrefdict[ref_id] = ref
+    return ref_id, ref
+
+def create_and_lock_jref(value):
+    '''Create and lock a value in one step
+    
+    :param value: the value to be redeemed
+    :returns: a ref_id that can be used to redeem the value and to unlock it.
+    '''
+    ref_id, ref = create_jref(value)
+    lock_jref(ref_id)
+    return ref_id
+
+def redeem_jref(ref_id):
+    '''Redeem a reference created using create_jref
+    
+    Raises KeyError if the reference could not be found, possibly because
+    someone didn't hold onto it
+    
+    :param ref_id: the token returned by create_jref for the reference
+    
+    :returns: the value
+    '''
+    return __weakrefdict[ref_id]()
+
+def lock_jref(ref_id):
+    '''Lock a reference to maintain it across CPython.exec() invocations
+    
+    Lock a reference into memory until unlock_jref is called. lock_jref()
+    can be called repeatedly on the same reference and the reference will
+    be held until an equal number of unlock_jref() calls have been made.
+    
+    :param ref_id: the ID returned from create_ref
+    '''
+    if ref_id not in __strongrefdict:
+        __strongrefdict[ref_id] = []
+    __strongrefdict[ref_id].append(__weakrefdict[ref_id])
+    
+def unlock_jref(ref_id):
+    '''Unlock a reference locked by lock_jref
+
+    Unlock and potentially dereference a reference locked by lock_jref()
+    
+    :param ref_id: the ID used to lock the reference
+    '''
+    refs = __strongrefdict[ref_id]
+    if len(refs) == 1:
+        del __strongrefdict[ref_id]
+    else:
+        refs.pop()
+        
 if __name__=="__main__":
     import wx
     app = wx.PySimpleApp(False)

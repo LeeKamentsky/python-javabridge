@@ -64,3 +64,36 @@ Python embedded in Java.
          Use ``execute`` in place of ``exec`` to call Python from a javabridge
          CWrapper for CPython.
             
+Maintaing references to Python values
+-------------------------------------
+
+You may want to maintain references to Python objects across script executions.
+The following functions let a Java caller refer to a Python value (which can
+be a base type or an object) via a token which may be exchanged for the value 
+at any time.  The Java code is responsible for managing the reference's lifetime.
+Example::
+
+    import javabridge
+    
+    cpython = javabridge.JClassWrapper('org.cellprofiler.javabridge.CPython')()
+    d = javabridge.JClassWrapper('java.util.Hashtable')()
+    result = javabridge.JClassWrapper('java.util.ArrayList')()
+    d.put("result", result)
+    cpython.execute(
+        'import javabridge\n'
+        'x = { "foo":"bar"}\n'
+        'ref_id = javabridge.create_and_lock_jref(x)\n'
+        'javabridge.JWrapper(result).add(ref_id)', d, d)
+    cpython.execute(
+        'import javabridge\n'
+        'ref_id = javabridge.to_string(javabridge.JWrapper(result).get(0))\n'
+        'assert javabridge.redeem_jref(ref_id)["foo"] == "bar"\n'
+        'javabridge.unlock_jref(ref_id)', d, d)
+        
+.. autofunction:: javabridge.create_jref
+.. autofunction:: javabridge.create_and_lock_jref
+.. autofunction:: javabridge.redeem_jref
+.. autofunction:: javabridge.lock_jref
+.. autofunction:: javabridge.unlock_jref
+
+    
