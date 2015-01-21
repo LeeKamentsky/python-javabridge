@@ -10,7 +10,9 @@ All rights reserved.
 #include <jni.h>
 #include <stdio.h>
 #include <Python.h>
+#ifdef __linux__
 #include <dlfcn.h>
+#endif
 #include "org_cellprofiler_javabridge_CPython.h"
 
 int initialized = 0;
