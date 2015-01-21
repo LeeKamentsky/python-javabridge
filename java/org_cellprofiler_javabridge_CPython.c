@@ -10,9 +10,24 @@ All rights reserved.
 #include <jni.h>
 #include <stdio.h>
 #include <Python.h>
+#include <dlfcn.h>
 #include "org_cellprofiler_javabridge_CPython.h"
 
 int initialized = 0;
+
+#ifdef __linux__
+/*
+ * On Linux, it appears that Python's symbols cannot be found by other
+ * native libraries if we let the JVM load libpython... so we have to load it
+ * explicitly, with the correct flag (RTLD_GLOBAL).
+ */
+
+jint JNI_OnLoad(JavaVM *vm, void *reserved)
+{
+	dlopen("/usr/lib/x86_64-linux-gnu/libpython2.7.so", RTLD_LAZY | RTLD_GLOBAL);
+	return JNI_VERSION_1_2;
+}
+#endif
 
 #ifdef _WIN32
 /*
