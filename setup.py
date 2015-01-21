@@ -175,7 +175,7 @@ class build_ext(_build_ext):
         jar = os.path.splitext(jar)[0] + ".jar"
         if needs_compilation(jar, source):
             javac_loc = find_javac_cmd()
-            javac_command = [javac_loc, "-source", "-6", "-target", "6", package_path(source)]
+            javac_command = [javac_loc, "-source", "6", "-target", "6", package_path(source)]
             self.spawn(javac_command)
             if not os.path.exists(os.path.dirname(jar)):
                 os.mkdir(os.path.dirname(jar))
