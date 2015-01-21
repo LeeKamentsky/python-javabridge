@@ -630,7 +630,9 @@ class TestJutil(unittest.TestCase):
         ref_id, ref = javabridge.create_jref(o)
         alt = javabridge.redeem_jref(ref_id)
         o["bar"] = "bunny"
-        self.assertDictEqual(alt, o)
+        for key in o:
+            self.assertTrue(key in alt)
+            self.assertEqual(o[key], alt[key])
         
     def test_12_02_jref_lost(self):
         o = dict(foo="bar", baz="2")
