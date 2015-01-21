@@ -22,9 +22,52 @@ int initialized = 0;
  * explicitly, with the correct flag (RTLD_GLOBAL).
  */
 
+static char *get_property(JavaVM *vm, const char *key)
+{
+	JNIEnv *pEnv;
+	jclass system;
+	jmethodID get;
+	jstring string;
+	const char *characters;
+	char *result;
+
+	if ((*vm)->GetEnv(vm, (void **)&pEnv, JNI_VERSION_1_2) != JNI_OK) {
+		fprintf(stderr, "Could not obtain JNI environment\n");
+		return NULL;
+	}
+
+	if (!(system = (*pEnv)->FindClass(pEnv, "java/lang/System"))) {
+		fprintf(stderr, "Could not access System class\n");
+		return NULL;
+	}
+
+	if (!(get = (*pEnv)->GetStaticMethodID(pEnv, system, "getProperty",
+			"(Ljava/lang/String;)Ljava/lang/String;"))) {
+		fprintf(stderr, "Could not find getProperty method\n");
+		return NULL;
+	}
+
+	if (!(string = (jstring)(*pEnv)->CallStaticObjectMethod(pEnv, system,
+			get, (*pEnv)->NewStringUTF(pEnv, key))))
+		return NULL;
+
+	characters = (*pEnv)->GetStringUTFChars(pEnv, string, NULL);
+	result = strdup(characters);
+	(*pEnv)->ReleaseStringUTFChars(pEnv, string, characters);
+
+	(*vm)->DetachCurrentThread(vm);
+
+	return result;
+}
+
 jint JNI_OnLoad(JavaVM *vm, void *reserved)
 {
-	dlopen("/usr/lib/x86_64-linux-gnu/libpython2.7.so", RTLD_LAZY | RTLD_GLOBAL);
+	const char *python_location = get_property(vm, "python.location");
+
+	if (!python_location)
+		python_location = "/usr/lib/x86_64-linux-gnu/libpython2.7.so";
+	if (!dlopen(python_location, RTLD_LAZY | RTLD_GLOBAL))
+		fprintf(stderr, "Warning: Error loading %s\n", python_location);
 	return JNI_VERSION_1_2;
 }
 #endif
