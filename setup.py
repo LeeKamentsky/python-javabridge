@@ -168,22 +168,29 @@ class build_ext(_build_ext):
         self.build_java2cpython()
         return result
 
-    def build_jar_from_single_source(self, jar, source):
+    def build_jar_from_sources(self, jar, sources):
         if sys.platform == 'win32':
-            source = source.replace("/", os.path.sep)
+            sources = [source.replace("/", os.path.sep) for source in sources]
         jar = self.get_ext_fullpath(jar)
         jar = os.path.splitext(jar)[0] + ".jar"
-        if needs_compilation(jar, source):
-            javac_loc = find_javac_cmd()
-            javac_command = [javac_loc, "-source", "6", "-target", "6", package_path(source)]
+        jar_command = [find_jar_cmd(), 'cf', package_path(jar)]
+        
+        javac_loc = find_javac_cmd()
+        javac_command = [javac_loc, "-source", "6", "-target", "6"]
+        dirty = False
+        for source in sources:
+            javac_command.append(package_path(source))
+            if needs_compilation(jar, source):
+                dirty = True
+        if dirty:
             self.spawn(javac_command)
-            if not os.path.exists(os.path.dirname(jar)):
-                os.mkdir(os.path.dirname(jar))
-            jar_command = [find_jar_cmd(), 'cf', package_path(jar)]
+        if not os.path.exists(os.path.dirname(jar)):
+            os.mkdir(os.path.dirname(jar))
+        for source in sources:
             for klass in glob.glob(source[:source.rindex('.')] + '*.class'):
                 java_klass_path = klass[klass.index(os.path.sep) + 1:].replace(os.path.sep, "/")
                 jar_command.extend(['-C', package_path('java'), java_klass_path])
-            self.spawn(jar_command)
+        self.spawn(jar_command)
             
     def build_java2cpython(self):
         sources = ["java/org_cellprofiler_javabridge_CPython.c"]
@@ -235,6 +242,9 @@ class build_ext(_build_ext):
                 raise LinkError(msg)
         
 
+    def build_jar_from_single_source(self, jar, source):
+        self.build_jar_from_sources(jar, [source])
+        
     def build_runnablequeue(self):
         jar = 'javabridge.jars.runnablequeue'
         source = 'java/org/cellprofiler/runnablequeue/RunnableQueue.java'
@@ -242,8 +252,10 @@ class build_ext(_build_ext):
         
     def build_cpython(self):
         jar = 'javabridge.jars.cpython'
-        source = 'java/org/cellprofiler/javabridge/CPython.java'
-        self.build_jar_from_single_source(jar, source)
+        sources = [
+            'java/org/cellprofiler/javabridge/CPython.java',
+            'java/org/cellprofiler/javabridge/CPythonInvocationHandler.java']
+        self.build_jar_from_sources(jar, sources)
     
     def build_test(self):
         jar = 'javabridge.jars.test'

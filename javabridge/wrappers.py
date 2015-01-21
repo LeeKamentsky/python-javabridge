@@ -295,6 +295,73 @@ class JClassWrapper(object):
             return result
         raise TypeError("No matching constructor found")
     
+class JProxy(object):
+    '''A wrapper around java.lang.reflect.Proxy
+    
+    The wrapper takes a dictionary of either method name or a
+    `java.lang.reflect.Method` instance to a callable that handles
+    the method. You can also subclass JProxy and define methods
+    with the same names as the Java methods and they will be called.    
+
+    An example:
+
+        >>> import javabridge
+        >>> import sys
+        >>> runnable = javabridge.JProxy(
+                'java.lang.Runnable',
+                dict(run=lambda:sys.stderr.write("Hello, world.\\n"))))
+        >>> javabridge.JWrapper(runnable.o).run()
+        
+    Another example:
+
+        >>> import javabridge
+        >>> import sys
+        >>> class MyRunnable(javabridge.JProxy):
+                def __init__(self):
+                    javabridge.JProxy.__init__(self, 'java.lang.Runnable')
+                def run(self):
+                    sys.stderr.write("Hello, world.\\n")
+        >>> proxy = MyRunnable()
+        >>> javabridge.JWrapper(runnable.o).run()
+    '''
+    def __init__(self, base_class_name, d=None):
+        '''Initialize the proxy with the interface name and methods
+        
+        :param base_class_name: the class name of the interface to implement
+                                in dotted form (e.g. java.lang.Runnable)
+        :param d: an optional dictionary of method name to implementation
+        '''
+        self.ref_id, self.ref = J.create_jref(self)
+        self.__d = d or {}
+        jclass = J.class_for_name(base_class_name)
+        loader = J.call(jclass, "getClassLoader",
+                        "()Ljava/lang/ClassLoader;")
+        env = J.get_env()
+        classes = env.make_object_array(1, env.find_class("java/lang/Class"))
+        env.set_object_array_element(classes, 0, jclass)
+        handler = J.make_instance(
+            "org/cellprofiler/javabridge/CPythonInvocationHandler",
+            "(Ljava/lang/String;)V", self.ref_id)
+        self.o = J.static_call(
+            "java/lang/reflect/Proxy",
+            "newProxyInstance",
+            "(Ljava/lang/ClassLoader;"
+            "[Ljava/lang/Class;"
+            "Ljava/lang/reflect/InvocationHandler;)"
+            "Ljava/lang/Object;",
+            loader, classes, handler)
+        
+    def __call__(self, proxy, method, jargs):
+        name = J.call(method, "getName", "()Ljava/lang/String;")
+        env = J.get_env()
+        args = tuple(env.get_object_array_elements(jargs))
+        if name in self.__d:
+            result = self.__d[name](*args)
+        else:
+            result = getattr(self, name)(*args)
+        retclass = J.call(method, "getReturnType", "()Ljava/lang/Class;")
+        return cast(result, retclass)
+    
 def importClass(class_name, import_name = None):
     '''Import a wrapped class into the global context
     
@@ -343,6 +410,8 @@ def cast(o, klass):
     
     raises a TypeError if the object can't be cast.
     '''
+    if J.call(klass, "getName", "()Ljava/lang/String;") == 'void':
+        return None
     is_primitive = J.call(klass, "isPrimitive", "()Z")
     csig = sig(klass)
     if o is None:

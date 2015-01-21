@@ -73,6 +73,48 @@ class TestJClassWrapper(unittest.TestCase):
         self.assertEquals(c.format("Goodbye %s %s.", "cruel", "world"),
                           "Goodbye cruel world.")
 
+class TestJProxy(unittest.TestCase):
+    def test_01_01_init(self):
+        def whatever():
+            pass
+        J.JProxy('java.lang.Runnable', dict(run=whatever))
+        
+    def test_01_02_runnable(self):
+        magic = []
+        def whatever(magic=magic):
+            magic.append("bus")
+        runnable = J.JProxy('java.lang.Runnable',
+                            dict(run=whatever))
+        J.JWrapper(runnable.o).run()
+        self.assertEqual(magic[0], "bus")
+        
+    def test_01_03_runnable_class(self):
+        class MyProxy(J.JProxy):
+            def __init__(self):
+                J.JProxy.__init__(self, 'java.lang.Runnable')
+                self.esteem = 0
+                
+            def run(self):
+                self.esteem = "through the roof"
+        
+        proxy = MyProxy()
+        J.JWrapper(proxy.o).run()
+        self.assertEqual(proxy.esteem, "through the roof")
+        
+    def test_01_04_args(self):
+        my_observable = J.make_instance("java/util/Observable", "()V")
+        def update(observable, obj):
+            self.assertTrue(J.JWrapper(observable).equals(my_observable))
+            self.assertTrue(J.JWrapper(obj).equals("bar"))
+        proxy = J.JProxy('java.util.Observer', dict(update=update))
+        J.JWrapper(proxy.o).update(my_observable, "bar")
+        
+    def test_01_05_return_value(self):
+        def call():
+            return "foo"
+        proxy = J.JProxy('java.util.concurrent.Callable',
+                         dict(call = call))
+        self.assertEquals(J.JWrapper(proxy.o).call(), "foo")
     
 if __name__=="__main__":
     import javabridge

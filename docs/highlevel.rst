@@ -65,6 +65,7 @@ Wrapping Java objects using reflection
 --------------------------------------
 .. autoclass:: javabridge.JWrapper(o)
 .. autoclass:: javabridge.JClassWrapper(class_name)
+.. autoclass:: javabridge.JProxy(class_name)
 
 Operations on Java objects
 --------------------------
