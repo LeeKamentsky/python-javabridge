@@ -177,13 +177,13 @@ class build_ext(_build_ext):
         
         javac_loc = find_javac_cmd()
         dirty_jar = False
+        javac_command = [javac_loc, "-source", "6", "-target", "6"]
         for source in sources:
-            javac_command = [javac_loc, "-source", "6", "-target", "6"]
             javac_command.append(package_path(source))
-            self.spawn(javac_command)
             if needs_compilation(jar, source):
                 dirty_jar = True
                 
+        self.spawn(javac_command)
         if dirty_jar:
             if not os.path.exists(os.path.dirname(jar)):
                 os.mkdir(os.path.dirname(jar))
