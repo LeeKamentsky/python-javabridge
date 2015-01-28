@@ -176,21 +176,22 @@ class build_ext(_build_ext):
         jar_command = [find_jar_cmd(), 'cf', package_path(jar)]
         
         javac_loc = find_javac_cmd()
-        javac_command = [javac_loc, "-source", "6", "-target", "6"]
-        dirty = False
+        dirty_jar = False
         for source in sources:
+            javac_command = [javac_loc, "-source", "6", "-target", "6"]
             javac_command.append(package_path(source))
-            if needs_compilation(jar, source):
-                dirty = True
-        if dirty:
             self.spawn(javac_command)
-        if not os.path.exists(os.path.dirname(jar)):
-            os.mkdir(os.path.dirname(jar))
-        for source in sources:
-            for klass in glob.glob(source[:source.rindex('.')] + '*.class'):
-                java_klass_path = klass[klass.index(os.path.sep) + 1:].replace(os.path.sep, "/")
-                jar_command.extend(['-C', package_path('java'), java_klass_path])
-        self.spawn(jar_command)
+            if needs_compilation(jar, source):
+                dirty_jar = True
+                
+        if dirty_jar:
+            if not os.path.exists(os.path.dirname(jar)):
+                os.mkdir(os.path.dirname(jar))
+            for source in sources:
+                for klass in glob.glob(source[:source.rindex('.')] + '*.class'):
+                    java_klass_path = klass[klass.index(os.path.sep) + 1:].replace(os.path.sep, "/")
+                    jar_command.extend(['-C', package_path('java'), java_klass_path])
+            self.spawn(jar_command)
             
     def build_java2cpython(self):
         sources = ["java/org_cellprofiler_javabridge_CPython.c"]
