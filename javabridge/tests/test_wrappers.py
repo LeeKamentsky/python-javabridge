@@ -73,6 +73,16 @@ class TestJClassWrapper(unittest.TestCase):
         self.assertEquals(c.format("Goodbye %s %s.", "cruel", "world"),
                           "Goodbye cruel world.")
 
+    def test_02_05_constructor_varargs(self):
+        # Regression test of issue #41
+        #
+        args = ("foo", "bar")
+        f = J.JClassWrapper(
+            "javax.swing.filechooser.FileNameExtensionFilter")("baz", *args)
+        exts = J.get_env().get_object_array_elements(f.getExtensions().o)
+        self.assertEqual(args[0], J.to_string(exts[0]))
+        self.assertEqual(args[1], J.to_string(exts[1]))
+
 class TestJProxy(unittest.TestCase):
     def test_01_01_init(self):
         def whatever():
