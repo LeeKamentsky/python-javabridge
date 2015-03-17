@@ -73,7 +73,8 @@ def get_jvm_include_dirs():
             jdk_include_plat = os.path.join(jdk_include, sys.platform)
             include_dirs += [jdk_include, jdk_include_plat]
     elif is_mac:
-        include_dirs += ['/System/Library/Frameworks/JavaVM.framework/Headers']
+        include_dirs += [os.path.join(java_home, 'include'),
+                         os.path.join(java_home, 'include', 'darwin')]
     elif is_linux:
         include_dirs += [os.path.join(java_home,'include'),
                          os.path.join(java_home,'include','linux')]
@@ -121,7 +122,6 @@ def ext_modules():
         libraries = ["jvm"]
     elif is_mac:
         javabridge_sources += [ "mac_javabridge_utils.c" ]
-        extra_link_args = ['-framework', 'JavaVM']
     elif is_linux:
         library_dirs = [os.path.join(java_home,'jre','lib', arch, cs)
                         for arch in ['amd64', 'i386']

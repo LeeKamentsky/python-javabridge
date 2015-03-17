@@ -11,6 +11,7 @@ All rights reserved.
 '''
 
 import codecs
+import ctypes
 import gc
 import inspect
 import logging
@@ -95,10 +96,26 @@ def _find_jvm_windows():
     return jvm_dir
 
 def _find_jvm_mac():
-    # Put the jvm library on the path, hoping it is always in the same
-    # place.
-    jvm_dir = '/System/Library/Frameworks/JavaVM.framework/Libraries'
-    os.environ['PATH'] = os.environ['PATH'] + ':' + jvm_dir
+    # Load libjvm.dylib and lib/jli/libjli.dylib if it exists
+    jvm_dir = find_javahome()
+    for library in ("libjli.dylib", "libjvm.dylib"):
+        try:
+            result = subprocess.check_output(
+                ["find", jvm_dir, "-name", library])
+        except:
+            logger.error(
+                "Failed to execute \"find\" when searching for %s" % library, 
+                exc_info=1)
+        lines = result.split("\n")
+        if len(lines) == 0 or len(lines[0]) == 0:
+            logger.error("Failed to find %s" % library)
+            continue
+        library_path = lines[0].strip()
+        try:
+            ctypes.CDLL(library_path)
+        except:
+            logger.error("Failed to dlopen %s" % library,
+                         exc_info=1)
     return jvm_dir
 
 def _find_jvm():
