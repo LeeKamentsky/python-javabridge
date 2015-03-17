@@ -73,8 +73,13 @@ def get_jvm_include_dirs():
             jdk_include_plat = os.path.join(jdk_include, sys.platform)
             include_dirs += [jdk_include, jdk_include_plat]
     elif is_mac:
-        include_dirs += [os.path.join(java_home, 'include'),
-                         os.path.join(java_home, 'include', 'darwin')]
+        where_jni_h_is_post_6 = os.path.join(java_home, 'include')
+        if os.path.isfile(os.path.join(where_jni_h_is_post_6, "jni.h")):
+            
+            include_dirs += [where_jni_h_is_post_6,
+                             os.path.join(java_home, 'include', 'darwin')]
+        else:
+            include_dirs += ["/System/Library/Frameworks/JavaVM.Framework/Headers"]
     elif is_linux:
         include_dirs += [os.path.join(java_home,'include'),
                          os.path.join(java_home,'include','linux')]
