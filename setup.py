@@ -326,7 +326,7 @@ interact with the JVM using a low-level API or a more convenient
 high-level API. Python-javabridge was developed for and is used by the
 cell image analysis software CellProfiler (cellprofiler.org).''',
           url="http://github.com/CellProfiler/python-javabridge/",
-          packages=['javabridge'],
+          packages=['javabridge', 'javabridge.tests'],
           classifiers=['Development Status :: 5 - Production/Stable',
                        'License :: OSI Approved :: BSD License',
                        'Programming Language :: Java',
