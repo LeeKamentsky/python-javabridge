@@ -4,7 +4,7 @@
 /_javabridge_nomac.c
 *.pyc
 *.pyd
-/javabridge/jars/java2cpython.*
+/javabridge/jars/*java2cpython.*
 /javabridge/_javabridge.so
 /python_javabridge.egg-info
 /docs/_build
