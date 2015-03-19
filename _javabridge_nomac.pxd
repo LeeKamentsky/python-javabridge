@@ -23,6 +23,8 @@ cdef extern int MacStartVM(JavaVM **pvm, JavaVMInitArgs *pVMArgs, char *class_na
 
 cdef extern void StopVM(JavaVM *vm) nogil
 
+cdef extern int CreateJavaVM(JavaVM **pvm, void **pEnv, void *args) nogil
+
 cdef extern void MacRunLoopInit() nogil
 
 cdef extern void MacRunLoopRun() nogil
