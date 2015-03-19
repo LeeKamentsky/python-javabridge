@@ -245,7 +245,8 @@ class build_ext(_build_ext):
             output_dir=output_dir,
             debug=self.debug,
             library_dirs=library_dirs,
-            export_symbols=export_symbols)
+            export_symbols=export_symbols,
+            extra_postargs=["/MANIFEST"])
         if sys.platform == 'win32':
             temp_dir = os.path.dirname(objects[0])
             manifest_name = lib_name +".manifest"
