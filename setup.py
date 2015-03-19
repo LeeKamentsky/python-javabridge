@@ -166,11 +166,32 @@ def package_path(relpath):
     return os.path.normpath(os.path.join(os.path.dirname(__file__), relpath))
 
 class build_ext(_build_ext):
+    java2cpython_sources = ["java/org_cellprofiler_javabridge_CPython.c"]
     def run(self, *args, **kwargs):
         self.build_java()
-        build_cython()
-        result = _build_ext.run(self, *args, **kwargs)
-        self.build_java2cpython()
+        result = build_cython()
+        if self.inplace:
+            dirty = False
+            for source in self.get_source_files():
+                source_mtime = os.stat(source).st_mtime
+                for output in self.get_outputs():
+                    if not os.path.isfile(output) or \
+                       os.stat(output).st_mtime < source_mtime:
+                        dirty = True
+                        break
+            output_dir = os.path.splitext(
+                self.get_ext_fullpath("javabridge.jars"))[0]
+            java2cpython_lib = os.path.join(
+                output_dir, self.get_java2cpython_libdest()[1])
+            if (not os.path.exists(java2cpython_lib)) or \
+               any([os.stat(src).st_mtime > os.stat(java2cpython_lib).st_mtime
+                    for src in self.java2cpython_sources]):
+                dirty = True
+        else:
+            dirty = True
+        if dirty:
+            result = _build_ext.run(self, *args, **kwargs)
+            self.build_java2cpython()
         return result
 
     def build_jar_from_sources(self, jar, sources):
@@ -199,7 +220,7 @@ class build_ext(_build_ext):
             self.spawn(jar_command)
             
     def build_java2cpython(self):
-        sources = ["java/org_cellprofiler_javabridge_CPython.c"]
+        sources = self.java2cpython_sources
         distutils.log.info("building java2cpython library")
         
 
@@ -209,14 +230,7 @@ class build_ext(_build_ext):
         include_dirs = \
             [sysconfig.get_config_var("INCLUDEPY"), "java"] +\
             get_jvm_include_dirs()
-        if is_win:
-            python_lib_dir = os.path.join(
-                sysconfig.get_config_var('platbase'),
-                'LIBS')
-            lib_name = "java2cpython" + SO
-        else:
-            python_lib_dir = sysconfig.get_config_var('LIBDIR')
-            lib_name = "libjava2cpython" + SO
+        python_lib_dir, lib_name = self.get_java2cpython_libdest()
         library_dirs = [python_lib_dir]
         output_dir = os.path.splitext(self.get_ext_fullpath("javabridge.jars"))[0]
         export_symbols = ['Java_org_cellprofiler_javabridge_CPython_exec'] 
@@ -246,6 +260,17 @@ class build_ext(_build_ext):
                     out_arg])
             except DistutilsExecError, msg:
                 raise LinkError(msg)
+
+    def get_java2cpython_libdest(self):
+        if is_win:
+            python_lib_dir = os.path.join(
+                sysconfig.get_config_var('platbase'),
+                'LIBS')
+            lib_name = "java2cpython" + SO
+        else:
+            python_lib_dir = sysconfig.get_config_var('LIBDIR')
+            lib_name = "libjava2cpython" + SO
+        return python_lib_dir, lib_name
         
 
     def build_jar_from_single_source(self, jar, source):

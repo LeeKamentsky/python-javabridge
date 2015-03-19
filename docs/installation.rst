@@ -122,6 +122,12 @@ Running the unit tests requires Nose. Some of the tests require Python
 On Linux and MacOS X, the following should also work::
 
     python setup.py nosetests
+    
+You must build the extensions in-place on Windows, then run nosetests
+if you use setup to run the tests::
+
+    python setup.py build_ext -i
+    python setup.py nosetests
 
 See the section :ref:`unit-testing` for how to run unit tests for your
 own projects that use Javabridge.
