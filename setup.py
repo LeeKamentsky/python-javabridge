@@ -238,7 +238,7 @@ class build_ext(_build_ext):
                                         output_dir=self.build_temp,
                                         include_dirs=include_dirs,
                                         debug=self.debug)
-
+        extra_postargs = ["/MANIFEST"] if sys.platform == 'win32' else None
         self.compiler.link(
             CCompiler.SHARED_OBJECT,
             objects, lib_name,
@@ -246,7 +246,7 @@ class build_ext(_build_ext):
             debug=self.debug,
             library_dirs=library_dirs,
             export_symbols=export_symbols,
-            extra_postargs=["/MANIFEST"])
+            extra_postargs=extra_postargs)
         if sys.platform == 'win32':
             temp_dir = os.path.dirname(objects[0])
             manifest_name = lib_name +".manifest"
