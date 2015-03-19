@@ -9,3 +9,4 @@ cdef extern from "jni.h":
 
 
 cdef extern void StopVM(JavaVM *vm)
+cdef extern int CreateJavaVM(JavaVM **pvm, void **pEnv, void *args)

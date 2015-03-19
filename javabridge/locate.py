@@ -9,6 +9,7 @@ All rights reserved.lo
 
 """
 
+import ctypes
 import os
 import sys
 import logging
@@ -44,10 +45,35 @@ def find_javahome():
     elif is_mac:
         # Use the "java_home" executable to find the location
         # see "man java_home"
+        libc = ctypes.CDLL("/usr/lib/libc.dylib")
+        if sys.maxsize <= 2**32:
+            arch = "i386"
+        else:
+            arch = "x86_64"
         try:
-            return subprocess.check_output(["/usr/libexec/java_home"]).strip()
+            result = subprocess.check_output(["/usr/libexec/java_home", "--arch", arch])
+            path = result.strip()
+            for place_to_look in (
+                os.path.join(os.path.dirname(path), "Libraries"), 
+                os.path.join(path, "jre", "lib", "server")):
+                lib = os.path.join(place_to_look, "libjvm.dylib")
+                #
+                # dlopen_preflight checks to make sure libjvm.dylib
+                # can be loaded in the current architecture
+                #
+                if os.path.exists(lib) and \
+                   libc.dlopen_preflight(lib) !=0:
+                    return path
+            else:
+                logger.error("Could not find Java JRE compatible with %s architecture" % arch)
+                if arch == "i386":
+                    logger.error(
+                        "Please visit https://support.apple.com/kb/DL1572 for help\n"
+                        "installing Apple legacy Java 1.6 for 32 bit support.")
+                return None
         except:
-            return "Doesn't matter"
+            logger.error("Failed to run /usr/libexec/java_home, defaulting to best guess for Java", exc_info=1)
+        return "/System/Library/Frameworks/JavaVM.framework/Home"
     elif is_linux:
         def get_out(cmd):
             p = subprocess.Popen(cmd, stdout=subprocess.PIPE)

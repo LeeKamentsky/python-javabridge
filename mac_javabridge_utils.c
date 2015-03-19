@@ -21,6 +21,7 @@
  * The source is distributed under the BSD license.
 */
 
+#include <dlfcn.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -34,6 +35,8 @@ static void *thread_function(void *);
 
 typedef struct {
     JavaVM **pvm;
+    const char *path_to_libjvm;
+    const char *path_to_libjli;
     const char *class_name;
     JavaVMInitArgs *pVMArgs;
     int result;
@@ -90,11 +93,19 @@ static int run_loop_state = RLS_BEFORE_START;
  * vm_args - a pointer to a JavaVMInitArgs structure
  *           as documented for JNI_CreateJavaVM
  *
+ * class_name - instantiate this class in the startup thread
+ *
+ * path_to_libjvm - path to libjvm.dylib to be dlopened.
+ *
+ * path_to_libjli - path to libjli to be opened.
+ *
  * Returns only after the thread terminates. Exit code other
  * than zero indicates failure.
  **********************************************************/
  
-int MacStartVM(JavaVM **pVM, JavaVMInitArgs *pVMArgs, const char *class_name)
+int MacStartVM(JavaVM **pVM, JavaVMInitArgs *pVMArgs, 
+               const char *class_name, const char *path_to_libjvm,
+               const char *path_to_libjli)
 {
     ThreadFunctionArgs threadArgs;
     pthread_attr_t attr;
@@ -114,6 +125,8 @@ int MacStartVM(JavaVM **pVM, JavaVMInitArgs *pVMArgs, const char *class_name)
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
     threadArgs.pVMArgs = pVMArgs;
     threadArgs.class_name = class_name;
+    threadArgs.path_to_libjvm = path_to_libjvm;
+    threadArgs.path_to_libjli = path_to_libjli;
     threadArgs.result = -1;
  
     /* Start the thread that we will start the JVM on. */
@@ -162,8 +175,38 @@ static void *thread_function(void *arg)
     jobject instance;
     jthrowable exception;
     JavaVM *vm;
+    void *handleToJVM;
+    void *handleToJLI;
+    static jint (* JNI_CreateJavaVM)(JavaVM **pvm, void **penv, void *args);
     ThreadFunctionArgs *pThreadArgs = (ThreadFunctionArgs *)arg;
- 
+    /*
+     * dlopen libjli.dylib
+     */
+    handleToJLI = dlopen(pThreadArgs->path_to_libjli, RTLD_LAZY);
+    if (dlerror()) {
+        strcpy(pThreadArgs->message, "Failed to open libjli.dylib.\n");
+        signal_start();
+        return NULL;
+    }
+    /*
+     * Get the pointer to JNI_CreateJavaVM via dlopen and dlsym
+     */
+    handleToJVM = dlopen(pThreadArgs->path_to_libjvm, RTLD_LAZY);
+    if (dlerror()) {
+       strcpy(pThreadArgs->message, "Failed to open libjvm.dylib.\n");
+       signal_start();
+       dlclose(handleToJLI);
+       return NULL;
+    }
+    JNI_CreateJavaVM = dlsym(handleToJVM, "JNI_CreateJavaVM");
+    if (dlerror()) {
+        JNI_CreateJavaVM = dlsym(handleToJVM, "JNI_CreateJavaVM_Impl");
+        if (dlerror()) {
+            strcpy(pThreadArgs->message, "Could not find JNI_CreateJavaVM in libjvm.dylib\n");
+            signal_start();
+            return NULL;
+        }
+    }
     pThreadArgs->result = JNI_CreateJavaVM(&vm, (void **)&env, 
                                            pThreadArgs->pVMArgs);
     *pThreadArgs->pvm = vm;
@@ -227,6 +270,8 @@ STOP_VM:
     started = 0;
     pthread_mutex_unlock(&stop_mutex);
     (*vm)->DestroyJavaVM(vm);
+    dlclose(handleToJVM);
+    dlclose(handleToJLI);
     return NULL;
 }
 

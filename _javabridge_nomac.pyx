@@ -14,6 +14,7 @@ cdef extern from "jni.h":
          jint (*DetachCurrentThread)(JavaVM *vm) nogil
          jint (*GetEnv)(JavaVM *vm, void **penv, jint version) nogil
          jint (*AttachCurrentThreadAsDaemon)(JavaVM *vm, void *penv, void *args) nogil
+    jint JNI_CreateJavaVM(JavaVM **pvm, void **penv, void *args) nogil
 
 cdef int MacStartVM(JavaVM **pvm, JavaVMInitArgs *pVMArgs, char *class_name) nogil:
     return -1
@@ -38,3 +39,7 @@ cdef int MacIsMainThread() nogil:
     
 cdef void MacRunLoopRunInMode(double timeout) nogil:
     pass
+
+cdef int CreateJavaVM(JavaVM **pvm, void **pEnv, void *args) nogil:
+    return JNI_CreateJavaVM(pvm, pEnv, args)
+

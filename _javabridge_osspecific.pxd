@@ -30,3 +30,4 @@ cdef extern from "mac_javabridge_utils.h":
     void MacRunLoopRunInMode(double) nogil
 
 cdef extern void StopVM(JavaVM *vm)
+cdef extern int CreateJavaVM(JavaVM **pvm, void **pEnv, void *args)

@@ -91,7 +91,7 @@ def ext_modules():
     extra_link_args = None
     java_home = find_javahome()
     if java_home is None:
-        raise JVMNotFoundError()
+        raise Exception("JVM not found")
     jdk_home = find_jdk()
     include_dirs = [get_include()] + get_jvm_include_dirs()
     libraries = None

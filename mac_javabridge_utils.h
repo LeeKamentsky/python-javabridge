@@ -33,7 +33,9 @@ for JNI documentation.
  * than zero indicates failure.
  **********************************************************/
  
-JNIEXPORT int MacStartVM(JavaVM **pVM, JavaVMInitArgs *pVMArgs, const char *class_name);
+JNIEXPORT int MacStartVM(JavaVM **pVM, JavaVMInitArgs *pVMArgs,
+                         const char *class_name, const char *path_to_libjvm,
+                         const char *path_to_libjli);
 
 /**********************************************************
  *

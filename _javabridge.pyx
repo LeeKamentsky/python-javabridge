@@ -291,11 +291,9 @@ cdef extern from "jni.h":
         void (*SetDoubleArrayRegion)(JNIEnv *env, jobject array, jsize start, jsize len,
                                      jdouble *buf) nogil
 
-    jint JNI_CreateJavaVM(JavaVM **pvm, void **penv, void *args) nogil
-    jint JNI_GetDefaultJavaVMInitArgs(void *args) nogil
-
 cdef extern from "mac_javabridge_utils.h":
-    int MacStartVM(JavaVM **, JavaVMInitArgs *pVMArgs, char *class_name) nogil
+    int MacStartVM(JavaVM **, JavaVMInitArgs *pVMArgs, char *class_name, 
+                   char *path_to_libjvm, char *path_to_libjli) nogil
     void MacStopVM() nogil
     void MacRunLoopInit() nogil
     void MacRunLoopRun() nogil
@@ -305,6 +303,7 @@ cdef extern from "mac_javabridge_utils.h":
     void MacRunLoopRunInMode(double) nogil
 
 cdef extern void StopVM(JavaVM *vm) nogil
+cdef extern int CreateJavaVM(JavaVM **pvm, void **pEnv, void *args) nogil
 
 def mac_run_loop_init():
     MacRunLoopInit()
@@ -342,15 +341,6 @@ def mac_is_main_thread():
     '''
     return MacIsMainThread() != 0
     
-def get_default_java_vm_init_args():
-    '''Return the version and default option strings as a tuple'''
-    cdef:
-        JavaVMInitArgs args
-        jint result
-    args.version = JNI_VERSION_1_4
-    result = JNI_GetDefaultJavaVMInitArgs(<void *>&args)
-    return (args.version, [args.options[i].optionString for i in range(args.nOptions)])
-
 #####################################################
 #
 # Threading
@@ -613,7 +603,7 @@ cdef class JB_VM:
         options = [str(option) for option in options]
         for i, option in enumerate(options):
             args.options[i].optionString = option
-        result = JNI_CreateJavaVM(&self.vm, <void **>&env, &args)
+        result = CreateJavaVM(&self.vm, <void **>&env, &args)
         free(args.options)
         if result != 0:
             raise RuntimeError("Failed to create Java VM. Return code = %d"%result)
@@ -622,7 +612,7 @@ cdef class JB_VM:
         set_thread_local("env", jenv)
         return jenv
 
-    def create_mac(self, options, class_name):
+    def create_mac(self, options, class_name, path_to_libjvm, path_to_libjli):
         '''Create the Java VM on OS/X in a different thread
         
         On the Mac, (assuming this works), you need to start a PThread 
@@ -641,6 +631,10 @@ cdef class JB_VM:
         options - the option strings
         
         class_name - the name of the Runnable to run on the Java main thread
+        
+        path_to_libjvm - path to libjvm.dylib
+        
+        path_to_libjli - path to libjli.dylib
         '''
         cdef:
             JavaVMInitArgs args
@@ -648,6 +642,8 @@ cdef class JB_VM:
             JB_Env jenv
             int result
             char *pclass_name = class_name
+            char *ppath_to_libjvm = path_to_libjvm
+            char *ppath_to_libjli = path_to_libjli
             JavaVM **pvm = &self.vm
 
         args.version = JNI_VERSION_1_4
@@ -659,7 +655,7 @@ cdef class JB_VM:
         for i, option in enumerate(options):
             args.options[i].optionString = option
         with nogil:
-            result = MacStartVM(pvm, &args, pclass_name)
+            result = MacStartVM(pvm, &args, pclass_name, ppath_to_libjvm, ppath_to_libjli)
         free(args.options)
         if result != 0:
             raise RuntimeError("Failed to create Java VM. Return code = %d"%result)

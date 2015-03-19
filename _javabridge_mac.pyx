@@ -22,7 +22,7 @@ cdef extern from "jni.h":
 
 
 cdef extern from "mac_javabridge_utils.h":
-    int MacStartVM(JavaVM **, JavaVMInitArgs *pVMArgs, char *class_name) nogil
+    int MacStartVM(JavaVM **, JavaVMInitArgs *pVMArgs, char *class_name, char *path_to_libjvm) nogil
     void MacStopVM() nogil
     void MacRunLoopInit() nogil
     void MacRunLoopRun() nogil
@@ -33,3 +33,9 @@ cdef extern from "mac_javabridge_utils.h":
 
 cdef void StopVM(JavaVM *vm):
      MacStopVM()
+
+#
+# Unused stub in Mac
+#
+cdef int CreateJavaVM(JavaVM **pvm, void **pEnv, void *args):
+    return -1

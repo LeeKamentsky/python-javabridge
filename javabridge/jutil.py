@@ -95,27 +95,26 @@ def _find_jvm_windows():
             jvm_dir = None
     return jvm_dir
 
-def _find_jvm_mac():
-    # Load libjvm.dylib and lib/jli/libjli.dylib if it exists
+def _find_mac_lib(library):
     jvm_dir = find_javahome()
-    for library in ("libjli.dylib", "libjvm.dylib"):
+    for extension in (".dylib", ".jnilib"):
         try:
             result = subprocess.check_output(
-                ["find", jvm_dir, "-name", library])
+                ["find", os.path.dirname(jvm_dir), "-name", library+extension])
+            lines = result.split("\n")
+            if len(lines) > 0 and len(lines[0]) > 0:
+                library_path = lines[0].strip()
+                return library_path
         except:
             logger.error(
                 "Failed to execute \"find\" when searching for %s" % library, 
                 exc_info=1)
-        lines = result.split("\n")
-        if len(lines) == 0 or len(lines[0]) == 0:
-            logger.error("Failed to find %s" % library)
-            continue
-        library_path = lines[0].strip()
-        try:
-            ctypes.CDLL(library_path)
-        except:
-            logger.error("Failed to dlopen %s" % library,
-                         exc_info=1)
+    logger.error("Failed to find %s" % library)
+    return
+    
+def _find_jvm_mac():
+    # Load libjvm.dylib and lib/jli/libjli.dylib if it exists
+    jvm_dir = find_javahome()
     return jvm_dir
 
 def _find_jvm():
@@ -132,7 +131,10 @@ def _find_jvm():
 if sys.platform == "win32":
     # Need to fix up executable path to pick up jvm.dll
     os.environ["PATH"] = os.environ["PATH"] + os.pathsep + _find_jvm()
-
+elif sys.platform == "darwin":
+    # Has side-effect of preloading dylibs
+    _find_jvm_mac()
+    
 import _javabridge
 __dead_event = threading.Event()
 __kill = [False]
@@ -238,7 +240,11 @@ def start_vm(args=None, class_path=None, max_heap_size=None, run_headless=False)
         try:
             if sys.platform == "darwin":
                 logger.debug("Launching VM in non-python thread")
-                vm.create_mac(args, RQCLS)
+                library_path = _find_mac_lib("libjvm")
+                libjli_path = _find_mac_lib("libjli")
+                if library_path is None:
+                    raise Exception("Javabridge failed to find JVM library")
+                vm.create_mac(args, RQCLS, library_path, libjli_path)
                 logger.debug("Attaching to VM in monitor thread")
                 env = _javabridge.jb_attach()
             else:
