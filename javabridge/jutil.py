@@ -122,7 +122,7 @@ def _find_jvm():
     if sys.platform.startswith('win'):
         jvm_dir = _find_jvm_windows()
         if jvm_dir is None:
-            raise JavaNotFoundException()
+            raise JVMNotFoundError()
     elif sys.platform == 'darwin':
         jvm_dir = _find_jvm_mac()
     return jvm_dir
@@ -664,8 +664,10 @@ CLOSE_ALL_WINDOWS = """
                 var all_frames = java.awt.Frame.getFrames();
                 if (all_frames) {
                     for (idx in all_frames) {
-                        java.lang.System.err.println("Disposing");
-                        all_frames[idx].dispose();
+                        try {
+                            all_frames[idx].dispose();
+                        } catch (err) {
+                        }
                     }
                 }
             }
