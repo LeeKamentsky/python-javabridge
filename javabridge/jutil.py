@@ -503,17 +503,17 @@ def mac_get_future_value(future):
     future to come done to keep the UI event loop alive for message
     processing.
     '''
-    if __run_headless:
-        return future.raw_get()
-    if sys.maxsize > 2**32:
-        if _javabridge.mac_is_main_thread():
-            #
-            # Haven't figured out how to run a modal event loop
-            # on OS/X - tried CFRunLoopInMode with 1/4 sec timeout and
-            # it never returned.
-            #
-            raise NotImplementedError("No support for synchronizing futures in Python's startup thread on the OS/X in 64-bit mode.")
-        return future.raw_get()
+    # if __run_headless:
+    #     return future.raw_get()
+    # if sys.maxsize > 2**32:
+    #     if _javabridge.mac_is_main_thread():
+    #         #
+    #         # Haven't figured out how to run a modal event loop
+    #         # on OS/X - tried CFRunLoopInMode with 1/4 sec timeout and
+    #         # it never returned.
+    #         #
+    #         raise NotImplementedError("No support for synchronizing futures in Python's startup thread on the OS/X in 64-bit mode.")
+    #     return future.raw_get()
         
     import wx
     import time
