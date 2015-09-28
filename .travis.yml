@@ -41,6 +41,10 @@ install:
 script:
    # Run tests.
    - nosetests
+   # Build docs.
+   - cd docs
+   - make html
+   - cd ..
 #after_success:
    # Submit results to coveralls.io.
    #- coveralls
