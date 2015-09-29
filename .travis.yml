@@ -27,7 +27,7 @@ install:
    - source activate testenv
    - conda install numpy
    - conda install cython
-   - LIBRARY_PATH="$HOME/miniconda/envs/testenv/lib" INCLUDE_PATH="$HOME/miniconda/envs/testenv/include" python setup.py install
+   - python setup.py install
    # Install sphinx and friends to build documentation.
    - conda install sphinx
    # Install coverage and coveralls to generate and submit test coverage results for coveralls.io.
