@@ -40,7 +40,7 @@ install:
    - rm -rfv $HOME/.cache/pip
 script:
    # Run tests.
-   - nosetests
+   - python setup.py nosetests
    # Build docs.
    - cd docs
    - make html
