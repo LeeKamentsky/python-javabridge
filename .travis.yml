@@ -27,7 +27,6 @@ install:
    - source activate testenv
    - conda install numpy
    - conda install cython
-   - sudo ln -sf $HOME/miniconda/envs/testenv/lib/libpython2.7.dylib /usr/lib/x86_64-linux-gnu/libpython2.7.so
    - LIBRARY_PATH="$HOME/miniconda/envs/testenv/lib" INCLUDE_PATH="$HOME/miniconda/envs/testenv/include" python setup.py install
    # Install sphinx and friends to build documentation.
    - conda install sphinx
@@ -50,4 +49,4 @@ script:
    # Submit results to coveralls.io.
    #- coveralls
 # Use container format for TravisCI for quicker startup and builds.
-sudo: true
+sudo: false
