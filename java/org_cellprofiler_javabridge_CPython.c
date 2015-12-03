@@ -66,8 +66,14 @@ jint JNI_OnLoad(JavaVM *vm, void *reserved)
 {
 	const char *python_location = get_property(vm, "python.location");
 
-	if (!python_location)
-		python_location = "/usr/lib/x86_64-linux-gnu/libpython2.7.so";
+	if (!python_location) {
+		if ((initialized == 0) && ! Py_IsInitialized()) {
+			Py_Initialize();
+			PyObject* result = PyRun_String("from distutils.sysconfig import get_config_var; from os.path import join; join(get_config_var(\"LIBDIR\"), get_config_var(\"LDLIBRARY\"))\n", Py_single_input, NULL, NULL);
+			python_location = PyString_AsString(result);
+			initialized = 1;
+		}
+	}
 	if (!dlopen(python_location, RTLD_LAZY | RTLD_GLOBAL))
 		fprintf(stderr, "Warning: Error loading %s\n", python_location);
 	return JNI_VERSION_1_2;
