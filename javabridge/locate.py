@@ -26,20 +26,6 @@ logger = logging.getLogger(__name__)
 
 def find_javahome():
     """Find JAVA_HOME if it doesn't exist"""
-    if hasattr(sys, 'frozen') and is_win:
-        #
-        # The standard installation of CellProfiler for Windows comes with a JRE
-        #
-        path = os.path.split(os.path.abspath(sys.argv[0]))[0]
-        path = os.path.join(path, "jre")
-        for jvm_folder in ("client", "server"):
-            jvm_path = os.path.join(path, "bin", jvm_folder, "jvm.dll")
-            if os.path.exists(jvm_path):
-                # Problem: have seen JAVA_HOME != jvm_path cause DLL load problems
-                if os.environ.has_key("JAVA_HOME"):
-                    del os.environ["JAVA_HOME"]
-                return path
-    
     if os.environ.has_key('JAVA_HOME'):
         return os.environ['JAVA_HOME']
     elif is_mac:
