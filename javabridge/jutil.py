@@ -130,7 +130,12 @@ def _find_jvm():
 
 if sys.platform == "win32":
     # Need to fix up executable path to pick up jvm.dll
-    os.environ["PATH"] = os.environ["PATH"] + os.pathsep + _find_jvm()
+    # Also need path to JAVA_HOME\bin in order to find
+    # msvcr...
+    #
+    os.environ["PATH"] = os.environ["PATH"] + os.pathsep + _find_jvm() + \
+       os.pathsep + os.path.join(find_javahome(), "bin")
+    
 elif sys.platform == "darwin":
     # Has side-effect of preloading dylibs
     _find_jvm_mac()
