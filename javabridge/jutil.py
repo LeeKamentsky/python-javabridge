@@ -170,6 +170,17 @@ class AtExit(object):
         
 __start_thread = None        
 
+class vm():
+    def __init__(self, *args, **kwds):
+	self.args = args
+	self.kwds = kwds
+
+    def __enter__(self):
+        start_vm(*self.args, **self.kwds)
+
+    def __exit__(self, type, value, traceback):
+        kill_vm()
+
 def start_vm(args=None, class_path=None, max_heap_size=None, run_headless=False):
     '''Start the Java Virtual Machine.
 

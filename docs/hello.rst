@@ -12,7 +12,16 @@ Without a GUI::
                                     dict(greetee='world'))
     finally:
         javabridge.kill_vm()
+
+You can also use a with block::
+
+    import os
+    import javabridge
     
+    with javabridge.vm(run_headless=True)
+        print javabridge.run_script('java.lang.String.format("Hello, %s!", greetee);',
+                                    dict(greetee='world'))
+
 With only a Java AWT GUI::
 
     import os

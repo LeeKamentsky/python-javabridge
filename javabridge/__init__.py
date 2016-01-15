@@ -25,7 +25,7 @@ JARS = [os.path.realpath(os.path.join(_jars_dir, name + '.jar'))
         for name in ['rhino-1.7R4', 'runnablequeue', 'cpython']]
 
 
-from .jutil import start_vm, kill_vm, activate_awt, deactivate_awt
+from .jutil import start_vm, kill_vm, vm, activate_awt, deactivate_awt
 
 from .jutil import attach, detach, get_env
 
