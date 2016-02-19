@@ -67,13 +67,22 @@ class JWrapper(object):
                 fn = getattr(self, name)
                 fn.__doc__ = fn.__doc__ +"\n"+J.to_string(jmethod)
             methods[name].append(method)
+        jfields = env.get_object_array_elements(
+            self.class_wrapper.getFields(self))
+        field_class = env.find_class("java/lang/reflect/Field")
+        method_id = env.get_method_id(
+            field_class, "getName", "()Ljava/lang/String;")
+        self.field_names = [ 
+            env.get_string_utf(env.call_method(o, method_id)) for o in jfields]
         self.methods = methods
         
     def __getattr__(self, name):
-        if name in ("o", "class_wrapper", "methods"):
+        if name in ("o", "class_wrapper", "methods", "field_names"):
             raise AttributeError()
-        if not hasattr(self, "methods"):
+        if not hasattr(self, "methods") or not hasattr(self, "field_names"):
             # not initialized
+            raise AttributeError()
+        if name not in self.field_names:
             raise AttributeError()
         try:
             jfield = self.class_wrapper.getField(name)
@@ -90,7 +99,7 @@ class JWrapper(object):
         return result
     
     def __setattr__(self, name, value):
-        if name in ("o", "class_wrapper", "methods") or \
+        if name in ("o", "class_wrapper", "methods", "field_names") or \
            not hasattr(self, "methods"):
             object.__setattr__(self, name, value)
             return
@@ -192,13 +201,22 @@ class JClassWrapper(object):
                 fn = getattr(self, name)
                 fn.__doc__ = fn.__doc__ +"\n"+J.to_string(jmethod)
             methods[name].append(method)
+        jfields = env.get_object_array_elements(self.klass.getFields(self))
+        field_class = env.find_class("java/lang/reflect/Field")
+        method_id = env.get_method_id(
+            field_class, "getName", "()Ljava/lang/String;")
+        self.field_names = [ 
+            env.get_string_utf(env.call_method(o, method_id)) for o in jfields]
         self.methods = methods
         
     def __getattr__(self, name):
-        if name in ("klass", "static_methods", "methods", "cname"):
+        if name in ("klass", "static_methods", "methods", "cname", 
+                    "field_names"):
             raise AttributeError()
-        if not hasattr(self, "methods"):
+        if not hasattr(self, "methods") or not hasattr(self, "field_names"):
             raise AttributeError()
+        if name not in self.field_names:
+            raise AttributeError("Cound not find field %s" % name)
         try:
             jfield = self.klass.getField(name)
         except:
@@ -214,8 +232,8 @@ class JClassWrapper(object):
         return result
     
     def __setattr__(self, name, value):
-        if name in ("klass", "static_methods", "methods", "cname") or\
-           not hasattr(self, "methods"):
+        if name in ("klass", "static_methods", "methods", "cname", 
+                    "field_names") or not hasattr(self, "methods"):
             object.__setattr__(self, name, value)
             return
         try:
