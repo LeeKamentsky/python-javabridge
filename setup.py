@@ -8,6 +8,7 @@ Copyright (c) 2009-2013 Broad Institute
 All rights reserved.
 
 """
+from __future__ import print_function
 
 import errno
 import glob
@@ -152,7 +153,7 @@ SO = ".dll" if sys.platform == 'win32' \
 def needs_compilation(target, *sources):
     try:
         target_date = os.path.getmtime(target)
-    except OSError, e:
+    except OSError as e:
         if e.errno != errno.ENOENT:
             raise
         return True
@@ -259,7 +260,7 @@ class build_ext(_build_ext):
                 self.compiler.spawn([
                     'mt.exe', '-nologo', '-manifest', manifest_file, 
                     out_arg])
-            except DistutilsExecError, msg:
+            except DistutilsExecError as msg:
                 raise LinkError(msg)
 
     def get_java2cpython_libdest(self):
@@ -314,7 +315,7 @@ def get_version():
         import subprocess
         try:
             git_version = subprocess.Popen(['git', 'describe'], 
-                                           stdout=subprocess.PIPE).communicate()[0].strip()
+                                           stdout=subprocess.PIPE).communicate()[0].strip().decode('utf-8')
         except:
             pass
 
@@ -334,7 +335,7 @@ def get_version():
 
     if git_version and git_version != cached_version:
         with open(version_file, 'w') as f:
-            print >>f, '__version__ = "%s"' % git_version
+            print('__version__ = "%s"' % git_version, file=f)
 
     return git_version or cached_version
 

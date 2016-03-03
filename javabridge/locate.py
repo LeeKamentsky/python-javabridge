@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 def find_javahome():
     """Find JAVA_HOME if it doesn't exist"""
-    if os.environ.has_key('JAVA_HOME'):
+    if 'JAVA_HOME' in os.environ:
         return os.environ['JAVA_HOME']
     elif is_mac:
         # Use the "java_home" executable to find the location
@@ -66,7 +66,7 @@ def find_javahome():
             o, ignore = p.communicate()
             if p.poll() != 0:
                 raise Exception("Error finding javahome on linux: %s" % cmd)
-            o = o.strip()
+            o = o.strip().decode('utf-8')
             return o
         java_bin = get_out(["bash", "-c", "type -p java"])
         java_dir = get_out(["readlink", "-f", java_bin])
@@ -97,7 +97,7 @@ def find_javahome():
 
 def find_jdk():
     """Find the JDK under Windows"""
-    if os.environ.has_key('JDK_HOME'):
+    if 'JDK_HOME' in os.environ:
         return os.environ['JDK_HOME']
     if is_mac:
         return find_javahome()

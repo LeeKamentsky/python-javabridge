@@ -17,12 +17,16 @@ cimport cython
 cimport _javabridge_osspecific
 cimport cpython
 
+if sys.version_info >= (3, 0, 0):
+    # unchir -> chr in Python 3
+    unichr = chr
+
 cdef extern from "Python.h":
     ctypedef int Py_intptr_t
     ctypedef unsigned long Py_ssize_t
     unicode PyUnicode_DecodeUTF16(char *s, Py_ssize_t size, char *errors, int *byteorder)
-    bint PyCObject_Check(object o)
-    void *PyCObject_AsVoidPtr(object o)
+    bint PyCapsule_CheckExact(object o)
+    void *PyCapsule_GetPointer(object o,char *name)
 
 cdef extern from "stdlib.h":
     ctypedef unsigned long size_t
@@ -601,8 +605,10 @@ cdef class JB_VM:
         if args.options == NULL:
             raise MemoryError("Failed to allocate JavaVMInitArgs")
         options = [str(option) for option in options]
+        optionutf8=[] # list for temporarily storing utf-8 copies of strings
         for i, option in enumerate(options):
-            args.options[i].optionString = option
+            optionutf8.append(option.encode('utf-8'))
+            args.options[i].optionString = optionutf8[-1]
         result = CreateJavaVM(&self.vm, <void **>&env, &args)
         free(args.options)
         if result != 0:
@@ -713,10 +719,10 @@ cdef class JB_Env:
         
         address - address as an integer representation of a string
         '''
-        if not PyCObject_Check(capsule):
+        if not PyCapsule_CheckExact(capsule):
             raise ValueError(
             "set_env called with something other than a wrapped environment")
-        self.env = <JNIEnv *>PyCObject_AsVoidPtr(capsule)
+        self.env = <JNIEnv *>PyCapsule_GetPointer(capsule, NULL)
         if not self.env:
             raise ValueError(
             "set_env called with non-environment capsule")
@@ -739,7 +745,7 @@ cdef class JB_Env:
         version = self.env[0].GetVersion(self.env)
         return (int(version / 65536), version % 65536)
 
-    def find_class(self, char *name):
+    def find_class(self, name):
         '''Find a Java class by name
 
         :param name: the class name with "/" as the path separator, e.g. "java/lang/String"
@@ -748,7 +754,8 @@ cdef class JB_Env:
         cdef:
             jclass c
             JB_Class result
-        c = self.env[0].FindClass(self.env, name)
+        utf8name = name.encode('utf-8')
+        c = self.env[0].FindClass(self.env, utf8name)
         if c == NULL:
             print "Failed to get class "+name
             return
@@ -800,7 +807,7 @@ cdef class JB_Env:
         '''Clear the current exception'''
         self.env[0].ExceptionClear(self.env)
 
-    def get_method_id(self, JB_Class c, char *name, char *sig):
+    def get_method_id(self, JB_Class c, name, sig):
         '''Find the method ID for a method on a class
 
         :param c: a class retrieved by find_class or get_object_class
@@ -814,9 +821,11 @@ cdef class JB_Env:
         cdef:
             jmethodID id
             __JB_MethodID result
+        utf8name = name.encode('utf-8')
+        utf8sig = sig.encode('utf-8')
         if c is None:
             raise ValueError("Class = None on call to get_method_id")
-        id = self.env[0].GetMethodID(self.env, c.c, name, sig)
+        id = self.env[0].GetMethodID(self.env, c.c, utf8name, utf8sig)
         if id == NULL:
             return
         result = __JB_MethodID()
@@ -825,7 +834,7 @@ cdef class JB_Env:
         result.is_static = False
         return result
 
-    def get_static_method_id(self, JB_Class c, char *name, char *sig):
+    def get_static_method_id(self, JB_Class c, name, sig):
         '''Find the method ID for a static method on a class
 
         :param c: a class retrieved by find_class or get_object_class
@@ -839,7 +848,9 @@ cdef class JB_Env:
         cdef:
             jmethodID id
             __JB_MethodID result
-        id = self.env[0].GetStaticMethodID(self.env, c.c, name, sig)
+        utf8name = name.encode('utf-8')
+        utf8sig = sig.encode('utf-8')
+        id = self.env[0].GetStaticMethodID(self.env, c.c, utf8name, utf8sig)
         if id == NULL:
             return
         result = __JB_MethodID()
@@ -896,8 +907,9 @@ cdef class JB_Env:
         if m is None:
             raise ValueError("Method ID is None - check your method ID call")
         if m.is_static:
-            raise ValueError("call_method called with a static method. Use call_static_method instead")
-        sig = m.sig
+            raise ValueError("call_method called with a static method. Use"
+                             " call_static_method instead")
+        sig = m.sig  # m.sig should be unicode already, no need to decode
         if sig[0] != '(':
             raise ValueError("Bad function signature: %s"%m.sig)
         arg_end = sig.find(')')
@@ -1285,7 +1297,7 @@ cdef class JB_Env:
             jdouble jvalue = float(value)
         self.env[0].SetDoubleField(self.env, o.o, field.id, jvalue)
 
-    def get_static_field_id(self, JB_Class c, char *name, char *sig):
+    def get_static_field_id(self, JB_Class c, name, sig):
         '''Look up a static field ID on a class
 
         :param c: the object's class (e.g. as retrieved from :py:meth:`.find_class`)
@@ -1298,7 +1310,9 @@ cdef class JB_Env:
             jfieldID id
             __JB_FieldID jbid
         
-        id = self.env[0].GetStaticFieldID(self.env, c.c, name, sig)
+        utf8name = name.encode('utf-8')
+        utf8sig = sig.encode('utf-8')
+        id = self.env[0].GetStaticFieldID(self.env, c.c, utf8name, utf8sig)
         if id == NULL:
             return None
         jbid = __JB_FieldID()
@@ -1588,16 +1602,16 @@ cdef class JB_Env:
              raise e
         return jbo
         
-    def new_string_utf(self, char *s):
+    def new_string_utf(self, s):
         '''Turn a Python string into a Java string object
         
-        :param s: a UTF-8 encoded Python string
+        :param s: a Python string or unicode object
         :return: a Java string object
         :rtype: JB_Object
         '''
         cdef:
             jobject o
-        o = self.env[0].NewStringUTF(self.env, s)
+        o = self.env[0].NewStringUTF(self.env, s.encode('utf-8'))
         if o == NULL:
             raise MemoryError("Failed to allocate string")
         jbo, e = make_jb_object(self, o)
@@ -1628,7 +1642,7 @@ cdef class JB_Env:
         '''Turn a Java string object into a Python string
 
         :param s: a Java object
-        :return: a UTF-8 encoded string representation of the object
+        :return: a string (Python 3) or unicode (Python 2) representation of s
         :rtype: str
         '''
         cdef:
@@ -1636,7 +1650,7 @@ cdef class JB_Env:
         if <int> s.o == 0:
            return None
         chars = self.env[0].GetStringUTFChars(self.env, s.o, NULL)
-        result = str(chars)
+        result = chars.decode('utf-8')
         self.env[0].ReleaseStringUTFChars(self.env, s.o, chars)
         return result
 
@@ -1926,9 +1940,9 @@ cdef class JB_Env:
         cdef:
             jobject jobj
             JB_Object jbo
-        if not PyCObject_Check(pCapsule):
+        if not PyCapsule_CheckExact(pCapsule):
             raise ValueError("Argument must be a jobject in a capsule")
-        jobj = <jobject>PyCObject_AsVoidPtr(pCapsule)
+        jobj = <jobject>PyCapsule_GetPointer(pCapsule)
         if not jobj:
             raise ValueError("Capsule did not contain a jobject")
         jbo = JB_Object()

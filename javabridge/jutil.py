@@ -9,6 +9,8 @@ Copyright (c) 2009-2013 Broad Institute
 All rights reserved.
 
 '''
+from __future__ import print_function
+
 
 import codecs
 import ctypes
@@ -29,6 +31,12 @@ import weakref
 import uuid
 
 logger = logging.getLogger(__name__)
+
+
+if sys.version_info >= (3, 0, 0):
+    # basestring -> str and unicode -> str in Python 3
+    basestring = str
+    unicode = str
 
 
 class JavaError(ValueError):
@@ -82,9 +90,11 @@ def _find_jvm_windows():
                 if os.path.isfile(os.path.join(jvm_dir, "jvm.dll")):
                     new_path = ';'.join((os.environ['PATH'], jvm_dir, jre_bin))
                     if isinstance(os.environ['PATH'], str) and \
-                       isinstance(new_path, unicode):
+                       isinstance(new_path, unicode) and \
+                       sys.version_info < (3, 0, 0):
                         # Don't inadvertantly set an environment variable
                         # to unicode: causes subprocess.check_call to fail
+                        # in Python 2
                         new_path = new_path.encode("utf-8")
                     os.environ['PATH'] = new_path
                     found_jvm = True
@@ -140,7 +150,7 @@ elif sys.platform == "darwin":
     # Has side-effect of preloading dylibs
     _find_jvm_mac()
     
-import _javabridge
+import javabridge._javabridge as _javabridge
 __dead_event = threading.Event()
 __kill = [False]
 __main_thread_closures = []
@@ -375,7 +385,7 @@ def run_script(script, bindings_in = {}, bindings_out = {},
                 "(Ljava/lang/String;"
                 "Lorg/mozilla/javascript/Scriptable;)"
                 "Ljava/lang/Object;", k, scope))
-    except JavaException, e:
+    except JavaException as e:
         if is_instance_of(e.throwable, "org/mozilla/javascript/WrappedException"):
             raise JavaException(call(e.throwable, "unwrap", "()Ljava/lang/Object;"))
         else:
@@ -649,7 +659,7 @@ def run_in_main_thread(closure, synchronous):
         def synchronous_closure():
             try:
                 result[0] = closure()
-            except Exception, e:
+            except Exception as e:
                 logger.exception("Caught exception when executing closure")
                 exception[0] = e
             done_event.set()
@@ -672,7 +682,7 @@ def print_all_stack_traces():
     for stak in stal:
         stakes = get_env().get_object_array_elements(stak)
         for stake in stakes:
-            print to_string(stake)
+            print(to_string(stake))
             
 CLOSE_ALL_WINDOWS = """
         new java.lang.Runnable() { 
@@ -1156,12 +1166,10 @@ def get_nice_arg(arg, sig):
         return make_instance('java/lang/Double', '(D)V', arg)
     if (sig in ('Ljava/lang/String;','Ljava/lang/Object;') and not
          isinstance(arg, _javabridge.JB_Object)):
-        if isinstance(arg, unicode):
-            arg, _ = codecs.utf_8_encode(arg)
-        elif arg is None:
+        if arg is None:
             return None
         else:
-            arg = str(arg)
+            arg = unicode(arg)
         return env.new_string_utf(arg)
     if sig == 'Ljava/lang/Integer;' and type(arg) in [int, long, bool]:
         return make_instance('java/lang/Integer', '(I)V', int(arg))
@@ -1210,7 +1218,7 @@ def get_nice_result(result, sig):
     if (sig == 'Ljava/lang/String;' or
         (sig == 'Ljava/lang/Object;' and 
          is_instance_of(result, "java/lang/String"))):
-        return codecs.utf_8_decode(env.get_string_utf(result), 'replace')[0]
+        return env.get_string_utf(result)
     if sig == 'Ljava/lang/Integer;':
         return call(result, 'intValue', '()I')
     if sig == 'Ljava/lang/Long':
@@ -1313,7 +1321,7 @@ def get_collection_wrapper(collection, fn_wrapper=None):
     
         for d in get_collection_wrapper(list_of_hashmaps, get_map_wrapper):
             # a map wrapper on the hashmap is returned
-            print d["Foo"]
+            print(d["Foo"])
 
     '''
     class Collection(object):
@@ -1423,11 +1431,11 @@ def make_list(elements=[]):
 
     Examples::
         >>> mylist = make_list(["Hello", "World", 2])
-        >>> print "\\n".join([to_string(o) for o in mylist])
+        >>> print("\\n".join([to_string(o) for o in mylist]))
         Hello
         World
         2
-        >>> print "%s, %s." % (mylist[0], mylist[1].lower())
+        >>> print("%s, %s." % (mylist[0], mylist[1].lower()))
         Hello, world.
         >>> get_class_wrapper(mylist.o)
         java.util.ArrayList
@@ -1496,7 +1504,7 @@ def get_map_wrapper(o):
     
         > d = get_map_wrapper(jmap)
         > d["Foo"] = "Bar"
-        > print d["Foo"]
+        > print(d["Foo"])
         Bar
     '''
     assert is_instance_of(o, 'java/util/Map')
@@ -1540,7 +1548,7 @@ def make_map(**kwargs):
     Example::
     
         > d = make_map(foo="Bar")
-        > print d["foo"]
+        > print(d["foo"])
         Bar
         > get_class_wrapper(d.o)
         java.util.HashMap
@@ -1586,7 +1594,7 @@ def get_enumeration_wrapper(enumeration):
     >>> enum = javabridge.get_enumeration_wrapper(keys)
     >>> while enum.hasMoreElements():
     ...     if javabridge.to_string(enum.nextElement()) == 'java.vm.name':
-    ...         print "Has java.vm.name"
+    ...         print("Has java.vm.name")
     ... 
     Has java.vm.name
 
@@ -2008,7 +2016,7 @@ def make_run_dictionary(jobject):
     while jentry_set_iterator.hasNext():
         entry = jentry_set_iterator.next()
         key, value = [o if not isinstance(o, javabridge.JWrapper) else o.o
-                      for o in entry.getKey(), entry.getValue()]
+                      for o in (entry.getKey(), entry.getValue())]
         result[to_string(key)] = value
     return result
 
