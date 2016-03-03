@@ -13,7 +13,6 @@ from __future__ import print_function
 
 
 import codecs
-import ctypes
 import gc
 import inspect
 import logging
@@ -28,7 +27,6 @@ import uuid
 from .locate import find_javahome
 import javabridge
 import weakref
-import uuid
 
 logger = logging.getLogger(__name__)
 
