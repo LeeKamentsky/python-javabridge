@@ -1942,7 +1942,7 @@ cdef class JB_Env:
             JB_Object jbo
         if not PyCapsule_CheckExact(pCapsule):
             raise ValueError("Argument must be a jobject in a capsule")
-        jobj = <jobject>PyCapsule_GetPointer(pCapsule)
+        jobj = <jobject>PyCapsule_GetPointer(pCapsule, NULL)
         if not jobj:
             raise ValueError("Capsule did not contain a jobject")
         jbo = JB_Object()
