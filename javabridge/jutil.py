@@ -180,8 +180,8 @@ __start_thread = None
 
 class vm():
     def __init__(self, *args, **kwds):
-	self.args = args
-	self.kwds = kwds
+        self.args = args
+        self.kwds = kwds
 
     def __enter__(self):
         start_vm(*self.args, **self.kwds)
