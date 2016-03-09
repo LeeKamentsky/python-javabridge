@@ -368,7 +368,7 @@ def run_script(script, bindings_in = {}, bindings_out = {},
         scope = make_instance("org/mozilla/javascript/ImporterTopLevel",
                               "(Lorg/mozilla/javascript/Context;)V",
                               context)
-        for k, v in bindings_in.iteritems():
+        for k, v in bindings_in.items():
             call(scope, "put", 
                  "(Ljava/lang/String;Lorg/mozilla/javascript/Scriptable;"
                  "Ljava/lang/Object;)V", k, scope, v)
@@ -1558,7 +1558,7 @@ def make_map(**kwargs):
         public java.lang.Object java.util.HashMap.put(java.lang.Object,java.lang.Object)
     '''
     hashmap = get_map_wrapper(make_instance('java/util/HashMap', "()V"))
-    for k, v in kwargs.iteritems():
+    for k, v in kwargs.items():
         hashmap[k] = v
     return hashmap
 
