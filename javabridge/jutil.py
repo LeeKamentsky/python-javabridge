@@ -27,6 +27,11 @@ from .locate import find_javahome
 import javabridge
 import weakref
 
+
+# long and int are the same type in Py3
+if sys.version_info[0] >= 3:
+    long = int
+
 logger = logging.getLogger(__name__)
 
 
