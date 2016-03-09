@@ -359,7 +359,8 @@ cell image analysis software CellProfiler (cellprofiler.org).''',
           classifiers=['Development Status :: 5 - Production/Stable',
                        'License :: OSI Approved :: BSD License',
                        'Programming Language :: Java',
-                       'Programming Language :: Python :: 2 :: Only'
+                       'Programming Language :: Python :: 2',
+                       'Programming Language :: Python :: 3'
                        ],
           license='BSD License',
           install_requires=['numpy'],
