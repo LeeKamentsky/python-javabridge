@@ -41,7 +41,7 @@ class TestJavabridge(unittest.TestCase):
     def test_01_03_01_new_string_unicode(self):
         s = u"Hola ni\u00F1os"
         jstring = self.env.new_string(s)
-        self.assertEqual(self.env.get_string_utf(jstring).decode("utf-8"), s)
+        self.assertEqual(self.env.get_string_utf(jstring), s)
         
     def test_01_03_02_new_string_string(self):
         s = "Hello, world"
