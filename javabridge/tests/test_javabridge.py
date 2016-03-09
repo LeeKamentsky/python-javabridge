@@ -331,13 +331,14 @@ class TestJavabridge(unittest.TestCase):
         self.assertAlmostEqual(self.env.call_method(jdouble, method_id), -55.64)
         
     def test_03_09_call_method_array(self):
-        jstring = self.env.new_string_utf("Hello, world")
+        s = "Hello, world"
+        jstring = self.env.new_string_utf(s)
         klass = self.env.get_object_class(jstring)
         method_id = self.env.get_method_id(klass, 'getBytes', '()[B')
         result = self.env.call_method(jstring, method_id)
         self.assertTrue(isinstance(result, jb.JB_Object))
         a = self.env.get_byte_array_elements(result)
-        self.assertEqual("Hello, world", a.tostring())
+        self.assertEqual(np.array(s, "S%d" % len(s)).tostring(), a.tostring())
     
     def test_03_10_call_method_object(self):
         hello = self.env.new_string_utf("Hello, ")
@@ -445,7 +446,7 @@ class TestJavabridge(unittest.TestCase):
         klass = self.env.find_class("java/security/Key")
         field_id = self.env.get_static_field_id(klass, "serialVersionUID", "J")
         result = self.env.get_static_long_field(klass, field_id)
-        self.assertEqual(result, 6603384152749567654l) # see http://java.sun.com/j2se/1.4.2/docs/api/constant-values.html#java.security.Key.serialVersionUID
+        self.assertEqual(result, 6603384152749567654)
     
     def test_05_07_get_static_float_field(self):
         klass = self.env.find_class("java/lang/Float")

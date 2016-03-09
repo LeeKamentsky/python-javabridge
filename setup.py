@@ -148,7 +148,7 @@ def ext_modules():
 
 SO = ".dll" if sys.platform == 'win32' \
     else ".jnilib" if sys.platform == 'darwin'\
-    else sysconfig.get_config_var("SO")
+    else ".so"
 
 def needs_compilation(target, *sources):
     try:
@@ -198,8 +198,9 @@ class build_ext(_build_ext):
     def build_jar_from_sources(self, jar, sources):
         if sys.platform == 'win32':
             sources = [source.replace("/", os.path.sep) for source in sources]
-        jar = self.get_ext_fullpath(jar)
-        jar = os.path.splitext(jar)[0] + ".jar"
+        jar_filename = jar.rsplit(".", 1)[1] + ".jar"
+        jar_dir = os.path.dirname(self.get_ext_fullpath(jar))
+        jar = os.path.join(jar_dir, jar_filename)
         jar_command = [find_jar_cmd(), 'cf', package_path(jar)]
         
         javac_loc = find_javac_cmd()
@@ -233,7 +234,8 @@ class build_ext(_build_ext):
             get_jvm_include_dirs()
         python_lib_dir, lib_name = self.get_java2cpython_libdest()
         library_dirs = [python_lib_dir]
-        output_dir = os.path.splitext(self.get_ext_fullpath("javabridge.jars"))[0]
+        output_dir = os.path.join(os.path.dirname(
+            self.get_ext_fullpath("javabridge.jars")), "jars")
         export_symbols = ['Java_org_cellprofiler_javabridge_CPython_exec'] 
         objects = self.compiler.compile(sources,
                                         output_dir=self.build_temp,
