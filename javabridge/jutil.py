@@ -1171,7 +1171,9 @@ def get_nice_arg(arg, sig):
         if arg is None:
             return None
         else:
-            arg = unicode(arg)
+            if sys.version_info.major == 2:
+                if isinstance(arg, str):
+                    arg = arg.decode("utf-8")
         return env.new_string_utf(arg)
     if sig == 'Ljava/lang/Integer;' and type(arg) in [int, long, bool]:
         return make_instance('java/lang/Integer', '(I)V', int(arg))

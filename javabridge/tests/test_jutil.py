@@ -662,5 +662,17 @@ class TestJutil(unittest.TestCase):
         javabridge.unlock_jref(ref_self)
         self.assertRaises(KeyError, javabridge.redeem_jref, ref_self)
         
+    def test_13_01_unicode_arg(self):
+        # On 2.x, check that a unicode argument is properly prepared
+        s = u"Hola ni\u00F1os"
+        s1, s2 = s.split(" ")
+        if sys.version_info.major == 2:
+            s2 = s2.encode("utf-8")
+        env = javabridge.get_env()
+        js1 = env.new_string(s1+" ")
+        result = javabridge.call(
+            js1, "concat", "(Ljava/lang/String;)Ljava/lang/String;", s2)
+        self.assertEqual(s, result)
+        
 if __name__=="__main__":
     unittest.main()
