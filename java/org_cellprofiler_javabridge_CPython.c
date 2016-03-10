@@ -158,7 +158,7 @@ static int attach_env(JNIEnv *pEnv){
     javabridge.jni_enter(env)
     */
     
-    pPyEnv = PyCObject_FromVoidPtr((void *)pEnv, NULL);
+    pPyEnv = PyCapsule_New((void *)pEnv, NULL, NULL);
     if (PyErr_Occurred()) {
         throwWrappedError(pEnv, __LINE__);
         return -1;
@@ -272,7 +272,7 @@ static PyObject *wrapJObject(JNIEnv *pEnv, jobject j) {
         Py_DECREF(pJavabridge);
         return NULL;
     }
-    pCapsule = PyCObject_FromVoidPtr((void *)j, NULL);
+    pCapsule = PyCapsule_New((void *)j, NULL, NULL);
     if (! pCapsule) {
         throwWrappedError(pEnv, __LINE__);
         Py_DECREF(pTheEnv);

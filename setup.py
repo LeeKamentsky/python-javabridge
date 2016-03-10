@@ -44,7 +44,7 @@ def in_cwd(basename):
 
 def build_cython():
     """Compile the pyx files if we have them.
-    
+
     The git repository has the .pyx files but not the .c files, and
     the source distributions that are uploaded to PyPI have the .c
     files and not the .pyx files. (The reason for the latter is that
@@ -76,7 +76,7 @@ def get_jvm_include_dirs():
     elif is_mac:
         where_jni_h_is_post_6 = os.path.join(java_home, 'include')
         if os.path.isfile(os.path.join(where_jni_h_is_post_6, "jni.h")):
-            
+
             include_dirs += [where_jni_h_is_post_6,
                              os.path.join(java_home, 'include', 'darwin')]
         else:
@@ -84,9 +84,9 @@ def get_jvm_include_dirs():
     elif is_linux:
         include_dirs += [os.path.join(java_home,'include'),
                          os.path.join(java_home,'include','linux')]
-        
+
     return include_dirs
-    
+
 def ext_modules():
     extensions = []
     extra_link_args = None
@@ -108,7 +108,7 @@ def ext_modules():
             # Build libjvm from jvm.dll on Windows.
             # This assumes that we're using mingw32 for build
             #
-            cmd = ["dlltool", "--dllname", 
+            cmd = ["dlltool", "--dllname",
                    os.path.join(jdk_home,"jre\\bin\\client\\jvm.dll"),
                    "--output-lib","libjvm.a",
                    "--input-def","jvm.def",
@@ -148,7 +148,7 @@ def ext_modules():
 
 SO = ".dll" if sys.platform == 'win32' \
     else ".jnilib" if sys.platform == 'darwin'\
-    else sysconfig.get_config_var("SO")
+    else ".so"
 
 def needs_compilation(target, *sources):
     try:
@@ -198,10 +198,11 @@ class build_ext(_build_ext):
     def build_jar_from_sources(self, jar, sources):
         if sys.platform == 'win32':
             sources = [source.replace("/", os.path.sep) for source in sources]
-        jar = self.get_ext_fullpath(jar)
-        jar = os.path.splitext(jar)[0] + ".jar"
+        jar_filename = jar.rsplit(".", 1)[1] + ".jar"
+        jar_dir = os.path.dirname(self.get_ext_fullpath(jar))
+        jar = os.path.join(jar_dir, jar_filename)
         jar_command = [find_jar_cmd(), 'cf', package_path(jar)]
-        
+
         javac_loc = find_javac_cmd()
         dirty_jar = False
         javac_command = [javac_loc, "-source", "6", "-target", "6"]
@@ -209,7 +210,7 @@ class build_ext(_build_ext):
             javac_command.append(package_path(source))
             if needs_compilation(jar, source):
                 dirty_jar = True
-                
+
         self.spawn(javac_command)
         if dirty_jar:
             if not os.path.exists(os.path.dirname(jar)):
@@ -219,11 +220,11 @@ class build_ext(_build_ext):
                     java_klass_path = klass[klass.index(os.path.sep) + 1:].replace(os.path.sep, "/")
                     jar_command.extend(['-C', package_path('java'), java_klass_path])
             self.spawn(jar_command)
-            
+
     def build_java2cpython(self):
         sources = self.java2cpython_sources
         distutils.log.info("building java2cpython library")
-        
+
 
         # First, compile the source code to object files in the library
         # directory.  (This should probably change to putting object
@@ -233,13 +234,15 @@ class build_ext(_build_ext):
             get_jvm_include_dirs()
         python_lib_dir, lib_name = self.get_java2cpython_libdest()
         library_dirs = [python_lib_dir]
-        output_dir = os.path.splitext(self.get_ext_fullpath("javabridge.jars"))[0]
-        export_symbols = ['Java_org_cellprofiler_javabridge_CPython_exec'] 
+        output_dir = os.path.join(os.path.dirname(
+            self.get_ext_fullpath("javabridge.jars")), "jars")
+        export_symbols = ['Java_org_cellprofiler_javabridge_CPython_exec']
         objects = self.compiler.compile(sources,
                                         output_dir=self.build_temp,
                                         include_dirs=include_dirs,
                                         debug=self.debug)
-        extra_postargs = ["/MANIFEST"] if sys.platform == 'win32' else None
+        needs_manifest = sys.platform == 'win32' and sys.version_info.major == 2
+        extra_postargs = ["/MANIFEST"] if needs_manifest else None
         self.compiler.link(
             CCompiler.SHARED_OBJECT,
             objects, lib_name,
@@ -248,7 +251,7 @@ class build_ext(_build_ext):
             library_dirs=library_dirs,
             export_symbols=export_symbols,
             extra_postargs=extra_postargs)
-        if sys.platform == 'win32':
+        if needs_manifest:
             temp_dir = os.path.dirname(objects[0])
             manifest_name = lib_name +".manifest"
             lib_path = os.path.join(output_dir, lib_name)
@@ -258,7 +261,7 @@ class build_ext(_build_ext):
             out_arg = '-outputresource:%s;2' % lib_path
             try:
                 self.compiler.spawn([
-                    'mt.exe', '-nologo', '-manifest', manifest_file, 
+                    'mt.exe', '-nologo', '-manifest', manifest_file,
                     out_arg])
             except DistutilsExecError as msg:
                 raise LinkError(msg)
@@ -273,34 +276,34 @@ class build_ext(_build_ext):
             python_lib_dir = sysconfig.get_config_var('LIBDIR')
             lib_name = "libjava2cpython" + SO
         return python_lib_dir, lib_name
-        
+
 
     def build_jar_from_single_source(self, jar, source):
         self.build_jar_from_sources(jar, [source])
-        
+
     def build_runnablequeue(self):
         jar = 'javabridge.jars.runnablequeue'
         source = 'java/org/cellprofiler/runnablequeue/RunnableQueue.java'
         self.build_jar_from_single_source(jar, source)
-        
+
     def build_cpython(self):
         jar = 'javabridge.jars.cpython'
         sources = [
             'java/org/cellprofiler/javabridge/CPython.java',
             'java/org/cellprofiler/javabridge/CPythonInvocationHandler.java']
         self.build_jar_from_sources(jar, sources)
-    
+
     def build_test(self):
         jar = 'javabridge.jars.test'
         source = 'java/org/cellprofiler/javabridge/test/RealRect.java'
         self.build_jar_from_single_source(jar, source)
-    
+
     def build_java(self):
         self.build_runnablequeue()
         self.build_test()
         self.build_cpython()
 
-    
+
 def get_version():
     """Get version from git or file system.
 
@@ -314,19 +317,19 @@ def get_version():
     if os.path.exists(os.path.join(os.path.dirname(__file__), '.git')):
         import subprocess
         try:
-            git_version = subprocess.Popen(['git', 'describe'], 
+            git_version = subprocess.Popen(['git', 'describe'],
                                            stdout=subprocess.PIPE).communicate()[0].strip().decode('utf-8')
         except:
             pass
 
-    version_file = os.path.join(os.path.dirname(__file__), 'javabridge', 
+    version_file = os.path.join(os.path.dirname(__file__), 'javabridge',
                                 '_version.py')
     if os.path.exists(version_file):
         with open(version_file) as f:
             cached_version_line = f.read().strip()
         try:
             # From http://stackoverflow.com/a/3619714/17498
-            cached_version = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", 
+            cached_version = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
                                        cached_version_line, re.M).group(1)
         except:
             raise RuntimeError("Unable to find version in %s" % version_file)
@@ -357,7 +360,8 @@ cell image analysis software CellProfiler (cellprofiler.org).''',
           classifiers=['Development Status :: 5 - Production/Stable',
                        'License :: OSI Approved :: BSD License',
                        'Programming Language :: Java',
-                       'Programming Language :: Python :: 2 :: Only'
+                       'Programming Language :: Python :: 2',
+                       'Programming Language :: Python :: 3'
                        ],
           license='BSD License',
           install_requires=['numpy'],

@@ -1072,7 +1072,7 @@ cdef class JB_Env:
         free(<void *>values)
         return result
 
-    def get_field_id(self, JB_Class c, char *name, char *sig):
+    def get_field_id(self, JB_Class c, name, sig):
         '''Get a field ID for a class
         
         :param c: class (from :py:meth:`.find_class` or similar)
@@ -1083,7 +1083,10 @@ cdef class JB_Env:
             jfieldID id
             __JB_FieldID jbid
         
-        id = self.env[0].GetFieldID(self.env, c.c, name, sig)
+        utf8name = name.encode('utf-8')
+        utf8sig = sig.encode('utf-8')
+
+        id = self.env[0].GetFieldID(self.env, c.c, utf8name, utf8sig)
         if id == NULL:
             return None
         jbid = __JB_FieldID()
