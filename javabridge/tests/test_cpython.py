@@ -35,7 +35,7 @@ fn(numerator, denominator, answer)
         jlocals.put("code", code)
         jlocals.put("answer", jref.o)
         self.cpython.execute(code, jlocals.o, None)
-        self.assertEqual(javabridge.to_string(jref.get(0)), "3")
+        self.assertEqual(float(javabridge.to_string(jref.get(0))), 3)
         
     def test_01_03_globals(self):
         jglobals = javabridge.JClassWrapper('java.util.HashMap')()
@@ -51,7 +51,7 @@ def fn():
     javabridge.call(answer, "add", "(Ljava/lang/Object;)Z", str(result))
 fn()
 """, None, jglobals.o)
-        self.assertEqual(javabridge.to_string(jref.get(0)), "3")
+        self.assertEqual(float(javabridge.to_string(jref.get(0))), 3)
 
     def test_01_04_globals_equals_locals(self):
         jglobals = javabridge.JClassWrapper('java.util.HashMap')()
@@ -69,4 +69,4 @@ def fn():
     javabridge.call(answer, "add", "(Ljava/lang/Object;)Z", str(result))
 fn()
 """, jglobals.o, jglobals.o)
-        self.assertEqual(javabridge.to_string(jref.get(0)), "3")        
+        self.assertEqual(float(javabridge.to_string(jref.get(0))), 3)
