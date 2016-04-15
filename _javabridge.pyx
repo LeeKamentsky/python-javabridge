@@ -642,6 +642,9 @@ cdef class JB_VM:
         
         path_to_libjli - path to libjli.dylib
         '''
+        class_name = str(class_name).encode("utf-8")
+        path_to_libjvm = str(path_to_libjvm).encode("utf-8")
+        path_to_libjli = str(path_to_libjli).encode("utf-8")
         cdef:
             JavaVMInitArgs args
             JNIEnv *env
@@ -657,7 +660,7 @@ cdef class JB_VM:
         args.options = <JavaVMOption *>malloc(sizeof(JavaVMOption)*args.nOptions)
         if args.options == NULL:
             raise MemoryError("Failed to allocate JavaVMInitArgs")
-        options = [str(option) for option in options]
+        options = [str(option).encode("utf-8") for option in options]
         for i, option in enumerate(options):
             args.options[i].optionString = option
         with nogil:
