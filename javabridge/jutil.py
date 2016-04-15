@@ -111,17 +111,19 @@ def _find_mac_lib(library):
     jvm_dir = find_javahome()
     for extension in (".dylib", ".jnilib"):
         try:
-            result = subprocess.check_output(
-                ["find", os.path.dirname(jvm_dir), "-name", library+extension])
-            lines = result.split("\n")
+            cmd = ["find", os.path.dirname(jvm_dir), "-name", library+extension]
+            result = subprocess.check_output(cmd)
+            if type(result) == bytes:
+                lines = result.decode('utf-8').split("\n")
+            else:
+                lines = result.split("\n")
             if len(lines) > 0 and len(lines[0]) > 0:
                 library_path = lines[0].strip()
                 return library_path
-        except:
-            logger.error(
-                "Failed to execute \"find\" when searching for %s" % library, 
-                exc_info=1)
-    logger.error("Failed to find %s" % library)
+        except Exception as e:
+            logger.error("Failed to execute \"%s\" when searching for %s" % 
+                         (cmd, library), exc_info=1)
+    logger.error("Failed to find %s (jvmdir: %s" % (library, jvm_dir))
     return
     
 def _find_jvm_mac():
