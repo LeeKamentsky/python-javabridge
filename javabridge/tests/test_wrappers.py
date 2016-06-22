@@ -48,7 +48,20 @@ class TestJWrapper(unittest.TestCase):
             1.5, 2.5, 3.5, 4.5)
         obj.x = 2.5
         self.assertEquals(obj.x, 2.5)
-        
+
+class TestJClassWrapper(unittest.TestCase):
+    def test_01_01_get_len(self):
+        pass
+    
+    def test_01_02_iterate(self):
+        pass
+    
+    def test_01_03_get_index(self):
+        pass
+
+    def test_01_04_set_index(self):
+        pass
+
 class TestJClassWrapper(unittest.TestCase):
     def test_01_01_init(self):
         c = J.JClassWrapper("java.lang.Integer")

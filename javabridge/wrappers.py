@@ -159,6 +159,29 @@ class JWrapper(object):
     def __str__(self):
         return J.to_string(self.o)
 
+    def __len__(self):
+        return J.call(self.o, "size", "()I", [])
+
+    def __getitem__(self, i):
+        return self.get(i)
+
+    def __setitem__(self, i, v):
+        return self.set(i, v) 
+    
+    class Iterator:
+        def __init__(self, o):
+            self.o = o
+            self.i = 0
+
+        def next(self):
+            if self.i == len(self.o):
+                raise StopIteration
+            self.i = self.i +1
+            return self.o[self.i-1]
+
+    def __iter__(self):
+        return self.Iterator(self)
+
 class JClassWrapper(object):
     '''Wrapper for a class
     
