@@ -16,18 +16,18 @@ class TestJWrapper(unittest.TestCase):
         jobj = J.get_env().new_string(u"Hello, world.")
         obj = J.JWrapper(jobj)
         self.assertEquals(jobj, obj.o)
-        
+
     def test_01_02_call_noargs(self):
         jobj = J.get_env().new_string(u"Hello, world.")
         obj = J.JWrapper(jobj)
         self.assertEquals(obj.toLowerCase(), "hello, world.")
-        
+
     def test_01_03_call_args(self):
         jobj = J.get_env().new_string(u"Hello, world.")
         obj = J.JWrapper(jobj)
         result = obj.replace("Hello,", "Goodbye cruel")
         self.assertEquals(result, "Goodbye cruel world.")
-        
+
     def test_01_04_call_varargs(self):
         sclass = J.JWrapper(J.class_for_name("java.lang.String"));
         for constructor in J.get_env().get_object_array_elements(
@@ -37,31 +37,58 @@ class TestJWrapper(unittest.TestCase):
                 wconstructor.getParameterTypes().o)
             c1 = sclass.getConstructor(*parameter_types)
             self.assertTrue(c1.equals(constructor))
-        
+
     def test_02_01_get_field(self):
         obj = J.JClassWrapper("org.cellprofiler.javabridge.test.RealRect")(
             1.5, 2.5, 3.5, 4.5)
         self.assertEquals(obj.x, 1.5)
-        
+
     def test_02_02_set_field(self):
         obj = J.JClassWrapper("org.cellprofiler.javabridge.test.RealRect")(
             1.5, 2.5, 3.5, 4.5)
         obj.x = 2.5
         self.assertEquals(obj.x, 2.5)
-        
+
+class TestJClassWrapper(unittest.TestCase):
+
+    def setUp(self):
+        self.a = javabridge.JClassWrapper('java.util.ArrayList')()
+        self.assertEquals(len(a), 0)
+        self.ints = [0,1,2,4,8,16]
+        self.assertEquals(len(ints), 6)
+        for i in self.ints:
+            self.a.add(i)
+
+    def test_01_01_get_len(self):
+        self.assertEquals(len(self.a), len(self.ints))
+
+    def test_01_02_iterate(self):
+        for x,y in zip(self.a, self.ints):
+            self.assertEquals(x, y)
+
+    def test_01_03_get_index(self):
+        for i in range(len(self.a)):
+            self.assertEquals(self.a[i], self.ints[i])
+
+    def test_01_04_set_index(self):
+        for i in range(len(self.a)):
+            a[i] = a[i] / 2
+        for i in range(len(self.a)):
+            self.assertEquals(2 * self.a[i], self.ints[i])
+
 class TestJClassWrapper(unittest.TestCase):
     def test_01_01_init(self):
         c = J.JClassWrapper("java.lang.Integer")
-        
+
     def test_01_02_field(self):
         c = J.JClassWrapper("java.lang.Short")
         field = c.MAX_VALUE
         self.assertEquals(field, (1 << 15)-1)
-        
+
     def test_02_03_static_call(self):
         c = J.JClassWrapper("java.lang.Integer")
         self.assertEquals(c.toString(123), "123")
-        
+
     def test_02_04_static_call_varargs(self):
         #
         # Test calling a static function with a variable number of
@@ -88,7 +115,7 @@ class TestJProxy(unittest.TestCase):
         def whatever():
             pass
         J.JProxy('java.lang.Runnable', dict(run=whatever))
-        
+
     def test_01_02_runnable(self):
         magic = []
         def whatever(magic=magic):
@@ -97,20 +124,20 @@ class TestJProxy(unittest.TestCase):
                             dict(run=whatever))
         J.JWrapper(runnable.o).run()
         self.assertEqual(magic[0], "bus")
-        
+
     def test_01_03_runnable_class(self):
         class MyProxy(J.JProxy):
             def __init__(self):
                 J.JProxy.__init__(self, 'java.lang.Runnable')
                 self.esteem = 0
-                
+
             def run(self):
                 self.esteem = "through the roof"
-        
+
         proxy = MyProxy()
         J.JWrapper(proxy.o).run()
         self.assertEqual(proxy.esteem, "through the roof")
-        
+
     def test_01_04_args(self):
         my_observable = J.make_instance("java/util/Observable", "()V")
         def update(observable, obj):
@@ -118,14 +145,14 @@ class TestJProxy(unittest.TestCase):
             self.assertTrue(J.JWrapper(obj).equals("bar"))
         proxy = J.JProxy('java.util.Observer', dict(update=update))
         J.JWrapper(proxy.o).update(my_observable, "bar")
-        
+
     def test_01_05_return_value(self):
         def call():
             return "foo"
         proxy = J.JProxy('java.util.concurrent.Callable',
                          dict(call = call))
         self.assertEquals(J.JWrapper(proxy.o).call(), "foo")
-    
+
 if __name__=="__main__":
     import javabridge
     javabridge.start_vm()
