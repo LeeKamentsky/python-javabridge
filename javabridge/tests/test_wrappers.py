@@ -49,6 +49,19 @@ class TestJWrapper(unittest.TestCase):
         obj.x = 2.5
         self.assertEquals(obj.x, 2.5)
 
+class TestJClassWrapper_Unboxing(unittest.TestCase):
+    def setUp(self):
+        self.i = J.JClassWrapper('java.lang.Integer')(3)
+
+    def test_01_01_int(self):
+        self.assertEquals(int(self.i), 3)
+    
+    def test_01_02_float(self):
+        self.assertEquals(float(self.i),3.0)
+    
+    def test_01_03_str(self):
+        self.assertEquals(str(self.i), '3')
+
 class TestJClassWrapper_Collection(unittest.TestCase):
     def setUp(self):
         self.a = J.JClassWrapper('java.util.ArrayList')()

@@ -158,6 +158,12 @@ class JWrapper(object):
     
     def __str__(self):
         return J.to_string(self.o)
+    
+    def __int__(self):
+        return self.intValue()
+
+    def __float__(self):
+        return self.floatValue()
 
     def __len__(self):
         if not J.is_instance_of(self.o,'java/util/Collection'):
