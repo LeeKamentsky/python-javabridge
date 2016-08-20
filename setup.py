@@ -108,8 +108,12 @@ def ext_modules():
             # Build libjvm from jvm.dll on Windows.
             # This assumes that we're using mingw32 for build
             #
+	    # generate the jvm.def file matching to the jvm.dll
+            cmd = ["gendef", os.path.join(jdk_home,"jre\\bin\\server\\jvm.dll")]
+            p = subprocess.Popen(cmd)
+            p.communicate()
             cmd = ["dlltool", "--dllname",
-                   os.path.join(jdk_home,"jre\\bin\\client\\jvm.dll"),
+                   os.path.join(jdk_home,"jre\\bin\\server\\jvm.dll"),
                    "--output-lib","libjvm.a",
                    "--input-def","jvm.def",
                    "--kill-at"]
@@ -243,12 +247,14 @@ class build_ext(_build_ext):
                                         debug=self.debug)
         needs_manifest = sys.platform == 'win32' and sys.version_info.major == 2
         extra_postargs = ["/MANIFEST"] if needs_manifest else None
+	libraries = ["python2.7"] if is_mingw else None
         self.compiler.link(
             CCompiler.SHARED_OBJECT,
             objects, lib_name,
             output_dir=output_dir,
             debug=self.debug,
             library_dirs=library_dirs,
+	    libraries=libraries,
             export_symbols=export_symbols,
             extra_postargs=extra_postargs)
         if needs_manifest:
