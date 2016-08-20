@@ -15,14 +15,39 @@ import sys
 import logging
 import subprocess
 
+
+# Note: if a matching gcc is available from the shell on Windows, its
+#       probably safe to assume the user is in an MINGW or MSYS or Cygwin
+#       environment, in which case he/she wants to compile with gcc for
+#       Windows, in which case the correct compiler flags will be triggered
+#       by is_mingw. This method is not great, improve it if you know a
+#       better way to discriminate between compilers on Windows.
+def is_mingw():
+    if (os.name=="nt"):
+        mingw32 = ""
+        mingw64 = ""
+        if (os.getenv("MINGW32_PREFIX")):
+            mingw32 = os.getenv("MINGW32_PREFIX")
+        if (os.getenv("MINGW64_PREFIX")):
+            mingw64 = os.getenv("MINGW64_PREFIX")
+
+        test = "gcc --version > NUL 2>&1"
+        if (os.system(test) != 0 and os.system(mingw32+test) != 0 and os.system(mingw64+test) != 0):
+            return False
+        else:
+            return True
+
+
+
 is_linux = sys.platform.startswith('linux')
 is_mac = sys.platform == 'darwin'
 is_win = sys.platform.startswith("win")
 is_win64 = (is_win and (os.environ["PROCESSOR_ARCHITECTURE"] == "AMD64"))
-is_msvc = (is_win and 
+is_msvc = (is_win and
            ((sys.version_info.major == 2 and sys.version_info.minor >= 6) or
             (sys.version_info.major == 3)))
-is_mingw = (is_win and not is_msvc)
+is_mingw = is_mingw()
+
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +67,7 @@ def find_javahome():
             result = subprocess.check_output(["/usr/libexec/java_home", "--arch", arch])
             path = result.strip()
             for place_to_look in (
-                os.path.join(os.path.dirname(path), "Libraries"), 
+                os.path.join(os.path.dirname(path), "Libraries"),
                 os.path.join(path, "jre", "lib", "server")):
                 lib = os.path.join(place_to_look, "libjvm.dylib")
                 #
@@ -129,7 +154,7 @@ def find_jdk():
                     "Failed to find the Java Development Kit. Please download and install the Oracle JDK 1.6 or later")
             else:
                 raise
-            
+
 def find_javac_cmd():
     """Find the javac executable"""
     if is_win:
