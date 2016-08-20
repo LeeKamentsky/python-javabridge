@@ -18,25 +18,25 @@ cdef extern from "jni.h":
 
 cdef int MacStartVM(JavaVM **pvm, JavaVMInitArgs *pVMArgs, char *class_name) nogil:
     return -1
-	
+
 cdef void StopVM(JavaVM *vm) nogil:
     vm[0].DestroyJavaVM(vm)
-	
+
 cdef void MacRunLoopInit() nogil:
     pass
-    
+
 cdef void MacRunLoopRun() nogil:
     pass
-	
+
 cdef void MacRunLoopStop() nogil:
     pass
-    
+
 cdef void MacRunLoopReset() nogil:
     pass
-    
+
 cdef int MacIsMainThread() nogil:
     return 0
-    
+
 cdef void MacRunLoopRunInMode(double timeout) nogil:
     pass
 
