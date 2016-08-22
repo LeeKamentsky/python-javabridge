@@ -247,7 +247,7 @@ class build_ext(_build_ext):
                                         debug=self.debug)
         needs_manifest = sys.platform == 'win32' and sys.version_info.major == 2 and not is_mingw
         extra_postargs = ["/MANIFEST"] if needs_manifest else None
-	libraries = ["python2.7"] if is_mingw else None
+        libraries = ["python2.7"] if is_mingw else None
         self.compiler.link(
             CCompiler.SHARED_OBJECT,
             objects, lib_name,
