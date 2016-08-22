@@ -23,19 +23,30 @@ import subprocess
 #       by is_mingw. This method is not great, improve it if you know a
 #       better way to discriminate between compilers on Windows.
 def is_mingw():
-    if (os.name=="nt"):
-        mingw32 = ""
-        mingw64 = ""
-        if (os.getenv("MINGW32_PREFIX")):
-            mingw32 = os.getenv("MINGW32_PREFIX")
-        if (os.getenv("MINGW64_PREFIX")):
-            mingw64 = os.getenv("MINGW64_PREFIX")
+    # currently this check detects mingw only on Windows. Extend for other
+    # platforms if required:
+    if (os.name != "nt"):
+        return False
 
-        test = "gcc --version > NUL 2>&1"
-        if (os.system(test) != 0 and os.system(mingw32+test) != 0 and os.system(mingw64+test) != 0):
-            return False
-        else:
-            return True
+    # if the user defines DISTUTILS_USE_SDK or MSSdk, we expect they want
+    # to use Microsoft's compiler (as described here:
+    # https://github.com/cython/cython/wiki/CythonExtensionsOnWindows):
+    if (os.getenv("DISTUTILS_USE_SDK") != None or os.getenv("MSSdk") != None):
+        return False
+
+    mingw32 = ""
+    mingw64 = ""
+    if (os.getenv("MINGW32_PREFIX")):
+        mingw32 = os.getenv("MINGW32_PREFIX")
+    if (os.getenv("MINGW64_PREFIX")):
+        mingw64 = os.getenv("MINGW64_PREFIX")
+
+    # if any invocation of gcc works, then we assume the user wants mingw:
+    test = "gcc --version > NUL 2>&1"
+    if (os.system(test) == 0 or os.system(mingw32+test) == 0 or os.system(mingw64+test) == 0):
+        return True
+
+    return False
 
 
 
