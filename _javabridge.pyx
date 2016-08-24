@@ -306,8 +306,15 @@ cdef extern from "mac_javabridge_utils.h":
     int MacIsMainThread() nogil
     void MacRunLoopRunInMode(double) nogil
 
-cdef extern void StopVM(JavaVM *vm) nogil
-cdef extern int CreateJavaVM(JavaVM **pvm, void **pEnv, void *args) nogil
+# NOTE: its required to have a 'from *' after the 'extern' declaration
+#       here, in order to avoid problems with cython on Cywin and MSYS
+#       Windows environments. The 'from *' will make cython think the
+#       declaration is from some header, so it avoids the __imp_ prefix
+#       on the symbols. Otherwise linking will fail. For more details see
+#       https://trac.sagemath.org/ticket/19868
+cdef extern from *:
+    void StopVM(JavaVM *vm) nogil
+    int CreateJavaVM(JavaVM **pvm, void **pEnv, void *args) nogil
 
 def mac_run_loop_init():
     MacRunLoopInit()
