@@ -88,7 +88,7 @@ jint JNI_OnLoad(JavaVM *vm, void *reserved)
  */
 const char *pCleanPath = "import os;os.environ['path']=';'.join([path for path in os.environ['path'].split(';') if 'msvcr90.dll' not in map((lambda x:x.lower()), os.listdir(path))])";
 #endif
-static void check_init() {
+static void check_init(void) {
     if ((initialized == 0) && ! Py_IsInitialized()) {
         Py_Initialize();
         #ifdef _WIN32
