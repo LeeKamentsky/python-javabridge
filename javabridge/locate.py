@@ -14,7 +14,7 @@ import os
 import sys
 import logging
 import subprocess
-
+import re
 
 # Note: if a matching gcc is available from the shell on Windows, its
 #       probably safe to assume the user is in an MINGW or MSYS or Cygwin
@@ -100,7 +100,7 @@ def find_javahome():
         return "/System/Library/Frameworks/JavaVM.framework/Home"
     elif is_linux:
         def get_out(cmd):
-            p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+            p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             o, ignore = p.communicate()
             if p.poll() != 0:
                 raise Exception("Error finding javahome on linux: %s" % cmd)
@@ -108,7 +108,11 @@ def find_javahome():
             return o
         java_bin = get_out(["bash", "-c", "type -p java"])
         java_dir = get_out(["readlink", "-f", java_bin])
-        jdk_dir = os.path.join(java_dir, "..", "..", "..")
+        java_version_string = get_out(["bash", "-c", "java -version"])
+        if re.match('^openjdk', java_version_string) is not None:
+            jdk_dir = os.path.join(java_dir, "..", "..", "..")
+        elif re.match('^java', java_version_string) is not None:
+            jdk_dir = os.path.join(java_dir, "..", "..")
         jdk_dir = os.path.abspath(jdk_dir)
         return jdk_dir
     elif is_win:
