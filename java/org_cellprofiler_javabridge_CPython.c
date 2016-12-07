@@ -11,6 +11,7 @@ All rights reserved.
 #include <stdio.h>
 #include <Python.h>
 #ifdef __linux__
+#include <stdlib.h>
 #include <dlfcn.h>
 #endif
 #include "org_cellprofiler_javabridge_CPython.h"
@@ -64,15 +65,18 @@ static char *get_property(JavaVM *vm, const char *key)
 
 jint JNI_OnLoad(JavaVM *vm, void *reserved)
 {
-	const char *python_location = get_property(vm, "python.location");
+        char buf[1024];
+	char *python_location = get_property(vm, "python.location");
+	const char *command = "python -c \"import sysconfig; from os.path import join; print join(sysconfig.get_config_var('LIBDIR'), sysconfig.get_config_var('multiarchsubdir')[1:], sysconfig.get_config_var('LDLIBRARY'))\"";
 
 	if (!python_location) {
-		if ((initialized == 0) && ! Py_IsInitialized()) {
-			Py_Initialize();
-			PyObject* result = PyRun_String("from distutils.sysconfig import get_config_var; from os.path import join; join(get_config_var(\"LIBDIR\"), get_config_var(\"LDLIBRARY\"))\n", Py_single_input, NULL, NULL);
-			python_location = PyString_AsString(result);
-			initialized = 1;
-		}
+	    size_t len=1024;
+	    FILE *stream = popen(command, "r");
+	    python_location = buf;
+	    getline(&python_location, &len, stream);
+	    python_location[strlen(python_location)-1] = 0;
+	    pclose(stream);
+	    printf("Python lib location=%s\n", python_location);
 	}
 	if (!dlopen(python_location, RTLD_LAZY | RTLD_GLOBAL))
 		fprintf(stderr, "Warning: Error loading %s\n", python_location);
