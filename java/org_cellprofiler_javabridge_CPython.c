@@ -101,20 +101,17 @@ static int set_vm(void)
     PyObject *pArgs;
     PyObject *pResult;
     
-    printf("check_init called\n");    
     pPyVM = PyCapsule_New((void *)pVM, NULL, NULL);
     if (PyErr_Occurred()) {
         fprintf(stderr, "Unable to encapsulate VM for Python.\n");
         return -1;
     }
-    printf("Encapsulated vm pointer\n");
     pJavabridge = PyImport_ImportModule("javabridge");
     if (PyErr_Occurred()) {
 	fprintf(stderr, "Failed to import javabridge.\n");
         Py_DECREF(pPyVM);
         return -1;
     }
-    printf("Imported javabridge\n");
     pJVMEnter = PyObject_GetAttrString(pJavabridge, "jvm_enter");
     if (PyErr_Occurred()) {
         fprintf(stderr, "Failed to find function, javabridge.jvm_enter\n");
@@ -122,7 +119,6 @@ static int set_vm(void)
         Py_DECREF(pPyVM);
         return -1;
     }
-    printf("Found jvm_enter\n");
     pArgs = PyTuple_Pack(1, pPyVM);
     if (! pArgs) {
         fprintf(stderr, "Failed to create the arguments for jvm_enter\n");
@@ -131,7 +127,6 @@ static int set_vm(void)
         Py_DECREF(pPyVM);
         return -1;
     }
-    printf("created args for jvm_enter\n");
     pResult = PyObject_CallObject(pJVMEnter, pArgs);
     if (! pResult) {
 	fprintf(stderr, "Caught exception in jvm_enter.\n");
@@ -141,7 +136,6 @@ static int set_vm(void)
         Py_DECREF(pPyVM);
         return -1;
     }
-    printf("Called jvm_enter successfully.\n");
     Py_DECREF(pResult);
     Py_DECREF(pArgs);
     Py_DECREF(pJVMEnter);
