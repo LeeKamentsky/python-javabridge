@@ -78,4 +78,4 @@ from .jutil import create_jref, redeem_jref, create_and_lock_jref,\
 # Low-level API
 from ._javabridge import JB_Env, JB_Object, JB_Class
 # JNI helpers.
-from ._javabridge import jni_enter, jni_exit
+from ._javabridge import jni_enter, jni_exit, jvm_enter

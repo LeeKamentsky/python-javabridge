@@ -17,6 +17,7 @@ All rights reserved.
 #include "org_cellprofiler_javabridge_CPython.h"
 
 int initialized = 0;
+static void check_init(void);
 
 #ifdef __linux__
 /*
@@ -62,27 +63,92 @@ static char *get_property(JavaVM *vm, const char *key)
 
 	return result;
 }
+#endif
+JavaVM *pVM;
 
 jint JNI_OnLoad(JavaVM *vm, void *reserved)
 {
-        char buf[1024];
-	char *python_location = get_property(vm, "python.location");
-	const char *command = "python -c \"import sysconfig; from os.path import join; print join(sysconfig.get_config_var('LIBDIR'), sysconfig.get_config_var('multiarchsubdir')[1:], sysconfig.get_config_var('LDLIBRARY'))\"";
+#ifdef __linux__
+    char buf[1024];
+    char *python_location = get_property(vm, "python.location");
+    const char *command = "python -c \"import sysconfig; from os.path import join; print join(sysconfig.get_config_var('LIBDIR'), sysconfig.get_config_var('multiarchsubdir')[1:], sysconfig.get_config_var('LDLIBRARY'))\"";
 
-	if (!python_location) {
-	    size_t len=1024;
-	    FILE *stream = popen(command, "r");
-	    python_location = buf;
-	    getline(&python_location, &len, stream);
-	    python_location[strlen(python_location)-1] = 0;
-	    pclose(stream);
-	    printf("Python lib location=%s\n", python_location);
-	}
-	if (!dlopen(python_location, RTLD_LAZY | RTLD_GLOBAL))
-		fprintf(stderr, "Warning: Error loading %s\n", python_location);
-	return JNI_VERSION_1_2;
-}
+    if (!python_location) {
+	size_t len=1024;
+	FILE *stream = popen(command, "r");
+	python_location = buf;
+	getline(&python_location, &len, stream);
+	python_location[strlen(python_location)-1] = 0;
+	pclose(stream);
+    }
+    if (!dlopen(python_location, RTLD_LAZY | RTLD_GLOBAL))
+	    fprintf(stderr, "Warning: Error loading %s\n", python_location);
 #endif
+    pVM = vm;
+    return JNI_VERSION_1_2;
+}
+    /*
+     * Run some code here to encapsulate a pointer to the VM and call
+     * import javabridge
+     * javabridge.jvm_enter(capsule)
+     *
+     */
+static int set_vm(void)
+{
+    PyObject *pPyVM;
+    PyObject *pJavabridge;
+    PyObject *pJVMEnter;
+    PyObject *pArgs;
+    PyObject *pResult;
+    
+    printf("check_init called\n");    
+    pPyVM = PyCapsule_New((void *)pVM, NULL, NULL);
+    if (PyErr_Occurred()) {
+        fprintf(stderr, "Unable to encapsulate VM for Python.\n");
+        return -1;
+    }
+    printf("Encapsulated vm pointer\n");
+    pJavabridge = PyImport_ImportModule("javabridge");
+    if (PyErr_Occurred()) {
+	fprintf(stderr, "Failed to import javabridge.\n");
+        Py_DECREF(pPyVM);
+        return -1;
+    }
+    printf("Imported javabridge\n");
+    pJVMEnter = PyObject_GetAttrString(pJavabridge, "jvm_enter");
+    if (PyErr_Occurred()) {
+        fprintf(stderr, "Failed to find function, javabridge.jvm_enter\n");
+        Py_DECREF(pJavabridge);
+        Py_DECREF(pPyVM);
+        return -1;
+    }
+    printf("Found jvm_enter\n");
+    pArgs = PyTuple_Pack(1, pPyVM);
+    if (! pArgs) {
+        fprintf(stderr, "Failed to create the arguments for jvm_enter\n");
+        Py_DECREF(pJVMEnter);
+        Py_DECREF(pJavabridge);
+        Py_DECREF(pPyVM);
+        return -1;
+    }
+    printf("created args for jvm_enter\n");
+    pResult = PyObject_CallObject(pJVMEnter, pArgs);
+    if (! pResult) {
+	fprintf(stderr, "Caught exception in jvm_enter.\n");
+        Py_DECREF(pArgs);
+        Py_DECREF(pJVMEnter);
+        Py_DECREF(pJavabridge);
+        Py_DECREF(pPyVM);
+        return -1;
+    }
+    printf("Called jvm_enter successfully.\n");
+    Py_DECREF(pResult);
+    Py_DECREF(pArgs);
+    Py_DECREF(pJVMEnter);
+    Py_DECREF(pJavabridge);
+    Py_DECREF(pPyVM);
+    return 0;
+}
 
 #ifdef _WIN32
 /*
@@ -98,6 +164,7 @@ static void check_init(void) {
         #ifdef _WIN32
         PyRun_SimpleString(pCleanPath);
         #endif
+	set_vm();
         initialized = 1;
     }
 }

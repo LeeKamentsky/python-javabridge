@@ -23,5 +23,33 @@ public class TestCPython {
 			fail();
 		}
 	}
+	@Test
+	public void test_02_01_threading() {
+		/*
+		 * Regression test for issue #104 - call into Python
+		 * from Java, start a Python thread, attach to the Java VM.
+		 * VM pointer wasn't being initialized, so it dies.
+		 */
+		String code = 
+				"import javabridge\n" +
+				"import threading\n" +
+				"print 'yes I did run'\n" +
+				"def do_something()\n" +
+				"  print 'from inside thread'\n" +
+				"  system = javabridge.JClassWrapper('java.lang.System')\n" +
+				"  system.setProperty('foo', 'bar')\n" +
+				"thread=threading.Thread(target=do_something)\n" +
+				"thread.start()\n" +
+				"thread.join()\n" +
+				"print 'yes I did finish'\n";
+		try {
+			System.out.print(code);
+			new CPython().exec(code);
+		} catch (CPython.WrappedException e) {
+			fail();
+		}
+		System.out.println("Yes I did return");
+		assertEquals(System.getProperty("foo"), "bar");
+	}
 	
 }

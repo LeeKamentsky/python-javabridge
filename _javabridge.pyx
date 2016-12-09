@@ -439,7 +439,15 @@ def jni_exit():
         set_thread_local("env", None)
     else:
         set_thread_local("env", env_stack.pop())
+
+def jvm_enter(vm):
+    '''Initialize the JVM on entry into Python
     
+    :param vm: pointer to JavaVM wrapped in a PyCapsule
+    
+    Set the global Java VM.
+    '''
+    get_vm().set_vm(vm)
     
 def reap():
     '''Reap all of the garbage-collected Java objects on the dead_objects list'''
@@ -594,7 +602,24 @@ cdef fill_values(orig_sig, args, jvalue **pvalues):
 cdef class JB_VM:
     '''Represents the Java virtual machine'''
     cdef JavaVM *vm
-            
+    
+    def set_vm(self, capsule):
+        '''Set the pointer to the JavaVM
+        
+        This is here to handle the case where Java is the boss and Python
+        is being started from Java, e.g. from 
+        org.cellprofiler.javabridge.CPython.
+        
+        :param capsule: an encapsulated pointer to the JavaVM
+        '''
+        if not PyCapsule_CheckExact(capsule):
+            raise ValueError(
+            "set_vm called with something other than a wrapped environment")
+        self.vm = <JavaVM *>PyCapsule_GetPointer(capsule, NULL)
+        if not self.vm:
+            raise ValueError(
+            "set_vm called with non-environment capsule")
+        
     def is_active(self):
         '''Return True if JVM has been started, but not killed'''
         return self.vm != NULL
