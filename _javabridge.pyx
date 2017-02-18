@@ -401,15 +401,15 @@ def get_env():
     
 def jb_attach():
     '''Attach to this thread's environment'''
-    assert __vm is not None
-    assert get_env() is None
+    assert __vm is not None, "__vm is None"
+    assert get_env() is None, "get_env() is not None"
     set_thread_local("env", __vm.attach_as_daemon())
     return get_env()
     
 def jb_detach():
     '''Detach from this thread's environment'''
-    assert __vm is not None
-    assert get_env() is not None
+    assert __vm is not None, "__vm is None"
+    assert get_env() is not None, "get_env() is None"
     set_thread_local("env", None)
     __vm.detach()
     
