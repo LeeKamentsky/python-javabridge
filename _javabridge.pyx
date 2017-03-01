@@ -403,6 +403,7 @@ def jb_attach():
     '''Attach to this thread's environment'''
     assert __vm is not None
     assert get_env() is None
+    assert __vm.is_active()
     set_thread_local("env", __vm.attach_as_daemon())
     return get_env()
     
