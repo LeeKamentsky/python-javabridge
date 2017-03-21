@@ -76,7 +76,7 @@ def find_javahome():
             arch = "x86_64"
         try:
             result = subprocess.check_output(["/usr/libexec/java_home", "--arch", arch])
-            path = result.strip()
+            path = result.strip().decode("utf-8")
             for place_to_look in (
                 os.path.join(os.path.dirname(path), "Libraries"),
                 os.path.join(path, "jre", "lib", "server")):
@@ -86,7 +86,7 @@ def find_javahome():
                 # can be loaded in the current architecture
                 #
                 if os.path.exists(lib) and \
-                   libc.dlopen_preflight(lib) !=0:
+                   libc.dlopen_preflight(lib.encode("utf-8")) !=0:
                     return path
             else:
                 logger.error("Could not find Java JRE compatible with %s architecture" % arch)
