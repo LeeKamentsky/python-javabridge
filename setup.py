@@ -98,6 +98,7 @@ def ext_modules():
     libraries = None
     library_dirs = None
     javabridge_sources = ['_javabridge.c']
+    _, jvm_so = find_jre_bin_jdk_so()
     if is_mac:
         javabridge_sources += ['_javabridge_mac.c']
     else:
@@ -113,7 +114,7 @@ def ext_modules():
             p = subprocess.Popen(cmd)
             p.communicate()
             cmd = ["dlltool", "--dllname",
-                   os.path.join(jdk_home,"jre\\bin\\server\\jvm.dll"),
+                   jvm_so,
                    "--output-lib","libjvm.a",
                    "--input-def","jvm.def",
                    "--kill-at"]
@@ -133,9 +134,7 @@ def ext_modules():
     elif is_mac:
         javabridge_sources += [ "mac_javabridge_utils.c" ]
     elif is_linux:
-        library_dirs = [os.path.join(java_home,'jre','lib', arch, cs)
-                        for arch in ['amd64', 'i386']
-                        for cs in ['client', 'server']]
+        library_dirs = [os.path.dirname(jvm_so)]
         libraries = ["jvm"]
     extension_kwargs = dict(
         name="javabridge._javabridge",

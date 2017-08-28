@@ -17,6 +17,16 @@ except ImportError:
     # We're running in a tree that doesn't have a _version.py, so we don't know what our version is.
     __version__ = "0.0.0"
 
+# We must dynamically find libjvm.so since its unlikely to be in the same place
+# as it was on the distribution on which javabridge was built.
+import sys
+if sys.platform.startswith('linux'):
+    from .locate import find_jre_bin_jdk_so
+    _, jdk_so = find_jre_bin_jdk_so()
+    if jdk_so:
+        import ctypes
+        ctypes.cdll.LoadLibrary(jdk_so)
+
 _jars_dir = os.path.join(os.path.dirname(__file__), 'jars')
 
 #: List of absolute paths to JAR files that are required for the
