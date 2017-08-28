@@ -80,14 +80,19 @@ def find_javahome():
             for place_to_look in (
                 os.path.join(os.path.dirname(path), "Libraries"),
                 os.path.join(path, "jre", "lib", "server")):
-                lib = os.path.join(place_to_look, "libjvm.dylib")
-                #
-                # dlopen_preflight checks to make sure libjvm.dylib
-                # can be loaded in the current architecture
-                #
-                if os.path.exists(lib) and \
-                   libc.dlopen_preflight(lib.encode("utf-8")) !=0:
-                    return path
+                # In "Java for OS X 2015-001" libjvm.dylib is a symlink to libclient.dylib
+                # which is i686 only, whereas libserver.dylib contains both architectures.
+                for file_to_look in ('libjvm.dylib',
+                                     'libclient.dylib',
+                                     'libserver.dylib'):
+                    lib = os.path.join(place_to_look, file_to_look)
+                    #
+                    # dlopen_preflight checks to make sure the dylib
+                    # can be loaded in the current architecture
+                    #
+                    if os.path.exists(lib) and \
+                       libc.dlopen_preflight(lib.encode('utf-8')) != 0:
+                        return path
             else:
                 logger.error("Could not find Java JRE compatible with %s architecture" % arch)
                 if arch == "i386":
@@ -193,3 +198,24 @@ def find_jar_cmd():
     else:
         # will be along path for other platforms
         return "jar"
+
+
+def find_jre_bin_jdk_so():
+    """Finds the jre bin dir and the jdk shared library file"""
+    jvm_dir = None
+    java_home = find_javahome()
+    if java_home is not None:
+        found_jvm = False
+        for jre_home in (java_home, os.path.join(java_home, "jre")):
+            jre_bin = os.path.join(jre_home, 'bin')
+            jre_libexec = os.path.join(jre_home, 'bin' if is_win else 'lib')
+            arches = ('amd64', 'i386') if is_linux else ('',)
+            lib_prefix = '' if is_win else 'lib'
+            lib_suffix = '.dll' if is_win else ('.dylib' if is_mac else '.so')
+            for arch in arches:
+                for place_to_look in ('client','server'):
+                    jvm_dir = os.path.join(jre_libexec, arch, place_to_look)
+                    jvm_so = os.path.join(jvm_dir, lib_prefix + "jvm" + lib_suffix)
+                    if os.path.isfile(jvm_so):
+                        return (jre_bin, jvm_so)
+    return (jre_bin, None)
