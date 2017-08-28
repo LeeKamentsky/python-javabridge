@@ -80,14 +80,19 @@ def find_javahome():
             for place_to_look in (
                 os.path.join(os.path.dirname(path), "Libraries"),
                 os.path.join(path, "jre", "lib", "server")):
-                lib = os.path.join(place_to_look, "libjvm.dylib")
-                #
-                # dlopen_preflight checks to make sure libjvm.dylib
-                # can be loaded in the current architecture
-                #
-                if os.path.exists(lib) and \
-                   libc.dlopen_preflight(lib.encode("utf-8")) !=0:
-                    return path
+                # In "Java for OS X 2015-001" libjvm.dylib is a symlink to libclient.dylib
+                # which is i686 only, whereas libserver.dylib contains both architectures.
+                for file_to_look in ('libjvm.dylib',
+                                     'libclient.dylib',
+                                     'libserver.dylib'):
+                    lib = os.path.join(place_to_look, file_to_look)
+                    #
+                    # dlopen_preflight checks to make sure the dylib
+                    # can be loaded in the current architecture
+                    #
+                    if os.path.exists(lib) and \
+                       libc.dlopen_preflight(lib.encode('utf-8')) != 0:
+                        return path
             else:
                 logger.error("Could not find Java JRE compatible with %s architecture" % arch)
                 if arch == "i386":
