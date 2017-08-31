@@ -309,6 +309,19 @@ class build_ext(_build_ext):
         self.build_cpython()
 
 
+def pep440_compliant(ver):
+    if ver is None:
+        return ver
+    m = re.match(r"^(?P<version>(\d[\d\.]*))$", ver)
+    if m:
+        return ver
+    m = re.match(r"^(?P<version>(\d[\d\.]*))-(?P<count>\d+)-(?P<sha>.*)$", ver)
+    if m:
+        res = m.group('version') + '.post' + m.group('count') + '+' + m.group('sha')
+        return res
+    return ver
+
+
 def get_version():
     """Get version from git or file system.
 
@@ -345,7 +358,7 @@ def get_version():
         with open(version_file, 'w') as f:
             print('__version__ = "%s"' % git_version, file=f)
 
-    return git_version or cached_version
+    return pep440_compliant(git_version or cached_version)
 
 
 if __name__ == '__main__':
