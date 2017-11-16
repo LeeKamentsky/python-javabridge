@@ -114,7 +114,7 @@ def find_javahome():
         java_bin = get_out(["bash", "-c", "type -p java"])
         java_dir = get_out(["readlink", "-f", java_bin])
         java_version_string = get_out(["bash", "-c", "java -version"])
-        if re.match('^openjdk', java_version_string) is not None:
+        if re.search('(?i)openjdk', java_version_string) is not None:
             jdk_dir = os.path.join(java_dir, "..", "..", "..")
         elif re.match('^java', java_version_string) is not None:
             jdk_dir = os.path.join(java_dir, "..", "..")
