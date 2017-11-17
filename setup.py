@@ -111,7 +111,7 @@ def ext_modules():
             # Build libjvm from jvm.dll on Windows.
             # This assumes that we're using mingw32 for build
             #
-	    # generate the jvm.def file matching to the jvm.dll
+            # generate the jvm.def file matching to the jvm.dll
             cmd = ["gendef", os.path.join(jdk_home,"jre\\bin\\server\\jvm.dll")]
             p = subprocess.Popen(cmd)
             p.communicate()
@@ -177,6 +177,9 @@ class build_ext(_build_ext):
         if self.inplace:
             dirty = False
             for source in self.get_source_files():
+                if not os.path.exists(source):
+                    dirty = True
+                    break
                 source_mtime = os.stat(source).st_mtime
                 for output in self.get_outputs():
                     if not os.path.isfile(output) or \
@@ -255,7 +258,7 @@ class build_ext(_build_ext):
             output_dir=output_dir,
             debug=self.debug,
             library_dirs=library_dirs,
-	    libraries=libraries,
+            libraries=libraries,
             export_symbols=export_symbols,
             extra_postargs=extra_postargs)
         if needs_manifest:
@@ -387,7 +390,7 @@ cell image analysis software CellProfiler (cellprofiler.org).''',
           install_requires=['numpy'],
           tests_require="nose",
           entry_points={'nose.plugins.0.10': [
-                'javabridge = javabridge.noseplugin:JavabridgePlugin'
+              'javabridge = javabridge.noseplugin:JavabridgePlugin'
                 ]},
           test_suite="nose.collector",
           package_data={"javabridge": [
