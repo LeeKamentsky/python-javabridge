@@ -1650,7 +1650,8 @@ cdef class JB_Env:
         '''
         cdef:
             jobject o
-        o = self.env[0].NewStringUTF(self.env, s.encode('utf-8'))
+        sutf8 = s.encode('utf-8')
+        o = self.env[0].NewStringUTF(self.env, sutf8)
         if o == NULL:
             raise MemoryError("Failed to allocate string")
         jbo, e = make_jb_object(self, o)
