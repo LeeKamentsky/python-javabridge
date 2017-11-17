@@ -191,10 +191,10 @@ class build_ext(_build_ext):
                 dirty = True
         else:
             dirty = True
+        result = build_cython()
         if dirty:
             result = _build_ext.run(self, *args, **kwargs)
             self.build_java2cpython()
-        result = build_cython()
         self.build_java()
         return result
 
