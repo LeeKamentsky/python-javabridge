@@ -53,6 +53,7 @@ def build_cython():
     compile them.
 
     """
+    distutils.log.info("Building Cython extensions")
     stems = ['_javabridge', '_javabridge_mac', '_javabridge_nomac']
     pyx_filenames = [in_cwd(s + '.pyx') for s in stems]
     c_filenames = [in_cwd(s + '.c') for s in stems]
@@ -62,6 +63,7 @@ def build_cython():
     if len(nc_pyx_filenames) > 0:
         cmd = ['cython'] + nc_pyx_filenames
         subprocess.check_call(cmd)
+    assert all(map(os.path.exists, c_filenames))
 
 def get_jvm_include_dirs():
     '''Return a sequence of paths to include directories for JVM defs'''
