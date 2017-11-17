@@ -172,8 +172,6 @@ def package_path(relpath):
 class build_ext(_build_ext):
     java2cpython_sources = ["java/org_cellprofiler_javabridge_CPython.c"]
     def run(self, *args, **kwargs):
-        self.build_java()
-        result = build_cython()
         if self.inplace:
             dirty = False
             for source in self.get_source_files():
@@ -196,6 +194,8 @@ class build_ext(_build_ext):
         if dirty:
             result = _build_ext.run(self, *args, **kwargs)
             self.build_java2cpython()
+        result = build_cython()
+        self.build_java()
         return result
 
     def build_jar_from_sources(self, jar, sources):
