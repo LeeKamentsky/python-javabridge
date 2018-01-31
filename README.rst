@@ -23,5 +23,5 @@ Copyright (c) 2009-2013 Broad Institute
 All rights reserved.
 
 
-.. |Travis CI Status| image:: https://travis-ci.org/CellProfiler/python-javabridge.svg?branch=master
-   :target: https://travis-ci.org/CellProfiler/python-javabridge
+.. |Travis CI Status| image:: https://travis-ci.org/LeeKamentsky/python-javabridge.svg?branch=master
+   :target: https://travis-ci.org/LeeKamentsky/python-javabridge
