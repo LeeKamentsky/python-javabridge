@@ -104,6 +104,7 @@ def ext_modules():
     else:
         javabridge_sources += ['_javabridge_nomac.c']
     if is_win:
+        jdk_lib = os.path.join(jdk_home, "lib")
         if is_mingw:
             #
             # Build libjvm from jvm.dll on Windows.
@@ -120,13 +121,12 @@ def ext_modules():
                    "--kill-at"]
             p = subprocess.Popen(cmd)
             p.communicate()
-            library_dirs = [os.path.abspath(".")]
+            library_dirs = [os.path.abspath("."), jdk_lib]
         else:
             #
             # Use the MSVC lib in the JDK
             #
             extra_link_args = ['/MANIFEST']
-            jdk_lib = os.path.join(jdk_home, "lib")
             library_dirs = [jdk_lib]
             javabridge_sources.append("strtoull.c")
 
@@ -244,9 +244,10 @@ class build_ext(_build_ext):
                                         output_dir=self.build_temp,
                                         include_dirs=include_dirs,
                                         debug=self.debug)
-        needs_manifest = sys.platform == 'win32' and sys.version_info.major == 2 and not is_mingw
+        ver = sys.version_info
+        needs_manifest = sys.platform == 'win32' and ver.major == 2 and not is_mingw
         extra_postargs = ["/MANIFEST"] if needs_manifest else None
-        libraries = ["python2.7"] if is_mingw else None
+        libraries = ["python{}{}".format(ver.major, ver.minor)] if is_mingw else None
         self.compiler.link(
             CCompiler.SHARED_OBJECT,
             objects, lib_name,
