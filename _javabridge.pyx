@@ -500,6 +500,11 @@ cdef class JB_Class:
     def __repr__(self):
         return "<Java class at 0x%x>"%<int>(self.c)
 
+    def as_class_object(self):
+        result = JB_Object()
+        result.o = self.c
+        return result
+
 cdef class __JB_MethodID:
     '''A method ID as returned by get_method_id'''
     cdef:
