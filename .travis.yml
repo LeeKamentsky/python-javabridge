@@ -2,6 +2,7 @@ language: java
 env:
    - PYTHON_VERSION="2.7"
    - PYTHON_VERSION="3.5"
+   - PYTHON_VERSION="3.6"
 before_install:
    # Get the tag if it wasn't provided. Travis doesn't provide this if it isn't a tagged build.
    - if [ -z $TRAVIS_TAG ]; then TRAVIS_TAG=`git tag --contains` ; fi
@@ -30,7 +31,8 @@ install:
    - conda install cython
    - python setup.py develop
    # Install sphinx and friends to build documentation.
-   - conda install sphinx
+   # (LEEK) travis install of sphinx on Python 3.5 crashed
+   - conda install -c conda-forge sphinx
    # Install coverage and coveralls to generate and submit test coverage results for coveralls.io.
    - echo "coverage 3.*" >> $HOME/miniconda/envs/testenv/conda-meta/pinned
    - conda install nose
