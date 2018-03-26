@@ -32,7 +32,7 @@ install:
    - python setup.py develop
    # Install sphinx and friends to build documentation.
    # (LEEK) travis install of sphinx on Python 3.5 crashed
-   - conda install -c conda-forge sphinx
+   - pip install sphinx==1.7.2
    # Install coverage and coveralls to generate and submit test coverage results for coveralls.io.
    - echo "coverage 3.*" >> $HOME/miniconda/envs/testenv/conda-meta/pinned
    - conda install nose
