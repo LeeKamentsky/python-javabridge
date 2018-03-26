@@ -460,3 +460,11 @@ class TestJavabridge(unittest.TestCase):
         result = self.env.get_static_double_field(klass, field_id)
         self.assertAlmostEqual(result, 3.141592653589793)
         
+    def test_06_01_class_as_object(self):
+        klass_map = self.env.find_class("java/util/Map")
+        klass_map_obj = klass_map.as_class_object()
+        klass_klass = self.env.find_class("java/lang/Class")
+        method_getname = self.env.get_method_id(
+            klass_klass, "getName", "()Ljava/lang/String;")
+        jstring = self.env.call_method(klass_map_obj, method_getname)
+        self.assertEqual(self.env.get_string_utf(jstring), "java.util.Map")
