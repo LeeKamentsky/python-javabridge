@@ -126,7 +126,7 @@ cdef extern from "jni.h":
         jclass (* FindClass)(JNIEnv *env, char *name) nogil
         jclass (* GetObjectClass)(JNIEnv *env, jobject obj) nogil
         jboolean (* IsInstanceOf)(JNIEnv *env, jobject obj, jclass klass) nogil
-        jclass (* NewGlobalRef)(JNIEnv *env, jobject lobj) nogil
+        jobject (* NewGlobalRef)(JNIEnv *env, jobject lobj) nogil
         void (* DeleteGlobalRef)(JNIEnv *env, jobject gref) nogil
         void (* DeleteLocalRef)(JNIEnv *env, jobject obj) nogil
         #
@@ -800,8 +800,12 @@ cdef class JB_Env:
         if c == NULL:
             print "Failed to get class "+name
             return
+        cref = self.env[0].NewGlobalRef(self.env, c)
+        if cref == NULL:
+            return (None, MemoryError("Failed to make new global reference"))
+        self.env[0].DeleteLocalRef(self.env, c)
         result = JB_Class()
-        result.c = c
+        result.c = cref
         return result
 
     def get_object_class(self, JB_Object o):
