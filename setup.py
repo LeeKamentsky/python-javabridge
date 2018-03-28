@@ -28,12 +28,6 @@ from setuptools.command.build_ext import build_ext as _build_ext
 from distutils.command.build_clib import build_clib
 from distutils.ccompiler import CCompiler
 
-try:
-    from numpy import get_include
-except ImportError:
-    raise RuntimeError("""Numpy must be installed before installing javabridge.
-It cannot be installed automatically when pip-installing javabridge.
-See https://github.com/CellProfiler/python-javabridge/issues/30""")
 
 # Hack to avoid importing the javabridge package
 sys.path.append(os.path.join(os.path.dirname(__file__), 'javabridge'))
@@ -88,6 +82,7 @@ def get_jvm_include_dirs():
     return include_dirs
 
 def ext_modules():
+    from numpy import get_include
     extensions = []
     extra_link_args = None
     java_home = find_javahome()
@@ -172,6 +167,7 @@ def package_path(relpath):
 class build_ext(_build_ext):
     java2cpython_sources = ["java/org_cellprofiler_javabridge_CPython.c"]
     def run(self, *args, **kwargs):
+        self.distribution.ext_modules = ext_modules()
         self.build_java()
         result = build_cython()
         if self.inplace:
@@ -383,6 +379,7 @@ cell image analysis software CellProfiler (cellprofiler.org).''',
                        'Programming Language :: Python :: 3'
                        ],
           license='BSD License',
+          setup_requires=['numpy'],
           install_requires=['numpy'],
           tests_require="nose",
           entry_points={'nose.plugins.0.10': [
@@ -391,5 +388,4 @@ cell image analysis software CellProfiler (cellprofiler.org).''',
           test_suite="nose.collector",
           package_data={"javabridge": [
               'jars/*.jar', 'jars/*%s' % SO, 'VERSION']},
-          ext_modules=ext_modules(),
           cmdclass={'build_ext': build_ext})
