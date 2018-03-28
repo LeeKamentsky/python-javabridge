@@ -169,7 +169,7 @@ class build_ext(_build_ext):
 
     def __init__(self, dist):
         dist.ext_modules = ext_modules()
-        super(build_ext, self).__init__(dist)
+        _build_ext.__init__(self, dist)
 
     def run(self, *args, **kwargs):
         self.build_java()
