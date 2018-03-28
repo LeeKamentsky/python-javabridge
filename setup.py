@@ -166,8 +166,12 @@ def package_path(relpath):
 
 class build_ext(_build_ext):
     java2cpython_sources = ["java/org_cellprofiler_javabridge_CPython.c"]
+
+    def __init__(self, dist):
+        dist.ext_modules = ext_modules()
+        super(build_ext, self).__init__(dist)
+
     def run(self, *args, **kwargs):
-        self.distribution.ext_modules = ext_modules()
         self.build_java()
         result = build_cython()
         if self.inplace:
