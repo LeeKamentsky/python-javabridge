@@ -82,14 +82,13 @@ def get_jvm_include_dirs():
     return include_dirs
 
 def ext_modules():
-    from numpy import get_include
     extensions = []
     extra_link_args = None
     java_home = find_javahome()
     if java_home is None:
         raise Exception("JVM not found")
     jdk_home = find_jdk()
-    include_dirs = [get_include()] + get_jvm_include_dirs()
+    include_dirs = get_jvm_include_dirs()
     libraries = None
     library_dirs = None
     javabridge_sources = ['_javabridge.c']
@@ -167,9 +166,13 @@ def package_path(relpath):
 class build_ext(_build_ext):
     java2cpython_sources = ["java/org_cellprofiler_javabridge_CPython.c"]
 
-    def __init__(self, dist):
-        dist.ext_modules = ext_modules()
-        _build_ext.__init__(self, dist)
+    def initialize_options(self):
+        from numpy import get_include
+        _build_ext.initialize_options(self)
+        if self.include_dirs is None:
+            self.include_dirs = get_include()
+        else:
+            self.include_dirs += get_include()
 
     def run(self, *args, **kwargs):
         self.build_java()
@@ -390,6 +393,7 @@ cell image analysis software CellProfiler (cellprofiler.org).''',
                 'javabridge = javabridge.noseplugin:JavabridgePlugin'
                 ]},
           test_suite="nose.collector",
+          ext_modules=ext_modules(),
           package_data={"javabridge": [
               'jars/*.jar', 'jars/*%s' % SO, 'VERSION']},
           cmdclass={'build_ext': build_ext})
