@@ -156,7 +156,6 @@ def find_jdk():
     if is_win:
         try:
             jdk_key_path = 'SOFTWARE\\JavaSoft\\Java Development Kit'
-            WindowsError
             kjdk = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, jdk_key_path)
             kjdk_values = dict([winreg.EnumValue(kjdk, i)[:2]
                                  for i in range(winreg.QueryInfoKey(kjdk)[1])])
