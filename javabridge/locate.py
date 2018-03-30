@@ -59,6 +59,12 @@ is_msvc = (is_win and
             (sys.version_info.major == 3)))
 is_mingw = is_mingw()
 
+if is_win:
+    if sys.version_info.major == 2:
+        import _winreg as winreg
+        from exceptions import WindowsError
+    else:
+        import winreg
 
 logger = logging.getLogger(__name__)
 
@@ -121,10 +127,6 @@ def find_javahome():
         jdk_dir = os.path.abspath(jdk_dir)
         return jdk_dir
     elif is_win:
-        if sys.version_info.major == 2:
-            import _winreg as winreg
-        else:
-            import winreg
         java_key_path = 'SOFTWARE\\JavaSoft\\Java Runtime Environment'
         looking_for = java_key_path
         try:
@@ -152,13 +154,9 @@ def find_jdk():
     if is_mac:
         return find_javahome()
     if is_win:
-        if sys.version_info.major == 2:
-            import _winreg as winreg
-            from exceptions import WindowsError
-        else:
-            import winreg
         try:
             jdk_key_path = 'SOFTWARE\\JavaSoft\\Java Development Kit'
+            WindowsError
             kjdk = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, jdk_key_path)
             kjdk_values = dict([winreg.EnumValue(kjdk, i)[:2]
                                  for i in range(winreg.QueryInfoKey(kjdk)[1])])
