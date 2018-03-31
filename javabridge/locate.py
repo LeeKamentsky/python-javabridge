@@ -155,7 +155,7 @@ def find_javahome():
 
         raise RuntimeError(
             "Failed to find the Java Runtime Environment. "
-            "Please download and install the Oracle JRE or later"
+            "Please download and install the Oracle JRE 1.6 or later"
         )
 
 
