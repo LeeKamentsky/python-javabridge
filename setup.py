@@ -55,7 +55,14 @@ def build_cython():
         if os.path.exists(pyx) and needs_compilation(c, pyx)]
     if len(nc_pyx_filenames) > 0:
         cmd = ['cython'] + nc_pyx_filenames
-        subprocess.check_call(cmd)
+        try:
+            subprocess.check_call(cmd)
+        except FileNotFoundError:
+            raise RuntimeError(
+                "Failed to find Cython. "
+                "Please download and install Cython "
+                "and make it available in the path"
+            )
 
 def get_jvm_include_dirs():
     '''Return a sequence of paths to include directories for JVM defs'''
