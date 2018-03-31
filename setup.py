@@ -47,6 +47,7 @@ def build_cython():
     compile them.
 
     """
+    distutils.log.info("Building Cython extensions")
     stems = ['_javabridge', '_javabridge_mac', '_javabridge_nomac']
     pyx_filenames = [in_cwd(s + '.pyx') for s in stems]
     c_filenames = [in_cwd(s + '.c') for s in stems]
@@ -56,6 +57,7 @@ def build_cython():
     if len(nc_pyx_filenames) > 0:
         cmd = ['cython'] + nc_pyx_filenames
         subprocess.check_call(cmd)
+    assert all(map(os.path.exists, c_filenames))
 
 def get_jvm_include_dirs():
     '''Return a sequence of paths to include directories for JVM defs'''
@@ -104,7 +106,7 @@ def ext_modules():
             # Build libjvm from jvm.dll on Windows.
             # This assumes that we're using mingw32 for build
             #
-	    # generate the jvm.def file matching to the jvm.dll
+            # generate the jvm.def file matching to the jvm.dll
             cmd = ["gendef", os.path.join(jdk_home,"jre\\bin\\server\\jvm.dll")]
             p = subprocess.Popen(cmd)
             p.communicate()
@@ -175,11 +177,12 @@ class build_ext(_build_ext):
             self.include_dirs += get_include()
 
     def run(self, *args, **kwargs):
-        self.build_java()
-        result = build_cython()
         if self.inplace:
             dirty = False
             for source in self.get_source_files():
+                if not os.path.exists(source):
+                    dirty = True
+                    break
                 source_mtime = os.stat(source).st_mtime
                 for output in self.get_outputs():
                     if not os.path.isfile(output) or \
@@ -196,9 +199,11 @@ class build_ext(_build_ext):
                 dirty = True
         else:
             dirty = True
+        result = build_cython()
         if dirty:
             result = _build_ext.run(self, *args, **kwargs)
             self.build_java2cpython()
+        self.build_java()
         return result
 
     def build_jar_from_sources(self, jar, sources):
@@ -257,7 +262,7 @@ class build_ext(_build_ext):
             output_dir=output_dir,
             debug=self.debug,
             library_dirs=library_dirs,
-	    libraries=libraries,
+            libraries=libraries,
             export_symbols=export_symbols,
             extra_postargs=extra_postargs)
         if needs_manifest:
@@ -390,7 +395,7 @@ cell image analysis software CellProfiler (cellprofiler.org).''',
           install_requires=['numpy'],
           tests_require="nose",
           entry_points={'nose.plugins.0.10': [
-                'javabridge = javabridge.noseplugin:JavabridgePlugin'
+              'javabridge = javabridge.noseplugin:JavabridgePlugin'
                 ]},
           test_suite="nose.collector",
           ext_modules=ext_modules(),
