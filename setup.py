@@ -54,15 +54,12 @@ def build_cython():
         pyx for pyx, c in zip(pyx_filenames, c_filenames)
         if os.path.exists(pyx) and needs_compilation(c, pyx)]
     if len(nc_pyx_filenames) > 0:
-        cmd = ['cython'] + nc_pyx_filenames
+        cython_cmd = [sys.executable, '-m', 'cython']
+        cmd = cython_cmd + nc_pyx_filenames
         try:
             subprocess.check_call(cmd)
         except FileNotFoundError:
-            raise RuntimeError(
-                "Failed to find Cython. "
-                "Please download and install Cython "
-                "and make it available in the path"
-            )
+            raise RuntimeError("Failed to find Cython: {}".format(cython_cmd))
 
 def get_jvm_include_dirs():
     '''Return a sequence of paths to include directories for JVM defs'''
@@ -393,7 +390,7 @@ cell image analysis software CellProfiler (cellprofiler.org).''',
                        'Programming Language :: Python :: 3'
                        ],
           license='BSD License',
-          setup_requires=['numpy'],
+          setup_requires=['cython', 'numpy'],
           install_requires=['numpy'],
           tests_require="nose",
           entry_points={'nose.plugins.0.10': [
