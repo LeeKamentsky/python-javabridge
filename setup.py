@@ -56,8 +56,10 @@ def build_cython():
     if len(nc_pyx_filenames) > 0:
         cython_cmd = [sys.executable, '-m', 'cython']
         cmd = cython_cmd + nc_pyx_filenames
+        env = dict(os.environ)
+        env['PYTHONPATH'] = os.pathsep.join(sys.path)
         try:
-            subprocess.check_call(cmd)
+            subprocess.check_call(cmd, env=env)
         except FileNotFoundError:
             raise RuntimeError("Failed to find Cython: {}".format(cython_cmd))
 
