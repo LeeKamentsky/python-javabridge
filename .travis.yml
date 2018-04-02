@@ -26,8 +26,6 @@ install:
    - cd $TRAVIS_REPO_SLUG
    - conda create --use-local -n testenv python=$PYTHON_VERSION
    - source activate testenv
-   - conda install numpy
-   - conda install cython
    - python setup.py develop
    # Install sphinx and friends to build documentation.
    # (LEEK) travis install of sphinx on Python 3.5 crashed
