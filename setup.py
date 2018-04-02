@@ -168,7 +168,7 @@ class build_ext(_build_ext):
 
     def initialize_options(self):
         from numpy import get_include
-        _build_ext.initialize_options(self)
+        super(build_ext, self).initialize_options()
         if self.include_dirs is None:
             self.include_dirs = get_include()
         else:
@@ -197,7 +197,7 @@ class build_ext(_build_ext):
         else:
             dirty = True
         if dirty:
-            result = _build_ext.run(self, *args, **kwargs)
+            result = super(build_ext, self).run(*args, **kwargs)
             self.build_java2cpython()
         return result
 
