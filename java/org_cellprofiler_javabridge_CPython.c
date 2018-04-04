@@ -66,7 +66,7 @@ static char *get_property(JavaVM *vm, const char *key)
 #endif
 JavaVM *pVM;
 
-jint JNI_OnLoad(JavaVM *vm, void *reserved)
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved)
 {
 #ifdef __linux__
     char buf[1024];
