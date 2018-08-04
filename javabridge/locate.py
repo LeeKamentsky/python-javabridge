@@ -120,10 +120,15 @@ def find_javahome():
         java_bin = get_out(["bash", "-c", "type -p java"])
         java_dir = get_out(["readlink", "-f", java_bin])
         java_version_string = get_out(["bash", "-c", "java -version"])
-        if re.match('^openjdk', java_version_string) is not None:
+        if re.search('^openjdk', java_version_string, re.MULTILINE) is not None:
             jdk_dir = os.path.join(java_dir, "..", "..", "..")
-        elif re.match('^java', java_version_string) is not None:
+        elif re.search('^java', java_version_string, re.MULTILINE) is not None:
             jdk_dir = os.path.join(java_dir, "..", "..")
+        else:
+            raise RuntimeError(
+                "Failed to determine JDK vendor. "
+                "OpenJDK and Oracle JDK are supported."
+            )
         jdk_dir = os.path.abspath(jdk_dir)
         return jdk_dir
     elif is_win:
