@@ -233,7 +233,7 @@ def find_jre_bin_jdk_so():
         for jre_home in (java_home, os.path.join(java_home, "jre")):
             jre_bin = os.path.join(jre_home, 'bin')
             jre_libexec = os.path.join(jre_home, 'bin' if is_win else 'lib')
-            arches = ('amd64', 'i386') if is_linux else ('',)
+            arches = ('amd64', 'i386', '') if is_linux else ('',)
             lib_prefix = '' if is_win else 'lib'
             lib_suffix = '.dll' if is_win else ('.dylib' if is_mac else '.so')
             for arch in arches:
