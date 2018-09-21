@@ -168,6 +168,11 @@ def find_jdk():
     """Find the JDK under Windows"""
     if 'JDK_HOME' in os.environ:
         return os.environ['JDK_HOME']
+    if is_linux:
+        jdk_home = find_javahome()
+        if jdk_home.endswith("jre") or jdk_home.endswith("jre/"):
+            jdk_home = jdk_home[:jdk_home.rfind("jre")]
+        return jdk_home
     if is_mac:
         return find_javahome()
     if is_win:
