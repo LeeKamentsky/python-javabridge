@@ -270,7 +270,7 @@ class TestJutil(unittest.TestCase):
         annotations = c.getAnnotations()
         annotations = javabridge.get_env().get_object_array_elements(annotations)
         self.assertEqual(len(annotations), 1)
-        self.assertEqual(javabridge.to_string(annotations[0]),'@java.lang.Deprecated()')
+        self.assertTrue(javabridge.to_string(annotations[0]).startswith('@java.lang.Deprecated'))
         
     def test_03_06_cw_get_constructors(self):
         c = javabridge.get_class_wrapper('java.lang.String')
