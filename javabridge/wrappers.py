@@ -10,9 +10,16 @@ All rights reserved.
 
 '''
 
-import numpy as np
+import inspect
 import sys
+import numpy as np
 import javabridge as J
+
+try:
+    basestring            # Python 2
+except NameError:
+    basestring = (str, )  # Python 3
+
 
 class JWrapper(object):
     '''A class that wraps a Java object
