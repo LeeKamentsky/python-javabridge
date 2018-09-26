@@ -10,8 +10,9 @@ All rights reserved.
 
 '''
 
-import numpy as np
+import inspect
 import sys
+import numpy as np
 import javabridge as J
 
 class JWrapper(object):
