@@ -72,7 +72,7 @@ install:
    - conda create --use-local -n testenv python=$PYTHON_VERSION
    - source activate testenv
    - python setup.py develop
-   - export LD_LIBRARY_PATH=/Library/Java/JavaVirtualMachines/jdk-10.0.1.jdk/Contents/Home/lib/server;/Library/Java/JavaVirtualMachines/jdk-10.0.1.jdk/Contents/Home/lib
+   - export LD_LIBRARY_PATH=/Library/Java/JavaVirtualMachines/jdk-10.0.1.jdk/Contents/Home/lib/server:/Library/Java/JavaVirtualMachines/jdk-10.0.1.jdk/Contents/Home/lib
    - python -c 'from javabridge import start_vm, kill_vm;start_vm();kill_vm()'
    - python -c 'from javabridge.jutil import _find_mac_lib;print(_find_mac_lib("libjvm"))'
    # Install sphinx and friends to build documentation.
