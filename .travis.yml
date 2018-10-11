@@ -52,8 +52,8 @@ install:
      fi
    - |
      if [[ "$LIST_JAVAHOME" == "1" ]]; then
-     ls /Library/Java/JavaVirtualMachines/jdk-10.0.2.jdk/Contents/Home
-     ls  /Library/Java/JavaVirtualMachines/jdk-10.0.2.jdk/Contents/Libraries
+     ls /Library/Java/JavaVirtualMachines/jdk-10.0.1.jdk/Contents/Home
+     ls  /Library/Java/JavaVirtualMachines/jdk-10.0.1.jdk/Contents/Libraries
      fi
    - bash miniconda.sh -b -p $HOME/miniconda
    - export PATH="$HOME/miniconda/bin:$PATH"
