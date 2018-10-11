@@ -52,7 +52,8 @@ install:
      fi
    - |
      if [[ "$LIST_JAVAHOME" == "1" ]]; then
-     find /Library/Java/JavaVirtualMachines/jdk-10.0.1.jdk/Contents/Home/release
+     ls /Library/Internet\ Plug-Ins/JavaAppletPlugin.plugin/Contents/Home
+     ls /Library/Internet\ Plug-Ins/JavaAppletPlugin.plugin/Contents/Home/lib
      fi
    - bash miniconda.sh -b -p $HOME/miniconda
    - export PATH="$HOME/miniconda/bin:$PATH"
