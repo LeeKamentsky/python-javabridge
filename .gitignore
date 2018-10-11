@@ -17,3 +17,5 @@
 /docs/build
 /javabridge.egg-info
 /javabridge/_version.py
+/.eggs
+/javabridge/_javabridge*.so

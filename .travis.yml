@@ -72,8 +72,8 @@ install:
    - conda create --use-local -n testenv python=$PYTHON_VERSION
    - source activate testenv
    - python setup.py develop
-   - python -c 'from javabridge.jutil import _find_mac_lib;print(_find_mac_lib("libjvm"))'
    - python -c 'from javabridge import start_vm, kill_vm;start_vm();kill_vm()'
+   - python -c 'from javabridge.jutil import _find_mac_lib;print(_find_mac_lib("libjvm"))'
    # Install sphinx and friends to build documentation.
    # (LEEK) travis install of sphinx on Python 3.5 crashed
    - pip install sphinx==1.7.2

@@ -119,6 +119,7 @@ def _find_mac_lib(library):
                 lines = result.split("\n")
             if len(lines) > 0 and len(lines[0]) > 0:
                 library_path = lines[0].strip()
+                logger.error(library_path)
                 return library_path
         except Exception as e:
             logger.error("Failed to execute \"%s\" when searching for %s" % 
