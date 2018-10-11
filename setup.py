@@ -134,7 +134,7 @@ def ext_modules():
     elif is_mac:
         javabridge_sources += [ "mac_javabridge_utils.c" ]
         libraries = ["jvm"]
-        library_dirs = ["/Library/Internet Plug-Ins/JavaAppletPlugin.plugin/Contents/Home/lib"]
+        library_dirs = ["/Library/Internet\\ Plug-Ins/JavaAppletPlugin.plugin/Contents/Home/lib"]
     elif is_linux:
         library_dirs = [os.path.dirname(jvm_so)]
         libraries = ["jvm"]
