@@ -142,7 +142,7 @@ def ext_modules():
            lines = result.split("\n")
         if len(lines) > 0 and len(lines[0]) > 0:
            library_path = lines[0].strip()
-        library_dires = [os.path.dirname(library_path)]
+        library_dirs = [os.path.dirname(library_path)]
     elif is_linux:
         library_dirs = [os.path.dirname(jvm_so)]
         libraries = ["jvm"]
