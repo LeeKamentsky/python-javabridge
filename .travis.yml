@@ -46,9 +46,11 @@ install:
    # Download and configure conda.
    - |
      if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+     export PYTHON=pythonw
      wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
      else
      wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;
+     export PYTHON=python
      fi
    - |
      if [[ "$LIST_JAVAHOME" == "1" ]]; then
@@ -76,8 +78,8 @@ install:
    - conda create --use-local -n testenv python=$PYTHON_VERSION
    - source activate testenv
    - python setup.py develop
-   - python -c 'from javabridge import start_vm, kill_vm;start_vm();kill_vm()'
-   - python -c 'from javabridge.jutil import _find_mac_lib;print(_find_mac_lib("libjvm"))'
+   - $PYTHON -c 'from javabridge import start_vm, kill_vm;start_vm();kill_vm()'
+   - $PYTHON -c 'from javabridge.jutil import _find_mac_lib;print(_find_mac_lib("libjvm"))'
    # Install sphinx and friends to build documentation.
    # (LEEK) travis install of sphinx on Python 3.5 crashed
    - pip install sphinx==1.7.2
@@ -91,7 +93,7 @@ install:
    - rm -rfv $HOME/.cache/pip
 script:
    # Run tests.
-   - python setup.py nosetests
+   - $PYTHON setup.py nosetests
    # Build docs.
    - cd docs
    - make html
