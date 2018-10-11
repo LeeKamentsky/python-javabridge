@@ -1,37 +1,37 @@
 matrix:
   include:
-    - os: linux
-      jdk: oraclejdk8
-      env: PYTHON_VERSION="2.7"
-    - os: linux
-      jdk: oraclejdk9
-      env: PYTHON_VERSION="2.7"
-    - os: linux
-      jdk: openjdk8
-      env: PYTHON_VERSION="2.7"
+#    - os: linux
+#      jdk: oraclejdk8
+#      env: PYTHON_VERSION="2.7"
+#    - os: linux
+#      jdk: oraclejdk9
+#      env: PYTHON_VERSION="2.7"
+#    - os: linux
+#      jdk: openjdk8
+#      env: PYTHON_VERSION="2.7"
     - os: osx
       osx_image: xcode9.4
       env:
         - PYTHON_VERSION="2.7"
         - LIST_JAVAHOME=1
-    - os: osx
-      osx_image: xcode9.2
-      env: PYTHON_VERSION="2.7"
-    - os: linux
-      jdk: oraclejdk8
-      env: PYTHON_VERSION="3.5"
-    - os: linux
-      jdk: oraclejdk9
-      env: PYTHON_VERSION="3.5"
-    - os: linux
-      jdk: openjdk8
-      env: PYTHON_VERSION="3.5"
-    - os: osx
-      osx_image: xcode9.4
-      env: PYTHON_VERSION="3.5"
-    - os: osx
-      osx_image: xcode9.2
-      env: PYTHON_VERSION="3.5"
+#    - os: osx
+#      osx_image: xcode9.2
+#      env: PYTHON_VERSION="2.7"
+#    - os: linux
+#      jdk: oraclejdk8
+#      env: PYTHON_VERSION="3.5"
+#    - os: linux
+#      jdk: oraclejdk9
+#      env: PYTHON_VERSION="3.5"
+#    - os: linux
+#      jdk: openjdk8
+#      env: PYTHON_VERSION="3.5"
+#    - os: osx
+#      osx_image: xcode9.4
+#      env: PYTHON_VERSION="3.5"
+#    - os: osx
+#      osx_image: xcode9.2
+#      env: PYTHON_VERSION="3.5"
 
 language: java
 
@@ -52,8 +52,7 @@ install:
      fi
    - |
      if [[ "$LIST_JAVAHOME" == "1" ]]; then
-     ls /Library/Java/JavaVirtualMachines/jdk-10.0.1.jdk/Contents/Home
-     ls  /Library/Java/JavaVirtualMachines/jdk-10.0.1.jdk/Contents/Libraries
+     find /Library/Java/JavaVirtualMachines/jdk-10.0.1.jdk/Contents/Home/lib
      fi
    - bash miniconda.sh -b -p $HOME/miniconda
    - export PATH="$HOME/miniconda/bin:$PATH"
