@@ -271,6 +271,7 @@ def start_vm(args=None, class_path=None, max_heap_size=None, run_headless=False)
             if sys.platform == "darwin":
                 logger.debug("Launching VM in non-python thread")
                 library_path = _find_mac_lib("libjvm")
+                print("libjvm path: " + library_path)
                 libjli_path = _find_mac_lib("libjli")
                 if library_path is None:
                     raise Exception("Javabridge failed to find JVM library")
