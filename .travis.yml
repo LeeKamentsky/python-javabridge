@@ -72,6 +72,8 @@ install:
    - conda create --use-local -n testenv python=$PYTHON_VERSION
    - source activate testenv
    - python setup.py develop
+   - java -version
+   - which java
    - python -c 'from javabridge import start_vm, kill_vm;start_vm();kill_vm()'
    - python -c 'from javabridge.jutil import _find_mac_lib;print(_find_mac_lib("libjvm"))'
    # Install sphinx and friends to build documentation.
