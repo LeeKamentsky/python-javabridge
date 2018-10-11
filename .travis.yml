@@ -65,6 +65,10 @@ install:
      touch $HOME/miniconda/conda-meta/pinned;
      echo "conda-build ==1.16.0" >> $HOME/miniconda/conda-meta/pinned;
      fi
+   - |
+     if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+     conda install -c anaconda openjdk
+     fi
    - conda update --all
    - conda install conda-build
    # Setup environment for testing and install all dependencies and our package.
@@ -72,7 +76,6 @@ install:
    - conda create --use-local -n testenv python=$PYTHON_VERSION
    - source activate testenv
    - python setup.py develop
-   - export LD_LIBRARY_PATH=/Library/Java/JavaVirtualMachines/jdk-10.0.1.jdk/Contents/Home/lib/server:/Library/Java/JavaVirtualMachines/jdk-10.0.1.jdk/Contents/Home/lib
    - python -c 'from javabridge import start_vm, kill_vm;start_vm();kill_vm()'
    - python -c 'from javabridge.jutil import _find_mac_lib;print(_find_mac_lib("libjvm"))'
    # Install sphinx and friends to build documentation.
