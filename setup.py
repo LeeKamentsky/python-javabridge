@@ -134,7 +134,7 @@ def ext_modules():
     elif is_mac:
         javabridge_sources += [ "mac_javabridge_utils.c" ]
         libraries = ["jvm"]
-        cmd = ["find", os.path.dirname(jdk_dir), "-name", "libjvm.dylib"]
+        cmd = ["find", os.path.dirname(jdk_home), "-name", "libjvm.dylib"]
         result = subprocess.check_output(cmd)
         if type(result) == bytes:
            lines = result.decode('utf-8').split("\n")
