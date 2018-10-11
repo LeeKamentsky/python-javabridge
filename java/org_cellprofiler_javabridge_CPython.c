@@ -71,7 +71,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved)
 #ifdef __linux__
     char buf[1024];
     char *python_location = get_property(vm, "python.location");
-    const char *command = "python -c \"import sysconfig; from os.path import join; print join(sysconfig.get_config_var('LIBDIR'), sysconfig.get_config_var('multiarchsubdir')[1:], sysconfig.get_config_var('LDLIBRARY'))\"";
+    const char *command = "python -c \"import sysconfig; from os.path import join; print (join(sysconfig.get_config_var('LIBDIR'), sysconfig.get_config_var('multiarchsubdir')[1:], sysconfig.get_config_var('LDLIBRARY')))\"";
 
     if (!python_location) {
 	size_t len=1024;

@@ -18,7 +18,7 @@ public class TestCPython {
 	@Test
 	public void test_01_01_exec() {
 		try {
-			new CPython().exec("print 'Hello, world.'\n");
+			new CPython().exec("print ('Hello, world.')\n");
 		} catch (CPython.WrappedException e) {
 			fail();
 		}
@@ -41,7 +41,7 @@ public class TestCPython {
 				"thread=threading.Thread(target=do_something)\n" +
 				"thread.start()\n" +
 				"thread.join()\n" +
-				"print 'yes I did finish'\n";
+				"print ('yes I did finish')\n";
 		try {
 			System.out.print(code);
 			new CPython().exec(code);
