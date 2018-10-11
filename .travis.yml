@@ -78,6 +78,7 @@ install:
    - conda create --use-local -n testenv python=$PYTHON_VERSION
    - source activate testenv
    - which pythonw
+   - cat pythonw | head
    - $PYTHON setup.py develop
    - $PYTHON -c 'import numpy;print(numpy.__version__)'
    - $PYTHON -c 'from javabridge import start_vm, kill_vm;start_vm();kill_vm()'
