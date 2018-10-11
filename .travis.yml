@@ -77,6 +77,8 @@ install:
    - cd $TRAVIS_REPO_SLUG
    - conda create --use-local -n testenv python=$PYTHON_VERSION
    - source activate testenv
+   - which pythonw
+   - conda install numpy cython
    - python setup.py develop
    - $PYTHON -c 'from javabridge import start_vm, kill_vm;start_vm();kill_vm()'
    - $PYTHON -c 'from javabridge.jutil import _find_mac_lib;print(_find_mac_lib("libjvm"))'
