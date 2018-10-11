@@ -85,9 +85,11 @@ def find_javahome():
             path = result.strip().decode("utf-8")
             for place_to_look in (
                 os.path.join(os.path.dirname(path), "Libraries"),
-                os.path.join(path, "jre", "lib", "server")):
+                os.path.join(path, "jre", "lib", "server"),
+                    "/Library/Internet Plug-Ins/JavaAppletPlugin.plugin/Contents/Home/lib/server"):
                 # In "Java for OS X 2015-001" libjvm.dylib is a symlink to libclient.dylib
                 # which is i686 only, whereas libserver.dylib contains both architectures.
+                # Java >= 10, libjvm has moved to internet plugins subdir
                 for file_to_look in ('libjvm.dylib',
                                      'libclient.dylib',
                                      'libserver.dylib'):
