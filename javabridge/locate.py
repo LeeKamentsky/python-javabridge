@@ -86,7 +86,7 @@ def find_javahome():
             for place_to_look in (
                 os.path.join(os.path.dirname(path), "Libraries"),
                 os.path.join(path, "jre", "lib", "server"),
-                os.path.join(path, "lib", "server"):
+                os.path.join(path, "lib", "server")):
                 # In "Java for OS X 2015-001" libjvm.dylib is a symlink to libclient.dylib
                 # which is i686 only, whereas libserver.dylib contains both architectures.
                 for file_to_look in ('libjvm.dylib',
