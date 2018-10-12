@@ -80,7 +80,7 @@ MacOS X
 Windows
 ^^^^^^^
 
-If you do not have a C compiler installed, you can install Microsoft Visual C++ Build Tools to perform the compile steps. The compiler installation cab be found in https://visualstudio.microsoft.com/visual-cpp-build-tools/.
+If you do not have a C compiler installed, you can install Microsoft Visual C++ Build Tools to perform the compile steps. The compiler installation can be found in https://visualstudio.microsoft.com/visual-cpp-build-tools/.
 
 You should install a Java Development Kit (JDK) appropriate for your
 Java project. The Windows build is tested with the Oracle JDK 1.7. You
