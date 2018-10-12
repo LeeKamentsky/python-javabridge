@@ -80,8 +80,7 @@ MacOS X
 Windows
 ^^^^^^^
 
-If you do not have a C compiler installed, you can install the Windows
-SDK 7.1 and .Net Framework 4.0 to perform the compile steps.
+If you do not have a C compiler installed, you can install Microsoft Visual C++ Build Tools to perform the compile steps. The compiler installation cab be found in https://visualstudio.microsoft.com/visual-cpp-build-tools/.
 
 You should install a Java Development Kit (JDK) appropriate for your
 Java project. The Windows build is tested with the Oracle JDK 1.7. You
@@ -95,13 +94,10 @@ PATH=%PATH%;c:\\Python27;c:\\Python27\\scripts`` if Python and PIP
 installed to the default locations). The following steps should
 perform the install:
 
-1. Open a Windows SDK command prompt (found in the Start menu under
-   Microsoft Windows SDK). Set the path to Python and PIP if needed.
+1. Run Command Prompt as administrator. Set the path to Python and PIP if needed.
     
-2. Issue the commands::
+2. Issue the command::
     
-        set MSSdk=1
-        set DISTUTILS_USE_SDK=1
         pip install javabridge
 
 
