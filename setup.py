@@ -402,7 +402,9 @@ cell image analysis software CellProfiler (cellprofiler.org).''',
                 'javabridge = javabridge.noseplugin:JavabridgePlugin'
                 ]},
           test_suite="nose.collector",
-          ext_modules=ext_modules(),
+          # The extension modules are not relevant to building the egg_info
+          # but can fail if Java is not present.
+          ext_modules=ext_modules() if sys.argv[1] != 'egg_info' else [],
           package_data={"javabridge": [
               'jars/*.jar', 'jars/*%s' % SO, 'VERSION']},
           cmdclass={'build_ext': build_ext})
