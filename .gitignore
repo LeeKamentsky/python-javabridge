@@ -5,7 +5,7 @@
 *.pyc
 *.pyd
 /javabridge/jars/*java2cpython.*
-/javabridge/_javabridge.so
+/javabridge/*.so
 /python_javabridge.egg-info
 /docs/_build
 *.class
@@ -17,3 +17,4 @@
 /docs/build
 /javabridge.egg-info
 /javabridge/_version.py
+.coverage

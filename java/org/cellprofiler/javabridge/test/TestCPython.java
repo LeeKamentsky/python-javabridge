@@ -18,7 +18,7 @@ public class TestCPython {
 	@Test
 	public void test_01_01_exec() {
 		try {
-			new CPython().exec("print 'Hello, world.'\n");
+			new CPython().exec("print('Hello, world.')\n");
 		} catch (CPython.WrappedException e) {
 			fail();
 		}
@@ -33,15 +33,15 @@ public class TestCPython {
 		String code = 
 				"import javabridge\n" +
 				"import threading\n" +
-				"print 'yes I did run'\n" +
+				"print('yes I did run')\n" +
 				"def do_something()\n" +
-				"  print 'from inside thread'\n" +
+				"  print('from inside thread')\n" +
 				"  system = javabridge.JClassWrapper('java.lang.System')\n" +
 				"  system.setProperty('foo', 'bar')\n" +
 				"thread=threading.Thread(target=do_something)\n" +
 				"thread.start()\n" +
 				"thread.join()\n" +
-				"print 'yes I did finish'\n";
+				"print('yes I did finish')\n";
 		try {
 			System.out.print(code);
 			new CPython().exec(code);
