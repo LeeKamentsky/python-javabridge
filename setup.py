@@ -220,7 +220,7 @@ class build_ext(_build_ext):
 
         javac_loc = find_javac_cmd()
         dirty_jar = False
-        javac_command = [javac_loc, "-source", "6", "-target", "6"]
+        javac_command = [javac_loc]
         for source in sources:
             javac_command.append(package_path(source))
             if needs_compilation(jar, source):
