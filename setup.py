@@ -54,7 +54,7 @@ def build_cython():
         pyx for pyx, c in zip(pyx_filenames, c_filenames)
         if os.path.exists(pyx) and needs_compilation(c, pyx)]
     if len(nc_pyx_filenames) > 0:
-        cython_cmd = [sys.executable, '-m', 'cython', "-3"]
+        cython_cmd = [sys.executable, '-m', 'cython']
         cmd = cython_cmd + nc_pyx_filenames
         env = dict(os.environ)
         env['PYTHONPATH'] = os.pathsep.join(sys.path)
@@ -97,7 +97,8 @@ def ext_modules():
     if java_home is None:
         raise Exception("JVM not found")
     jdk_home = find_jdk()
-    include_dirs = get_jvm_include_dirs()
+    from numpy import get_include
+    include_dirs = [get_include()] + get_jvm_include_dirs()
     libraries = None
     library_dirs = None
     javabridge_sources = ['_javabridge.c']
@@ -220,7 +221,7 @@ class build_ext(_build_ext):
 
         javac_loc = find_javac_cmd()
         dirty_jar = False
-        javac_command = [javac_loc]
+        javac_command = [javac_loc, "-source", "8", "-target", "8"]
         for source in sources:
             javac_command.append(package_path(source))
             if needs_compilation(jar, source):
