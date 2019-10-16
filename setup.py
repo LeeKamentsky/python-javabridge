@@ -54,7 +54,7 @@ def build_cython():
         pyx for pyx, c in zip(pyx_filenames, c_filenames)
         if os.path.exists(pyx) and needs_compilation(c, pyx)]
     if len(nc_pyx_filenames) > 0:
-        cython_cmd = [sys.executable, '-m', 'cython']
+        cython_cmd = [sys.executable, '-m', 'cython', "-3"]
         cmd = cython_cmd + nc_pyx_filenames
         env = dict(os.environ)
         env['PYTHONPATH'] = os.pathsep.join(sys.path)
@@ -220,7 +220,7 @@ class build_ext(_build_ext):
 
         javac_loc = find_javac_cmd()
         dirty_jar = False
-        javac_command = [javac_loc, "-source", "6", "-target", "6"]
+        javac_command = [javac_loc]
         for source in sources:
             javac_command.append(package_path(source))
             if needs_compilation(jar, source):

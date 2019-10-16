@@ -137,6 +137,7 @@ def find_javahome():
         java_key_paths = (
             'SOFTWARE\\JavaSoft\\JRE',
             'SOFTWARE\\JavaSoft\\Java Runtime Environment',
+            'SOFTWARE\\JavaSoft\\JDK'
         )
         for java_key_path in java_key_paths:
             looking_for = java_key_path

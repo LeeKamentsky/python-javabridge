@@ -1,3 +1,4 @@
+# cython: language_level=3
 """_javabridge.pyx - low-level interface to the JVM
 
 python-javabridge is licensed under the BSD license.  See the
@@ -798,7 +799,7 @@ cdef class JB_Env:
         utf8name = name.encode('utf-8')
         c = self.env[0].FindClass(self.env, utf8name)
         if c == NULL:
-            print "Failed to get class "+name
+            print("Failed to get class "+name)
             return
         cref = self.env[0].NewGlobalRef(self.env, c)
         if cref == NULL:
@@ -1640,7 +1641,7 @@ cdef class JB_Env:
             jsize nchars
             jobject o
         u16 = u.encode("utf-16")
-        nchars = len(u16) / 2 - 1
+        nchars = len(u16) // 2 - 1
         s = u16
         o = self.env[0].NewString(self.env, <jchar *>s+1, nchars)
         if o == NULL:
