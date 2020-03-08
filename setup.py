@@ -104,6 +104,7 @@ def ext_modules():
     _, jvm_so = find_jre_bin_jdk_so()
     if is_mac:
         javabridge_sources += ['_javabridge_mac.c']
+        extra_link_args = ['-framework', 'CoreFoundation']
     else:
         javabridge_sources += ['_javabridge_nomac.c']
     if is_win:
