@@ -149,6 +149,11 @@ if sys.platform == "win32":
     #
     os.environ["PATH"] = os.environ["PATH"] + os.pathsep + _find_jvm() + \
        os.pathsep + os.path.join(find_javahome(), "bin")
+    try:
+        os.add_dll_directory(_find_jvm())
+        os.add_dll_directory(os.path.join(find_javahome(), "bin"))
+    except AttributeError:
+        logger.debug("DLL directories not added to environment, may cause problems in Python 3.8+")
     
 elif sys.platform == "darwin":
     # Has side-effect of preloading dylibs
