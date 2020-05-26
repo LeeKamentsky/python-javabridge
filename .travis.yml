@@ -1,6 +1,6 @@
 language: java
 env:
-   - PYTHON_VERSION="3.5"
+   - PYTHON_VERSION="3.6"
 jdk:
    - oraclejdk9
    - oraclejdk11
