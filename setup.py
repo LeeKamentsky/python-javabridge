@@ -397,8 +397,13 @@ cell image analysis software CellProfiler (cellprofiler.org).''',
                        'Programming Language :: Python :: 3'
                        ],
           license='BSD License',
-          setup_requires=['cython', 'numpy'],
-          install_requires=['numpy'],
+          setup_requires=[
+		  'Cython>=0.29.16',
+		  'numpy>=1.18.2',
+	  ],
+          install_requires=[
+		  'numpy>=1.18.2',
+	  ],
           tests_require="nose",
           entry_points={'nose.plugins.0.10': [
                 'javabridge = javabridge.noseplugin:JavabridgePlugin'
