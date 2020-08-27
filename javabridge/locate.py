@@ -70,7 +70,10 @@ logger = logging.getLogger(__name__)
 
 def find_javahome():
     """Find JAVA_HOME if it doesn't exist"""
-    if 'JAVA_HOME' in os.environ:
+    if 'CP_JAVA_HOME' in os.environ:
+        # Prefer CellProfiler's JAVA_HOME if it's set.
+        return os.environ['CP_JAVA_HOME']
+    elif 'JAVA_HOME' in os.environ:
         return os.environ['JAVA_HOME']
     elif is_mac:
         # Use the "java_home" executable to find the location
