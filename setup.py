@@ -381,7 +381,7 @@ if __name__ == '__main__':
         os.chdir(os.path.dirname(__file__))
 
     setup(name="python-javabridge",
-          version="4.0.0rc2",
+          version="4.0.0rc3",
           description="Python wrapper for the Java Native Interface",
           long_description='''The python-javabridge package makes it easy to start a Java virtual
 machine (JVM) from Python and interact with it. Python code can
