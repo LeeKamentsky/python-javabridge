@@ -101,3 +101,7 @@ void MacRunLoopRunInMode(double timeInterval);
  ****************************************************************************/
  
 void MacRunLoopStop();
+
+void StopVM(JavaVM *vm);
+
+int CreateJavaVM(JavaVM **pvm, void **pEnv, void *args);
