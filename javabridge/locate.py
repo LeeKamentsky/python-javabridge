@@ -236,7 +236,7 @@ def find_jre_bin_jdk_so():
     java_home = find_javahome()
     if java_home is not None:
         found_jvm = False
-        for jre_home in (java_home, os.path.join(java_home, "jre"), os.path.join(java_home, 'default-java')):
+        for jre_home in (java_home, os.path.join(java_home, "jre"), os.path.join(java_home, 'default-java'), os.path.join(java_home, 'default-runtime')):
             jre_bin = os.path.join(jre_home, 'bin')
             jre_libexec = os.path.join(jre_home, 'bin' if is_win else 'lib')
             arches = ('amd64', 'i386', '') if is_linux else ('',)
