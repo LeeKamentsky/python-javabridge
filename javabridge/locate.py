@@ -72,14 +72,13 @@ def find_javahome():
     """Find JAVA_HOME if it doesn't exist"""
     if is_win and hasattr(sys, "frozen"):
         # If we're frozen we probably have a packaged java environment.
-        if 'CP_JAVA_HOME' in os.environ:
-            app_path = os.path.dirname(sys.executable)
-            java_path = os.path.join(app_path, 'java')
-            if os.path.exists(java_path):
-                return java_path
+        app_path = os.path.dirname(sys.executable)
+        java_path = os.path.join(app_path, 'java')
+        if os.path.exists(java_path):
+            return java_path
         else:
-            # Allow user to override java install by unsetting CP_JAVA_HOME, for whatever reason.
-            print("CP_JAVA_HOME registry key not found, searching for java elsewhere.")
+            # Can use env from CP_JAVA_HOME or JAVA_HOME by removing the CellProfiler/java folder.
+            print("Packaged java environment not found, searching for java elsewhere.")
     if 'CP_JAVA_HOME' in os.environ:
         # Prefer CellProfiler's JAVA_HOME if it's set.
         return os.environ['CP_JAVA_HOME']
