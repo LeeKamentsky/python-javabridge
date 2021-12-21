@@ -620,7 +620,7 @@ class TestJutil(unittest.TestCase):
             "baz", a)
         d = make_run_dictionary(o)
         self.assertIn("foo", d)
-        self.assertEquals(d["foo"], "bar")
+        self.assertEqual(d["foo"], "bar")
         self.assertIn("baz", d)
         self.assertTrue(javabridge.call(d["baz"], "equals", 
                                         "(Ljava/lang/Object;)Z", a))

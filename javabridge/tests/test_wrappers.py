@@ -15,18 +15,18 @@ class TestJWrapper(unittest.TestCase):
     def test_01_01_init(self):
         jobj = J.get_env().new_string(u"Hello, world.")
         obj = J.JWrapper(jobj)
-        self.assertEquals(jobj, obj.o)
+        self.assertEqual(jobj, obj.o)
 
     def test_01_02_call_noargs(self):
         jobj = J.get_env().new_string(u"Hello, world.")
         obj = J.JWrapper(jobj)
-        self.assertEquals(obj.toLowerCase(), "hello, world.")
+        self.assertEqual(obj.toLowerCase(), "hello, world.")
 
     def test_01_03_call_args(self):
         jobj = J.get_env().new_string(u"Hello, world.")
         obj = J.JWrapper(jobj)
         result = obj.replace("Hello,", "Goodbye cruel")
-        self.assertEquals(result, "Goodbye cruel world.")
+        self.assertEqual(result, "Goodbye cruel world.")
 
     def test_01_04_call_varargs(self):
         sclass = J.JWrapper(J.class_for_name("java.lang.String"));
@@ -41,52 +41,52 @@ class TestJWrapper(unittest.TestCase):
     def test_02_01_get_field(self):
         obj = J.JClassWrapper("org.cellprofiler.javabridge.test.RealRect")(
             1.5, 2.5, 3.5, 4.5)
-        self.assertEquals(obj.x, 1.5)
+        self.assertEqual(obj.x, 1.5)
 
     def test_02_02_set_field(self):
         obj = J.JClassWrapper("org.cellprofiler.javabridge.test.RealRect")(
             1.5, 2.5, 3.5, 4.5)
         obj.x = 2.5
-        self.assertEquals(obj.x, 2.5)
+        self.assertEqual(obj.x, 2.5)
 
 class TestJClassWrapper_Unboxing(unittest.TestCase):
     def setUp(self):
         self.i = J.JClassWrapper('java.lang.Integer')(3)
 
     def test_01_01_int(self):
-        self.assertEquals(int(self.i), 3)
+        self.assertEqual(int(self.i), 3)
     
     def test_01_02_float(self):
-        self.assertEquals(float(self.i),3.0)
+        self.assertEqual(float(self.i),3.0)
     
     def test_01_03_str(self):
-        self.assertEquals(str(self.i), '3')
+        self.assertEqual(str(self.i), '3')
 
 class TestJClassWrapper_Collection(unittest.TestCase):
     def setUp(self):
         self.a = J.JClassWrapper('java.util.ArrayList')()
-        self.assertEquals(len(self.a), 0)
+        self.assertEqual(len(self.a), 0)
         self.ints = [0,1,2,4,8,16]
-        self.assertEquals(len(self.ints), 6)
+        self.assertEqual(len(self.ints), 6)
         for i in self.ints:
             self.a.add(i)
 
     def test_01_01_get_len(self):
-        self.assertEquals(len(self.a), len(self.ints))
+        self.assertEqual(len(self.a), len(self.ints))
 
     def test_01_02_iterate(self):
         for x,y in zip(self.a, self.ints):
-            self.assertEquals(x.intValue(), y)
+            self.assertEqual(x.intValue(), y)
 
     def test_01_03_get_index(self):
         for i in range(len(self.a)):
-            self.assertEquals(self.a[i].intValue(), self.ints[i])
+            self.assertEqual(self.a[i].intValue(), self.ints[i])
 
     def test_01_04_set_index(self):
         for i in range(len(self.a)):
             self.a[i] = 10
         for i in range(len(self.a)):
-            self.assertEquals(self.a[i].intValue(), 10)
+            self.assertEqual(self.a[i].intValue(), 10)
 
 class TestJClassWrapper(unittest.TestCase):
     def test_01_01_init(self):
@@ -95,11 +95,11 @@ class TestJClassWrapper(unittest.TestCase):
     def test_01_02_field(self):
         c = J.JClassWrapper("java.lang.Short")
         field = c.MAX_VALUE
-        self.assertEquals(field, (1 << 15)-1)
+        self.assertEqual(field, (1 << 15)-1)
 
     def test_02_03_static_call(self):
         c = J.JClassWrapper("java.lang.Integer")
-        self.assertEquals(c.toString(123), "123")
+        self.assertEqual(c.toString(123), "123")
 
     def test_02_04_static_call_varargs(self):
         #
@@ -107,9 +107,9 @@ class TestJClassWrapper(unittest.TestCase):
         # arguments.
         #
         c = J.JClassWrapper("java.lang.String")
-        self.assertEquals(c.format("Hello, %s.", "world"),
+        self.assertEqual(c.format("Hello, %s.", "world"),
                                    "Hello, world.")
-        self.assertEquals(c.format("Goodbye %s %s.", "cruel", "world"),
+        self.assertEqual(c.format("Goodbye %s %s.", "cruel", "world"),
                           "Goodbye cruel world.")
 
     def test_02_05_constructor_varargs(self):
@@ -163,7 +163,7 @@ class TestJProxy(unittest.TestCase):
             return "foo"
         proxy = J.JProxy('java.util.concurrent.Callable',
                          dict(call = call))
-        self.assertEquals(J.JWrapper(proxy.o).call(), "foo")
+        self.assertEqual(J.JWrapper(proxy.o).call(), "foo")
 
 if __name__=="__main__":
     import javabridge
