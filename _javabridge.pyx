@@ -1082,27 +1082,27 @@ cdef class JB_Env:
             result = unichr(cresult)
         elif sig == 'S':
             with nogil:
-                sresult = jnienv[0].CallShortMethodA(jnienv, klass, m_id, values)
+                sresult = jnienv[0].CallStaticShortMethodA(jnienv, klass, m_id, values)
             result = sresult
         elif sig == 'I':
             with nogil:
-                iresult = jnienv[0].CallIntMethodA(jnienv, klass, m_id, values)
+                iresult = jnienv[0].CallStaticIntMethodA(jnienv, klass, m_id, values)
             result = iresult
         elif sig == 'J':
             with nogil:
-                jresult = jnienv[0].CallLongMethodA(jnienv, klass, m_id, values)
+                jresult = jnienv[0].CallStaticLongMethodA(jnienv, klass, m_id, values)
             result = jresult
         elif sig == 'F':
             with nogil:
-                fresult = jnienv[0].CallFloatMethodA(jnienv, klass, m_id, values)
+                fresult = jnienv[0].CallStaticFloatMethodA(jnienv, klass, m_id, values)
             result = fresult
         elif sig == 'D':
             with nogil:
-                dresult = jnienv[0].CallDoubleMethodA(jnienv, klass, m_id, values)
+                dresult = jnienv[0].CallStaticDoubleMethodA(jnienv, klass, m_id, values)
             result = dresult
         elif sig[0] == 'L' or sig[0] == '[':
             with nogil:
-                oresult = jnienv[0].CallObjectMethodA(jnienv, klass, m_id, values)
+                oresult = jnienv[0].CallStaticObjectMethodA(jnienv, klass, m_id, values)
             if oresult == NULL:
                 result = None
             else:
@@ -1110,7 +1110,7 @@ cdef class JB_Env:
                 if e is not None:
                     raise e
         elif sig == 'V':
-            self.env[0].CallVoidMethodA(self.env, c.c, m.id, values)
+            self.env[0].CallStaticVoidMethodA(self.env, c.c, m.id, values)
             result = None
         else:
             free(<void *>values)
