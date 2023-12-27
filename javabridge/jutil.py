@@ -152,7 +152,7 @@ if sys.platform == "win32":
     try:
         os.add_dll_directory(_find_jvm())
         os.add_dll_directory(os.path.join(find_javahome(), "bin"))
-    except AttributeError:
+    except (AttributeError, FileNotFoundError):
         logger.debug("DLL directories not added to environment, may cause problems in Python 3.8+")
     
 elif sys.platform == "darwin":
