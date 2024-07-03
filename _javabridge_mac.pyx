@@ -31,11 +31,11 @@ cdef extern from "mac_javabridge_utils.h":
     int MacIsMainThread() nogil
     void MacRunLoopRunInMode(double) nogil
 
-cdef void StopVM(JavaVM *vm):
+cdef void StopVM(JavaVM *vm) noexcept:
      MacStopVM()
 
 #
 # Unused stub in Mac
 #
-cdef int CreateJavaVM(JavaVM **pvm, void **pEnv, void *args):
+cdef int CreateJavaVM(JavaVM **pvm, void **pEnv, void *args) noexcept:
     return -1
