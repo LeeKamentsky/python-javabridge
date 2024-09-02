@@ -133,7 +133,17 @@ def find_javahome():
         java_dir = get_out(["readlink", "-f", java_bin])
         java_version_string = get_out(["bash", "-c", "java -version"])
         if re.search('^openjdk', java_version_string, re.MULTILINE) is not None:
-            jdk_dir = os.path.join(java_dir, "..", "..", "..")
+            pattern = 'openjdk version "([^"]+)"'
+            match = re.search(pattern, java_version_string, re.MULTILINE)
+            if match:
+                version = match.groups()[0]
+                if version < "1.8":
+                    jdk_dir = os.path.join(java_dir, "..", "..", "..")
+                else:
+                    jdk_dir = os.path.join(java_dir, "..", "..")
+            else:
+                raise RuntimeError("Failed to parse version from %s" % 
+                                   java_version_string)
         elif re.search('^java', java_version_string, re.MULTILINE) is not None:
             jdk_dir = os.path.join(java_dir, "..", "..")
         else:
