@@ -115,7 +115,7 @@ def ext_modules():
             # Build libjvm from jvm.dll on Windows.
             # This assumes that we're using mingw32 for build
             #
-	    # generate the jvm.def file matching to the jvm.dll
+        # generate the jvm.def file matching to the jvm.dll
             cmd = ["gendef", os.path.join(jdk_home,"jre\\bin\\server\\jvm.dll")]
             p = subprocess.Popen(cmd)
             p.communicate()
@@ -381,7 +381,7 @@ if __name__ == '__main__':
         os.chdir(os.path.dirname(__file__))
 
     setup(name="python-javabridge",
-          version="4.0.3",
+          version="4.0.4",
           description="Python wrapper for the Java Native Interface",
           long_description='''The python-javabridge package makes it easy to start a Java virtual
 machine (JVM) from Python and interact with it. Python code can
@@ -398,12 +398,12 @@ cell image analysis software CellProfiler (cellprofiler.org).''',
                        ],
           license='BSD License',
           setup_requires=[
-		  'Cython>=0.29.16',
-		  'numpy>=1.20.1',
-	  ],
+          'Cython>=0.29.16,<3',
+          'numpy<2',
+         ],
           install_requires=[
-		  'numpy>=1.20.1',
-	  ],
+          'numpy>=1.20.1,<2',
+          ],
           tests_require="nose",
           entry_points={'nose.plugins.0.10': [
                 'javabridge = javabridge.noseplugin:JavabridgePlugin'

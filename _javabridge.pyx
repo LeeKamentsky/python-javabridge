@@ -14,6 +14,7 @@ import numpy as np
 import sys
 import threading
 cimport numpy as np
+np.import_array()
 cimport cython
 cimport _javabridge_osspecific
 cimport cpython
@@ -43,10 +44,7 @@ cdef extern from "numpy/arrayobject.h":
         cdef char *data
         cdef Py_intptr_t *dimensions
         cdef Py_intptr_t *strides
-    cdef void import_array()
     cdef int  PyArray_ITEMSIZE(np.ndarray)
-
-import_array()
 
 cdef extern from "jni.h":
     enum:
