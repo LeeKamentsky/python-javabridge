@@ -1008,6 +1008,14 @@ cdef class JB_Env:
             if oresult == NULL:
                 result = None
             else:
+                # call apparently succeeded, however:
+                # make_jb_object will call back into JNI to make global ref, which
+                # triggers JNI warnings that we did not check for exceptions
+                # calling code should be doing this as well - but it doesn't
+                # have the opportunity to do so before the next JNI call in this
+                # path.
+                jnienv[0].ExceptionOccurred(jnienv)
+
                 result, e = make_jb_object(self, oresult)
                 if e is not None:
                     raise e
@@ -1106,6 +1114,14 @@ cdef class JB_Env:
             if oresult == NULL:
                 result = None
             else:
+                # call apparently succeeded, however:
+                # make_jb_object will call back into JNI to make global ref, which
+                # triggers JNI warnings that we did not check for exceptions
+                # calling code should be doing this as well - but it doesn't
+                # have the opportunity to do so before the next JNI call in this
+                # path.
+                jnienv[0].ExceptionOccurred(jnienv)
+
                 result, e = make_jb_object(self, oresult)
                 if e is not None:
                     raise e
