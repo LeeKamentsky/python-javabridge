@@ -97,7 +97,8 @@ def ext_modules():
     if java_home is None:
         raise Exception("JVM not found")
     jdk_home = find_jdk()
-    include_dirs = get_jvm_include_dirs()
+    from numpy import get_include
+    include_dirs = [get_include()] + get_jvm_include_dirs()
     libraries = None
     library_dirs = None
     javabridge_sources = ['_javabridge.c']
