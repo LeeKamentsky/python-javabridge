@@ -200,7 +200,7 @@ class vm():
     def __exit__(self, type, value, traceback):
         kill_vm()
 
-def start_vm(args=None, class_path=None, max_heap_size=None, run_headless=False):
+def start_vm(args=None, class_path=None, max_heap_size=None, run_headless=False,as_daemon=True):
     '''Start the Java Virtual Machine.
 
     :param args: a list of strings, encoding arbitrary startup options
@@ -311,7 +311,7 @@ def start_vm(args=None, class_path=None, max_heap_size=None, run_headless=False)
             vm.destroy()
         __dead_event.set()
         
-    __start_thread = threading.Thread(target=start_thread)
+    __start_thread = threading.Thread(target=start_thread,daemon=as_daemon)
     __start_thread.setName("JVMMonitor")
     __start_thread.start()
     start_event.wait()
