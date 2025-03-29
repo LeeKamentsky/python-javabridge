@@ -1246,9 +1246,17 @@ def get_nice_result(result, sig):
         rklass = env.get_object_class(result)
         m = env.get_method_id(rklass, 'getClass', '()Ljava/lang/Class;')
         rclass = env.call_method(result, m)
+        x = env.exception_occurred()
+        if x is not None:
+            raise JavaException(x)
+
         rkklass = env.get_object_class(rclass)
         m = env.get_method_id(rkklass, 'isPrimitive', '()Z')
         is_primitive = env.call_method(rclass, m)
+        x = env.exception_occurred()
+        if x is not None:
+            raise JavaException(x)
+
         if is_primitive:
             rc = get_class_wrapper(rclass, True)
             classname = rc.getCanonicalName()
